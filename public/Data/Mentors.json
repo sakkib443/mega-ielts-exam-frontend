@@ -1,0 +1,219 @@
+[
+  {
+    "id": 1,
+    "name": "Sheikh Sakibul Hasan",
+    "designation": "Department Head",
+    "subject": "Web Development",
+    "specialized_area": ["Web Development", "MERN", "Wordpress", "PHP"],
+    "education_qualification": [
+      "BSc in Computer Science",
+      "Diploma In Web Development",
+      "Diploma In Merchandising"
+      
+    ],
+    "work_experience": [
+      "Web Development For Freelancing(Level-3), NSDA",
+      "Trainer, CEDP Project, National University, Bangladesh",
+      "Former Trainer Bangladesh Computer Council (B.C.C)",
+      "Guest Trainer BUTEX",
+      "Freelancer"
+    ],
+    "training_experience": {
+      "years": "6",
+      "students": "4000"
+    },
+    "image": "https://i.ibb.co.com/3mzjHw60/aa.jpg",
+    "details": "Sheikh Sakibul Hasan is a Department Head specializing in Web Development. With a strong foundation in Graphic Design, Brand Design, Logo Design, Animation, they have educated over 4000 students across 10 years. They are known for their commitment to excellence and creativity in professional training.",
+    "lifeJourney": "Sheikh Sakibul Hasan began their journey in the world of education and professional training with a passion for Graphic Design. After completing their studies in MBS (Accounting), they quickly realized the importance of staying ahead in the digital and creative fields. With further education including Diploma In Graphic Design, Diploma In Merchandising, CBT&A (Level 5), they became proficient in various aspects of Brand Design. Their early work experience at places like Former Trainer Bangladesh Computer Council (B.C.C) and Guest Trainer BUTEX shaped their understanding of both the academic and corporate training sectors. As they continued teaching and mentoring students, their impact grew—eventually training more than 4000 students over the course of 10 years. Today, Sheikh Sakibul Hasan is recognized not only for their expertise but also for their inspirational teaching methods and ability to connect with learners from all backgrounds. They remain dedicated to nurturing the next generation of professionals, always adapting to new trends and technologies to keep their training relevant and impactful."
+  },
+  {
+    "id": 2,
+    "name": "Ashraf Hossain",
+    "designation": "Department Head",
+    "subject": "Digital Marketing",
+    "specialized_area": [
+      "Digital Marketing",
+      "SEO ",
+      "Social Media Marketing",
+      "Facebook & Google Ads"
+    ],
+    "education_qualification": [
+      "BBA in Marketing",
+      "Certified Digital Marketing Expert (Google)",
+      "Professional Diploma in Social Media Marketing"
+    ],
+    "work_experience": [
+      "Former UI Designer at TechnoNext",
+      "Lead Trainer at Bdcalling Academy",
+      "Freelance Web Designer"
+    ],
+    "training_experience": {
+      "years": "8",
+      "students": "3000"
+    },
+    "image": "https://i.ibb.co.com/nNwG33GZ/Untitled-1.jpg",
+    "details": "Ashraf Hossain is the Department Head specializing in Digital Marketing. With expertise in UI/UX Design, Web Design, Front-End Development, and Design Thinking, he has trained over 3000 students over the past 8 years. His sessions are known for creativity, clarity, and career-focused mentoring.",
+    "lifeJourney": "Ashraf Hossain began his professional journey with a strong academic foundation in Marketing, completing his BBA with a major in Marketing. Driven by a deep interest in digital media and online branding, he went on to become a Certified Digital Marketing Expert by Google and earned a Professional Diploma in Social Media Marketing.His early experience as a UI Designer at TechnoNext and later as the Lead Trainer at Creative IT gave him a unique edge in combining design thinking with marketing strategy. Ashraf quickly established himself as a leading Digital Marketing Trainer, mentoring over 3000+ students across multiple institutions and platforms.His teaching approach is known for being practical, data-driven, and trend-oriented, focusing on SEO, paid ads, content strategy, and social media campaigns. Currently serving as a Department Head, he continues to lead with vision, ensuring that his students are not only job-ready but also future-ready in the ever-evolving digital marketing landscape."
+  },
+  {
+    "id": 3,
+    "name": "Md. Abu Sayeed",
+    "designation": "Department Head",
+    "subject": "Graphic Design",
+    "specialized_area": [
+      "Graphic Design",
+      "UI/UX Design",
+      "Adobe Premier Pro",
+      "Adobe After Effect"
+    ],
+    "education_qualification": [
+      "MSC in Geography & Environment",
+      "Diploma in Graphic Design",
+      "Diploma In Computer Software Application",
+      "Graphic Design Assessor & Trainer CBT&A (Level-4)"
+    ],
+    "work_experience": [
+      "Graphic Design Assessor & Trainer CBT&A (Level-4), BTEB & NSDA",
+      "Master Trainer, SEIP-Project, Bangladesh Ministry Of ICT",
+      "Trainer, LGSP-Project, DC Office, Bogura",
+      "Guest Instructor, NECTAR",
+      "Mentor, LEDP-Project, BCS-PRIMAX Software (Bangladesh) Ltd & Pencil Box",
+      "Mentor, Asset-Project, SAIC Group",
+      "Mentor, BYETS-Project, Swisscontact",
+      "Graphic Design In-charge, SEO Experte Bangladesh Ltd",
+      "Freelancer"
+    ],
+    "training_experience": {
+      "years": "12",
+      "students": "4500"
+    },
+    "image": "https://i.ibb.co.com/WNQ0XM7K/62703f6e-1879-433f-8196-bd209f54cb7a.jpg",
+    "details": "Md. Abu Sayeed is a Department Head specializing in Graphic Design. With a strong foundation in Graphic Design, Brand Design, Logo Design, and Animation, he has educated over 4500 students across 12 years. He is known for his commitment to excellence and creativity in professional training.",
+    "lifeJourney": "Md. Abu Sayeed began his journey in the world of education and professional training with a passion for Graphic Design. After completing his MSC in Geography & Environment, he quickly realized the importance of staying ahead in the digital and creative fields. With further education including a Diploma in Graphic Design and certification as an Assessor & Trainer CBT&A (Level-4), he became proficient in various aspects of Brand Design. His early work experiences at places like the SEIP-Project under the Bangladesh Ministry Of ICT and the LEDP-Project by BCS-PRIMAX Software & Pencil Box gave him deep insight into both academic and corporate training sectors. As he continued teaching and mentoring students, his impact grew—eventually training more than 4500 students over the course of 12 years. Today, Md. Abu Sayeed is recognized not only for his expertise but also for his inspirational teaching methods and ability to connect with learners from all backgrounds. He remains dedicated to nurturing the next generation of professionals, always adapting to new trends and technologies to keep his training relevant and impactful."
+  },
+  {
+    "id": 7,
+    "name": "Zayed Uddin",
+    "designation": "UX/UI Designer",
+    "subject": "UX/UI Design",
+    "specialized_area": [
+      "User Experience Design",
+      "User Interface Design",
+      "Design Thinking",
+      "Figma",
+      "Adobe XD"
+    ],
+    "education_qualification": [
+      "BSc in Computer Science",
+      "Diploma in UX/UI Design",
+      "Certification in Human-Centered Design"
+    ],
+    "work_experience": [
+      "Lead UX Designer at Creative IT",
+      "Former UI Specialist at TechSoft Ltd.",
+      "Freelance Designer (Upwork, Fiverr)"
+    ],
+    "training_experience": {
+      "years": "16",
+      "students": "2500"
+    },
+    "image": "https://i.ibb.co/JWzZ3975/Jahid-1.jpg",
+    "details": "Zayed Uddin is a UX/UI Designer with a deep understanding of user-centered design principles. He has trained over 2500 students in the field of UX/UI Design and is known for his interactive and practical teaching style. Zayed believes in blending creativity with usability to create meaningful digital experiences.",
+    "lifeJourney": "Zayed Uddin started his design journey with a passion for improving user interactions. With a background in Computer Science and additional certifications in UX/UI Design, he developed expertise in tools like Figma and Adobe XD. His professional journey includes leading design projects at Creative IT and mentoring aspiring designers. As a freelance designer, he gained exposure to international projects which refined his design thinking process. His dedication to teaching has led him to train over 2500 students in the last 5 years. Zayed continues to evolve as a designer and educator, focusing on equipping students with real-world design skills and keeping pace with the latest trends in UX/UI."
+  },
+  {
+    "id": 4,
+    "name": "Topu Bhowmick",
+    "designation": "Assistant Mentor",
+    "subject": "Digital Marketing",
+    "specialized_area": [
+      "Digital Marketing",
+      "Facebook Ads",
+      "Google Ads",
+      "SEO"
+    ],
+    "education_qualification": [
+      "MA in English",
+
+      "BA in English",
+      "Higher Secondary School Certificate",
+      "Secondary School Certificate",
+      "Training: Certified in Digital Marketing"
+    ],
+    "work_experience": [
+      "Assistant Mentor, BDCalling Academy",
+      "Certified NSDA Level 3 Digital Marketing For Freelancing",
+      "Digital Marketing Practitioner & Strategist",
+      "Campaign Manager for Various Local Businesses",
+      "Freelancer"
+    ],
+    "training_experience": {
+      "years": "3",
+      "students": "500"
+    },
+    "image": "https://i.ibb.co.com/HfNqTdXb/87334573-ba03-4896-a857-eae19a29aed9.jpg",
+    "details": "Topu Bhowmick is an Assistant Mentor in Digital Marketing with expertise in Facebook Ads, Google Ads, SEO, Affiliate Marketing, Google Analytics, Google Search Console, and Social Media Marketing. He is passionate about helping students and businesses grow through effective digital strategies, ad campaigns, and data-driven marketing solutions.",
+    "lifeJourney": "Topu Bhowmick began his journey in the digital marketing world with a deep interest in how the digital landscape shapes modern business. Motivated by this curiosity, he started developing his skills in areas such as Facebook Ads, Google Ads, SEO, Affiliate Marketing, Google Analytics, Google Search Console, and Social Media Marketing. Through continuous learning and practical application, he transformed his passion into professional expertise. Over the years, he has worked on various campaigns and digital projects that helped sharpen his technical abilities and strategic thinking. As an Assistant Mentor, he has had the privilege of guiding students and young professionals to build solid foundations in digital marketing. His teaching focuses on hands-on experience, real-world problem solving, and staying updated with the latest tools and trends. He is committed to empowering the next generation of marketers and making a lasting impact on the businesses and communities he works with."
+  },
+  {
+    "id": 122,
+    "name": "Saide Bin Sabid",
+    "designation": "Assistant Mentor",
+    "subject": " MERN Stack",
+    "specialized_area": [
+      "Full-Stack Web Development",
+      "MERN Stack",
+      "Next.js",
+      "React",
+      "REST API Development"
+    ],
+    "education_qualification": [
+      "Bachelor of Computer Science & Engineering, United International University (2024)",
+      "Higher Secondary Certificate (HSC), Govt. Sayed Hatem Ali College, Barisal (2019)",
+      "Secondary School Certificate (SSC), Barisal Zilla School (2017)"
+    ],
+    "work_experience": [
+      "Assistant Mentor – MERN Stack, Bdcalling Academy",
+      "AI & Web Design Coding Instructor, Dreamers Academy",
+      "Full-Stack Web Developer (Project-Based & Freelance Work)"
+    ],
+    "training_experience": {
+      "years": "4+",
+      "students": "Hundreds"
+    },
+    "image": "https://i.ibb.co/N6DNBVb1/Bapon.jpg",
+    "details": "Saide Bin Sabid is an Assistant Mentor – MERN Stack specializing in Web Development. He focuses on building modern, scalable, and user-friendly web applications using the MERN stack and Next.js. Alongside development, he actively mentors students and junior developers, helping them gain practical, real-world coding experience.",
+    "lifeJourney": "Saide Bin Sabid began his journey in technology with a strong interest in problem-solving and software development. While completing his Bachelor’s degree in Computer Science & Engineering at United International University, he built a solid foundation in full-stack web development. Through hands-on projects involving authentication, payments, and role-based systems, he gained real-world experience. His passion for teaching led him to work as an AI and Web Design Coding Instructor, where he guided learners through JavaScript, APIs, and responsive design. Currently, as an Assistant Mentor – MERN Stack, he continues to support students by combining industry-focused development skills with effective mentoring, helping shape the next generation of developers."
+  },
+
+  {
+    "id": 5,
+    "name": "Nengminza Bapon",
+    "designation": "Senior Instructor",
+    "subject": "Photography & Cinematography",
+    "specialized_area": [
+      "Portrait Photography",
+      "Event Photography",
+      "Cinematography",
+      "Video Editing",
+      "Color Grading"
+    ],
+    "education_qualification": [
+      "Bachelor in Film & Media",
+      "Diploma in Cinematography",
+      "Certificate in Advanced Photography"
+    ],
+    "work_experience": [
+      "Former Cinematographer at FrameWorks Studio",
+      "Photography Consultant at Wedding Art",
+      "Freelance Filmmaker"
+    ],
+    "training_experience": {
+      "years": "5",
+      "students": "2500"
+    },
+    "image": "https://i.ibb.co/N6DNBVb1/Bapon.jpg",
+    "details": "Nengminza Bapon is a passionate and experienced instructor in Photography and Cinematography. Known for his creativity and sharp visual sense, he has trained over 2500 students in various aspects of photography, filmmaking, and video production. His ability to blend technical skills with artistic storytelling makes his sessions both practical and inspiring.",
+    "lifeJourney": "Nengminza Bapon began his journey with a deep fascination for visual storytelling. After completing his Bachelor in Film & Media, he went on to specialize in both photography and cinematography, earning a Diploma and various certifications. His professional experience as a cinematographer and freelance filmmaker shaped his unique perspective on capturing moments that speak beyond words. Over the past five years, he has shared his knowledge with more than 2500 students, helping them master the craft of photography and video production. As a Senior Instructor, Bapon continues to innovate, guiding aspiring visual artists with a blend of technical precision and creative flair. His training style is deeply engaging, ensuring that learners not only gain skills but also develop a strong visual language of their own."
+  }
+]

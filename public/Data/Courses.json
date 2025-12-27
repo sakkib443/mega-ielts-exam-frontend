@@ -1,0 +1,1760 @@
+[
+  {
+    "id": 1,
+    "title": "Mastering MERN Stack Web Development",
+    "category": "Programming",
+    "type": "Offline",
+    "image": "https://i.ibb.co/XZ78JQ9f/Mern-card.jpg",
+    "fee": "20000৳",
+    "rating": 5,
+    "totalRating": 985,
+    "totalStudentsEnroll": 1260,
+    "instructorName": "Sheikh Sakibul Hasan",
+    "designation": "Department Head",
+    "subject": "Web Development",
+    "instructorImg": "https://i.ibb.co.com/7xY7G6rK/472009300-557526777119280-533781909713140935-n.jpg",
+    "instructorReviews": 150,
+    "instructorExperience": "5+ years in Full Stack Development",
+    "instructorBio": "Sheikh Sakibul Hasan is a seasoned full-stack developer with over 5 years of experience in building scalable web applications. He specializes in the MERN stack and has a passion for teaching and mentoring aspiring developers.",
+    "technology": "MongoDB, Express.js, React, Node.js, Redux, TypeScript",
+    "courseStart": "01-July-2025",
+    "duration": 6,
+    "lectures": 60,
+    "totalExam": 6,
+    "totalProject": 6,
+    "details": "The Mastering MERN Stack Web Development course equips students with in-depth knowledge of full-stack web development using MongoDB, Express, React, and Node.js. It includes real-world project building, RESTful API integration, secure authentication, and scalable TypeScript code practices. Ideal for those pursuing freelance or job-based careers in full-stack development.",
+    "courseOverview": "",
+    "curriculum": [
+      "Introduction to Web Development & MERN Stack Overview",
+      "MongoDB: Database Design, Aggregation & CRUD Operations",
+      "Express.js: RESTful APIs, Middleware & Routing",
+      "React.js: Components, Hooks, Routing & State Management",
+      "Redux & Redux Toolkit: Scalable State Management",
+      "Next.js: File-based Routing, SSR, SSG & API Routes",
+      "Authentication: JWT, OAuth, and Security Best Practices",
+      "TypeScript with Node.js & React/Next.js for Scalable Development",
+      "Project Deployment (Netlify, Vercel, Railway, etc.)",
+      "Client Communication & Project Planning for Freelancers",
+      "Version Control with Git & GitHub Collaboration",
+      "Capstone Project: Build & Deploy Full-Stack Application"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Hands-on Projects and Real-World Assignments"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Professional Portfolio Development"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "In-Depth MERN Stack Training"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Freelancing Guidance and Career Support"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "1-on-1 Mentoring Sessions"
+      }
+    ],
+    "softwareYoullLearn": [
+      "Node.js",
+      "MongoDB Atlas",
+      "Express.js",
+      "React.js",
+      "VS Code"
+    ],
+    "jobPositions": [
+      "Full Stack Developer",
+      "Back-end Developer",
+      "Front-end Developer",
+      "Web Application Developer"
+    ]
+  },
+  {
+    "id": 12,
+    "title": "IELTS - International English Language Testing System ",
+    "category": "Language Skills",
+    "type": "Offline",
+    "image": "https://i.ibb.co/JRKZDhNW/IELTS-1.jpg",
+    "fee": "15000৳",
+    "rating": 5,
+    "totalRating": 1620,
+    "totalStudentsEnroll": 3390,
+    "instructorName": "Walid Rahman",
+    "instructorImg": "instructor_nafisa.jpg",
+    "instructorReviews": 200,
+    "instructorExperience": "7+ years in English Language Training",
+    "instructorBio": "Walid Rahman is a highly experienced IELTS instructor with over 7 years of expertise in preparing students for the IELTS exam. She has helped hundreds of students achieve their desired band scores through her effective teaching methods and personalized coaching.",
+    "technology": "Listening, Reading, Writing, Speaking, Grammar, Vocabulary",
+    "courseStart": "15-July-2025",
+    "duration": 3,
+    "lectures": 36,
+    "totalExam": 4,
+    "totalProject": 2,
+    "details": "The IELTS Preparation Masterclass is designed to help students achieve a high band score in the IELTS exam through a structured curriculum covering all four modules—Listening, Reading, Writing, and Speaking. The course provides mock tests, real exam strategies, grammar polishing, and vocabulary building to ensure success in both Academic and General Training formats.",
+    "courseOverview": "",
+    "curriculum": [
+      "Introduction to IELTS: Format, Band Score & Tips",
+      "Listening Strategies and Practice with Sample Tests",
+      "Reading Techniques: Skimming, Scanning, and Time Management",
+      "Writing Task 1 & 2: Structure, Grammar, and Coherence",
+      "Speaking Practice: Cue Cards, Fluency, and Pronunciation",
+      "Vocabulary Enhancement for Academic & General IELTS",
+      "Grammar Correction for IELTS Success",
+      "Mock Tests & Individual Feedback",
+      "Time Management & Test-Day Preparation",
+      "Final Review & Speaking Simulation with Instructor"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Regular Mock Tests and Performance Analysis"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Interactive Speaking Sessions"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "Writing Correction and Personalized Feedback"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Band Score-Oriented Training"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "1-on-1 Mentorship and Support"
+      }
+    ],
+    "softwareYoullLearn": [
+      "IELTS Prep App",
+      "Google Docs (for writing feedback)",
+      "Zoom (for speaking practice)",
+      "Cambridge IELTS Books (PDF)"
+    ],
+    "jobPositions": [
+      "IELTS Instructor",
+      "English Language Trainer",
+      "Overseas Education Consultant",
+      "Freelance English Tutor"
+    ]
+  },
+  {
+    "id": 4,
+    "title": "Mastering Graphic Design with AI",
+    "category": "Art & Design",
+    "type": "Offline",
+    "image": "https://i.ibb.co/zWvWjS9X/GD-Card-1.jpg",
+    "fee": "15000৳",
+    "rating": 5,
+    "totalRating": 1366,
+    "totalStudentsEnroll": 850,
+    "instructorName": "Md. Abu Sayeed",
+    "instructorImg": "instructor_default.jpg",
+    "instructorReviews": 100,
+    "instructorExperience": "12+ years in Graphic Design and AI Integration",
+    "instructorBio": "Md. Abu Sayeed is a seasoned graphic designer with over 6 years of experience in the industry. He specializes in integrating AI tools into traditional design workflows, helping students create innovative and impactful designs.",
+    "technology": "Adobe Photoshop, Adobe Illustrator, Adobe Firefly, Leonardo.ai, Remaker, OpenArt, Ideogram.ai",
+    "courseStart": "10-July-2025",
+    "duration": 4,
+    "lectures": 42,
+    "totalExam": 2,
+    "totalProject": 30,
+    "details": "The Mastering Graphic Design with AI covers industry-standard software like Adobe Photoshop and Illustrator while integrating AI tools to prepare students for cutting-edge design careers. The course includes practical projects, freelancing guidance, and on-field training for real-world experience.",
+    "courseOverview": "This 4-month course combines traditional graphic design principles with next-gen AI tools. Students will master Adobe Photoshop and Illustrator while exploring generative AI technologies such as Firefly and Leonardo.ai. From logo design to product packaging and mockups, this course builds a strong portfolio and prepares learners for both freelancing and agency-level roles. Students gain exposure to printing workflows and design for both web and print.",
+    "curriculum": [
+      "Basics of Color Theory, Typography, and Composition",
+      "Foundations of Graphic Design Principles & Layouts",
+      "Image Editing and Retouching in Adobe Photoshop",
+      "Photo Manipulation Techniques for Posters and Banners",
+      "Vector Illustration and Icon Creation with Illustrator",
+      "Logo Design and Brand Identity Creation",
+      "Working with AI Tools: Adobe Firefly, Leonardo.ai, MidJourney, DALL·E",
+      "AI-powered Mockup & Asset Generation for Web and Print",
+      "Using AI for Creative Inspiration & Design Variations",
+      "Designing Product Packaging and Label Templates",
+      "AI in UI/UX: Wireframing & Prototyping with AI Tools (Uizard, Figma AI)",
+      "Mockups and Client Presentation Techniques",
+      "Creating UI/UX Previews for Websites and Apps",
+      "Portfolio Development for Behance & Dribbble",
+      "Writing Case Studies and Project Descriptions",
+      "Freelancing Platforms Overview (Fiverr, Upwork, 99designs)",
+      "AI for Proposal Writing, Pricing, and Client Communication"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Hands-on Projects and Real-World Assignments"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Professional Portfolio Development"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "In-Depth Design & AI Tools Training"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Freelancing Guidance and Career Support"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "1-on-1 Mentoring Sessions"
+      }
+    ],
+    "softwareYoullLearn": [
+      "Adobe Photoshop",
+      "Adobe Illustrator",
+      "Adobe Firefly",
+      "Leonardo.ai",
+      "Remaker",
+      "OpenArt",
+      "Ideogram.ai"
+    ],
+    "jobPositions": [
+      "Graphic Designer",
+      "Brand Designer",
+      "Creative Director",
+      "Freelance Designer",
+      "Product Packaging Designer",
+      "Visual Content Creator"
+    ]
+  },
+  {
+    "id": 5,
+    "title": "Specialized Certification on Digital Marketing",
+    "category": "Digital Marketing",
+    "type": "Offline",
+    "image": "https://i.ibb.co/GvS6k4FJ/DM-caed.jpg",
+    "fee": "16000৳",
+    "rating": 5,
+    "totalRating": 3900,
+    "totalStudentsEnroll": 7000,
+    "instructorName": "Ashraf Hossain",
+    "instructorImg": "instructor_ashraf_hossain.jpg",
+    "instructorReviews": 70,
+    "instructorExperience": "8+ years in Digital Marketing and E-commerce",
+    "instructorBio": "Ashraf Hossain is a digital marketing expert with over 8 years of experience in SEO, social media marketing, and e-commerce strategies. He has successfully helped numerous businesses grow their online presence and achieve their marketing goals.",
+    "technology": "SEO, WordPress, Amazon Affiliate, Google Analytics, Facebook Ads, Instagram Marketing, LinkedIn, Twitter, Email Marketing",
+    "courseStart": "TBD",
+    "duration": 3.5,
+    "lectures": 40,
+    "totalExam": 3,
+    "totalProject": 3,
+    "details": "This specialised certification program is designed for aspiring digital marketers seeking hands-on experience and practical knowledge to build successful online businesses or secure digital marketing roles.",
+    "courseOverview": "Learn SEO, WordPress customization, Amazon affiliate marketing, social media marketing, Google tools, and email automation through practical projects and real-world case studies. Gain freelancing and career guidance to succeed in the digital marketing industry.",
+    "curriculum": [
+      "Search Engine Optimisation (SEO) techniques",
+      "Keyword research for e-commerce and company websites",
+      "Technical and manual website auditing",
+      "WordPress customisation and SEO setup",
+      "Amazon affiliate marketing strategies",
+      "Competitor analysis and content writing",
+      "On-page and off-page SEO",
+      "AI-powered SEO & Content Generation (ChatGPT, Jasper, Copy.ai)",
+      "AI tools for Keyword Research & Competitor Analysis",
+      "Freelancing on Fiverr and other marketplaces",
+      "Social media marketing (Facebook, Instagram, LinkedIn, Twitter)",
+      "AI in Social Media Marketing & Ad Campaign Optimisation",
+      "Google tools (Search Console, Analytics, Business Profile)",
+      "Email marketing and automation",
+      "AI-based Email Marketing & Automation Tools"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Hands-on Projects and Real-World Assignments"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Professional Portfolio Development"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "In-Depth Digital Marketing Training"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Freelancing Guidance and Career Support"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "1-on-1 Mentoring Sessions"
+      }
+    ],
+    "softwareYoullLearn": [
+      "WordPress",
+      "Elementor",
+      "Google Analytics",
+      "Google Search Console",
+      "ManyChat",
+      "VidIQ",
+      "Mailchimp"
+    ],
+    "jobPositions": [
+      "Digital Marketing Specialist",
+      "SEO Specialist",
+      "Content Strategist",
+      "Social Media Manager",
+      "Affiliate Marketer",
+      "Marketing Consultant"
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Professional WordPress Development",
+    "category": "Programming",
+    "type": "Offline",
+    "image": "https://i.ibb.co/Y75bjF7c/WP-card.jpg",
+    "fee": "18000৳",
+    "rating": 5,
+    "totalRating": 2365,
+    "totalStudentsEnroll": 3650,
+    "instructorName": "Sheikh Sakibul Hasan",
+    "instructorImg": "instructor_sakib.jpg",
+    "instructorReviews": 150,
+    "instructorExperience": "5+ years in WordPress Development",
+    "instructorBio": "Sheikh Sakibul Hasan is a seasoned WordPress developer with over 5 years of experience in building custom themes and plugins. He has a passion for teaching and has helped numerous students become proficient in WordPress development.",
+    "technology": "HTML, CSS, Tailwind CSS, WordPress, Elementor, WooCommerce, ACF, JetEngine",
+    "courseStart": "01-August-2025",
+    "duration": 3.5,
+    "lectures": 40,
+    "totalExam": 3,
+    "totalProject": 3,
+    "details": "The Professional WordPress Development course prepares students to build fully functional, customised WordPress websites, from design to deployment, including eCommerce, LMS, and portfolio sites. The course focuses on real-world projects and freelancing success.",
+    "courseOverview": "This 3.5-month intensive course starts with web fundamentals using HTML, CSS, and Tailwind CSS. Students then dive into WordPress setup, theme customization, and advanced page building with Elementor. Key modules include WooCommerce for eCommerce, ACF and JetEngine for dynamic content, and real-world projects like LMS and news websites. The course concludes with freelancing strategies, soft skills training, and 1-on-1 mentoring to prepare learners for global job markets and freelancing platforms.",
+    "curriculum": [
+      "HTML, CSS, Tailwind Basics",
+      "WordPress Installation & Setup",
+      "Theme Customization Techniques",
+      "Elementor Page Building Essentials",
+      "ACF & JetEngine for Dynamic Sites",
+      "WooCommerce for eCommerce Sites",
+      "LMS & Blog/News Site Projects",
+      "Freelancing Platform Strategies",
+      "Portfolio Building & GitHub Setup",
+      "Client Handling & Proposal Writing",
+      "Soft Skills & Career Guidance",
+      "Website Speed & SEO Optimization"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Hands-on Projects and Real-World Assignments"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Professional Portfolio Development"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "In-Depth Elementor & WordPress Training"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Freelancing Guidance and Career Support"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "1-on-1 Mentoring Sessions"
+      }
+    ],
+    "softwareYoullLearn": [
+      "Visual Studio Code",
+      "WordPress",
+      "Elementor",
+      "WooCommerce",
+      "ACF",
+      "JetEngine",
+      "Tailwind CSS"
+    ],
+    "jobPositions": [
+      "Web Developer",
+      "WordPress Developer",
+      "Front-End Developer",
+      "eCommerce Developer",
+      "Freelance Web Designer"
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Web Development with React",
+    "category": "Programming",
+    "type": "Offline",
+    "image": "https://i.ibb.co/HpM4Tn9y/react.jpg",
+    "fee": "20000৳",
+    "rating": 5,
+    "totalRating": 773,
+    "totalStudentsEnroll": 955,
+    "instructorName": "Sheikh Sakibul Hasan",
+    "instructorImg": "instructor_sakib.jpg",
+    "instructorReviews": 150,
+    "instructorExperience": "5+ years in Full Stack Development",
+    "instructorBio": "Sheikh Sakibul Hasan is a seasoned full-stack developer with over 5 years of experience in building modern web applications. He specializes in React and has a passion for teaching and mentoring aspiring developers.",
+    "technology": "HTML, CSS, JavaScript, React, Tailwind CSS, Git, GitHub",
+    "courseStart": "15-July-2025",
+    "duration": 4,
+    "lectures": 46,
+    "totalExam": 7,
+    "totalProject": 8,
+    "details": "The Web Development with React course equips students with the skills to build modern, responsive, and dynamic web applications using HTML, CSS, JavaScript, and React. It covers real-world projects, freelancing guidance, and hands-on coding experience for a full-stack foundation.",
+    "courseOverview": "This 4-month intensive course focuses on React-based web development. Students will start from scratch with HTML, CSS, and Tailwind CSS, learn to make interactive sites with JavaScript, and progress to building complex user interfaces with React. Real-world projects simulate job-based work environments. The course includes Git & GitHub training, deployment, and portfolio building. Freelancing tips and client communication strategies are included for career readiness.",
+    "curriculum": [
+      "HTML, CSS, and Tailwind CSS for Web Design",
+      "JavaScript Programming for Dynamic UI",
+      "React.js Fundamentals and Component Structure",
+      "Advanced React Concepts: Hooks, Props, State",
+      "Responsive Design & Routing in React",
+      "Integrating Back-End APIs with Front-End",
+      "Project Deployment and Version Control (GitHub)",
+      "Freelancing, Client Handling & Career Guidance"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Hands-on Projects and Real-World Assignments"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Professional Portfolio Development"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "In-Depth React & JavaScript Training"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Freelancing Guidance and Career Support"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "1-on-1 Mentoring Sessions"
+      }
+    ],
+    "softwareYoullLearn": [
+      "Node.js",
+      "MongoDB Atlas",
+      "Express.js",
+      "React.js",
+      "VS Code"
+    ],
+    "jobPositions": [
+      "Full Stack Developer",
+      "Back-end Developer",
+      "Front-end Developer",
+      "Web Application Developer"
+    ]
+  },
+  {
+    "id": 6,
+    "title": "Certified UX/UI Designer",
+    "category": "Art & Design",
+    "type": "Offline",
+    "image": "https://i.ibb.co/whHBvX3d/ui-website-card.jpg",
+    "fee": "20000৳",
+    "rating": 4.9,
+    "totalRating": 1122,
+    "totalStudentsEnroll": 2124,
+    "instructorName": "Md. Zayed Uddin",
+    "instructorImg": "instructor_zayed_uddin.jpg",
+    "instructorReviews": 200,
+    "instructorExperience": "6+ years in UX/UI Design and User Research",
+    "instructorBio": "Md. Zayed Uddin is a professional UX/UI designer with over 6 years of experience in creating user-centric designs for web and mobile applications. He has worked with various startups and established companies, helping them enhance their user experience through effective design solutions.",
+    "technology": "Adobe XD, Figma, Sketch, Adobe Photoshop, Adobe Illustrator",
+    "courseStart": "TBD",
+    "duration": 4,
+    "lectures": 42,
+    "totalExam": 2,
+    "totalProject": 4,
+    "details": "The program covers the complete design process from sketching and wireframing to prototyping and final handover. With a focus on web and mobile applications, this course provides hands-on experience and real-world projects to ensure practical learning.",
+    "courseOverview": "Focus on UX/UI design principles, wireframing, prototyping, and creating user-centric designs for various platforms. Build a strong portfolio through real-world projects and get career guidance for freelancing and industry roles.",
+    "curriculum": [
+      "UX/UI design principles and process",
+      "Visual design and content accessibility",
+      "Wireframing and prototyping for web and mobile apps",
+      "Designing for different platforms and devices",
+      "Creating user-centric designs",
+      "Building a strong design portfolio",
+      "Career guidance and freelancing insights"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Hands-on Projects and Real-World Assignments"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Professional Portfolio Development"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "In-Depth UX/UI Design Training"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Freelancing Guidance and Career Support"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "1-on-1 Mentoring Sessions"
+      }
+    ],
+    "softwareYoullLearn": [
+      "Adobe XD",
+      "Figma",
+      "Sketch",
+      "Adobe Photoshop",
+      "Adobe Illustrator"
+    ],
+    "jobPositions": [
+      "UX/UI Designer",
+      "Product Designer",
+      "Interaction Designer",
+      "Visual Designer",
+      "Front-End Developer (UI Focus)",
+      "Freelance Designer"
+    ]
+  },
+  {
+    "id": 7,
+    "title": "Mastering Advanced Photography",
+    "category": "Media & Film",
+    "type": "Online",
+    "image": "https://i.ibb.co/PzDfxLXW/mas-photography.jpg",
+    "fee": "18000৳",
+    "rating": 5,
+    "totalRating": 340,
+    "totalStudentsEnroll": 646,
+    "instructorName": "Bapon Nengminza",
+    "instructorImg": "instructor_bapon_nengminza.jpg",
+    "instructorReviews": 200,
+    "instructorExperience": "7+ years in Professional Photography and Videography",
+    "instructorBio": "Bapon Nengminza is a professional photographer with over 7 years of experience in various photography styles including portrait, landscape, macro, street, and event photography. He has worked with numerous clients and has a passion for teaching aspiring photographers.",
+    "technology": "Digital Cameras, Lenses, Lighting Equipment, Mobile Devices, Photo Editing Software (Lightroom, Photoshop)",
+    "courseStart": "TBD",
+    "duration": 3,
+    "lectures": 36,
+    "totalExam": 2,
+    "totalProject": 2,
+    "details": "This course covers everything from camera handling, composition, lighting, and lens selection to post-processing and mobile photography. The course also includes extensive fieldwork to help students develop a comprehensive photography portfolio.",
+    "courseOverview": "Learn advanced photography skills including camera settings, composition, lighting, lens selection, and post-processing. The course emphasizes fieldwork and portfolio building for various photography styles such as portrait, landscape, macro, street, and event photography.",
+    "curriculum": [
+      "History and evolution of photography",
+      "Mastering camera settings (aperture, shutter speed, ISO)",
+      "Advanced composition techniques",
+      "Understanding natural and artificial lighting",
+      "Selecting the right lenses for different scenarios",
+      "Post-processing and image enhancement",
+      "Creative photography techniques",
+      "Mobile photography tips and tricks",
+      "Specialised fields like portrait, landscape, macro, street, and event photography",
+      "Building a professional photography portfolio"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Hands-on Projects and Real-World Assignments"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Professional Portfolio Development"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "In-Depth Photography Training"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Freelancing Guidance and Career Support"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "1-on-1 Mentoring Sessions"
+      }
+    ],
+    "softwareYoullLearn": ["Adobe Photoshop", "Adobe Lightroom"],
+    "jobPositions": [
+      "Professional Photography",
+      "Event Photography",
+      "Media and Journalism",
+      "Travel Photography",
+      "Fashion Photography",
+      "Documentary Photography",
+      "Commercial Photography"
+    ]
+  },
+  {
+    "id": 27,
+    "title": "Mastering App Development with Flutter",
+    "category": "Programming",
+    "type": "Offline",
+    "image": "https://i.ibb.co.com/KxcgbGPG/Flutter-Development.jpg",
+    "fee": "20000৳",
+    "rating": 5,
+    "totalRating": 870,
+    "totalStudentsEnroll": 1105,
+    "instructorName": "Sheikh Sakibul Hasan",
+    "designation": "Department Head",
+    "subject": "Mobile App Development",
+    "instructorImg": "https://i.ibb.co.com/7xY7G6rK/472009300-557526777119280-533781909713140935-n.jpg",
+    "instructorReviews": 140,
+    "instructorExperience": "5+ years in Mobile & Cross-Platform Development",
+    "instructorBio": "Sheikh Sakibul Hasan is an experienced mobile application developer with expertise in building high-performance cross-platform apps using Flutter. He has delivered numerous projects for both startups and enterprises, and is passionate about teaching Flutter to aspiring developers.",
+    "technology": "Flutter, Dart, Firebase, REST APIs, Provider, Bloc, Git",
+    "courseStart": "01-August-2025",
+    "duration": 6,
+    "lectures": 55,
+    "totalExam": 6,
+    "totalProject": 5,
+    "details": "The Mastering App Development with Flutter course is designed to provide students with comprehensive skills in cross-platform mobile app development. Covering Flutter and Dart fundamentals, state management, API integration, and Firebase backend services, the course also includes real-world projects to help students prepare for professional careers or freelancing in mobile development.",
+    "courseOverview": "",
+    "curriculum": [
+      "Introduction to Mobile App Development & Flutter Overview",
+      "Dart Programming Language Fundamentals",
+      "Flutter Widgets, Layouts & Navigation",
+      "State Management with Provider and Bloc",
+      "API Integration & JSON Data Handling",
+      "Firebase Authentication & Firestore Database",
+      "Push Notifications & App Permissions",
+      "App Deployment to Google Play Store & Apple App Store",
+      "Version Control with Git & GitHub",
+      "Capstone Project: Build & Deploy a Cross-Platform Mobile Application"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Hands-on Mobile App Projects"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Professional Mobile Portfolio Development"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "Complete Cross-Platform App Training"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Freelancing Guidance and Career Support"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "1-on-1 Mentoring Sessions"
+      }
+    ],
+    "softwareYoullLearn": [
+      "Flutter SDK",
+      "Dart",
+      "Firebase",
+      "Android Studio",
+      "VS Code"
+    ],
+    "jobPositions": [
+      "Flutter Developer",
+      "Mobile App Developer",
+      "Cross-Platform App Developer",
+      "Frontend Mobile Developer"
+    ]
+  },
+  {
+    "id": 8,
+    "title": "Advanced Video Editing & Motion Graphics",
+    "category": "Media & Film",
+    "type": "Offline",
+    "image": "https://i.ibb.co/4wsV2RJk/Video-card.jpg",
+    "fee": "30000৳",
+    "rating": 5,
+    "totalRating": 234,
+    "totalStudentsEnroll": 345,
+    "instructorName": "Robiul Abdullah",
+    "instructorImg": "instructor_robiul_abdullah.jpg",
+    "instructorReviews": 100,
+    "instructorExperience": "8+ years in Video Editing and Motion Graphics",
+    "instructorBio": "Robiul Abdullah is a professional video editor and motion graphics artist with over 8 years of experience in the industry. He has worked on various projects ranging from corporate videos to feature films, and has a passion for teaching advanced video editing techniques.",
+    "technology": "Adobe Premiere Pro, Adobe After Effects, DaVinci Resolve, Final Cut Pro, Adobe Media Encoder",
+    "courseStart": "TBD",
+    "duration": 4,
+    "lectures": 45,
+    "totalExam": 3,
+    "totalProject": 3,
+    "details": "This comprehensive program includes practical projects, portfolio building, and insights into freelancing and professional career paths in the industry. Students will gain hands-on experience with industry-standard tools and techniques, preparing them for diverse roles in media production.",
+    "courseOverview": "Master advanced video editing and motion graphics with hands-on experience using industry-standard tools. Learn keyframe animation, color grading, green screen techniques, and build a freelance-ready portfolio.",
+    "curriculum": [
+      "Basics of graphic design, video editing, and motion graphics",
+      "Understanding design principles, colour theory, and typography",
+      "Keyframe animation and motion graphics basics",
+      "Advanced video editing and colour grading",
+      "Multi-camera editing, green screen techniques, and chroma keying",
+      "Creating professional motion graphics templates (MOGRTs)",
+      "Advanced colour correction and grading in DaVinci Resolve",
+      "Integrating video projects across different software",
+      "Building a professional portfolio",
+      "Preparing for freelance and full-time roles in the media industry"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Hands-on Projects and Real-World Assignments"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Professional Portfolio Development"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "In-Depth Video Editing Training"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Freelancing Guidance and Career Support"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "1-on-1 Mentoring Sessions"
+      }
+    ],
+    "softwareYoullLearn": [
+      "Adobe Premiere Pro",
+      "Adobe After Effects",
+      "DaVinci Resolve",
+      "Final Cut Pro",
+      "Adobe Media Encoder"
+    ],
+    "jobPositions": [
+      "Video Production",
+      "Motion Design",
+      "Film and Television",
+      "Advertising and Marketing",
+      "Digital Content Creation",
+      "Freelancing and Independent Filmmaking"
+    ]
+  },
+  {
+    "id": 9,
+    "title": "Mastering Cyber Security & Penetration Testing",
+    "category": "Cybersecurity",
+    "type": "Offline",
+    "image": "https://i.ibb.co/gFJrxFkg/Cyber.jpg",
+    "fee": "30000৳",
+    "rating": 5,
+    "totalRating": 1300,
+    "totalStudentsEnroll": 1433,
+    "instructorName": "Mosabbir Shemul & Md. Ziaur Rahman",
+    "instructorImg": "instructor_mosabbir_shemul_ziaur_rahman.jpg",
+    "instructorReviews": 150,
+    "instructorExperience": "5+ years in Cybersecurity and Ethical Hacking",
+    "instructorBio": "Mosabbir Shemul and Md. Ziaur Rahman are experienced cybersecurity professionals with over 5 years in the field. They specialize in penetration testing, ethical hacking, and cybersecurity analysis, and have a passion for teaching and mentoring students in the latest cybersecurity practices.",
+    "technology": "Kali Linux, VMware, VirtualBox, Burpsuite, Metasploit, Nessus, TryHackMe, Active Directory, Wireshark, Wazuh, ISO 27001",
+    "courseStart": "TBD",
+    "duration": "5 Months + 1 Month Internship",
+    "lectures": 60,
+    "totalExam": 5,
+    "totalProject": 5,
+    "details": "This intensive, hands-on course covers cybersecurity skills, from foundational networking to advanced penetration testing, ethical hacking, and active directory management. It prepares students for real-world cybersecurity challenges, providing practical experience through lab environments and real-world simulations.",
+    "courseOverview": "Learn networking fundamentals, Linux basics, ethical hacking methodologies, vulnerability scanning, advanced penetration testing, web application security, blue teaming, active directory configuration, and report writing. Gain practical experience with labs and real-world simulations.",
+    "curriculum": [
+      "Networking fundamentals, IP and MAC addressing, OSI model",
+      "Linux basics, command line operations, server management",
+      "Ethical hacking methodologies and reconnaissance",
+      "Web technologies, subdomain discovery, and Burpsuite essentials",
+      "Vulnerability scanning, the Metasploit framework, and exploitation",
+      "Advanced penetration testing and cryptography",
+      "Web application security, SQL injection, XSS, and bug bounty techniques",
+      "Blue teaming, SOC setup, and auditing fundamentals",
+      "Active Directory configuration and attack simulation",
+      "Report writing for penetration tests and audits"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Hands-on Projects and Real-World Assignments"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Professional Portfolio Development"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "In-Depth Cybersecurity Training"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Freelancing Guidance and Career Support"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "1-on-1 Mentoring Sessions"
+      }
+    ],
+    "softwareYoullLearn": [
+      "Kali Linux",
+      "Burpsuite",
+      "Metasploit",
+      "Nessus",
+      "TryHackMe",
+      "Wireshark",
+      "VMware",
+      "VirtualBox",
+      "Wazuh",
+      "ISO 27001"
+    ],
+    "jobPositions": [
+      "Ethical Hacking",
+      "Penetration Testing",
+      "Cybersecurity Analysis",
+      "Network Security",
+      "Incident Response and Threat Hunting",
+      "Security Operations Center (SOC)",
+      "Information Security Auditing"
+    ]
+  },
+  {
+    "id": 10,
+    "title": "CompTIA A+, CCNA & MTCNA",
+    "category": "Networking & Server",
+    "type": "Offline",
+    "image": "https://i.ibb.co/Q3CfyHYN/Networking-card.jpg",
+    "fee": "25000৳",
+    "rating": 5,
+    "totalRating": 3455,
+    "totalStudentsEnroll": 4566,
+    "instructorName": "Rayhan Kabir",
+    "instructorImg": "instructor_rayhan_kabir.jpg",
+    "instructorReviews": 80,
+    "instructorExperience": "6+ years in IT Networking and System Administration",
+    "instructorBio": "Rayhan Kabir is a seasoned IT networking professional with over 6 years of experience in system administration, Cisco networking, and MikroTik RouterOS. He has a passion for teaching and has helped numerous students achieve their networking certification goals.",
+    "technology": "Windows, Linux, Cisco IOS, MikroTik RouterOS, WinBox, VirtualBox, Packet Tracer",
+    "courseStart": "TBD",
+    "duration": "4 Months",
+    "lectures": 46,
+    "totalExam": 5,
+    "totalProject": 5,
+    "details": "This comprehensive course is designed to equip students with essential IT networking skills, including computer hardware, operating systems, networking fundamentals, Cisco networking (CCNA), and MikroTik RouterOS (MTCNA).",
+    "courseOverview": "PC components, peripherals, storage, and RAM; OS installation and troubleshooting; networking fundamentals and IP addressing; routing, switching, NAT, ACLs, firewall; Cisco & MikroTik router configuration; freelancing skills.",
+    "curriculum": [
+      "PC components, peripherals, storage, and RAM",
+      "Operating system installation, management, and troubleshooting",
+      "Networking fundamentals, IP addressing, subnetting, VLANs",
+      "Routing and switching concepts (Static, Dynamic, OSPF, EIGRP)",
+      "WAN technologies, NAT, ACLs, and firewalls",
+      "Cisco router and switch configuration and security",
+      "MikroTik RouterOS setup, VPN, and traffic control",
+      "Job readiness, resume building, and freelancing skills"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Hands-on labs and real-world network simulations"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Industry-standard certification preparation (CompTIA A+, CCNA, MTCNA)"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "In-Depth Networking Training"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Freelancing Guidance and Career Support"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "1-on-1 Mentoring Sessions"
+      }
+    ],
+    "softwareYoullLearn": [
+      "Windows",
+      "Linux (Ubuntu, CentOS)",
+      "Cisco Packet Tracer",
+      "MikroTik RouterOS (WinBox)",
+      "VirtualBox",
+      "Wireshark"
+    ],
+    "jobPositions": [
+      "Network Engineer",
+      "System Administrator",
+      "IT Support Specialist",
+      "Network Security Engineer",
+      "IT Infrastructure Technician",
+      "Freelance Network Consultant"
+    ]
+  },
+  {
+    "id": 11,
+    "title": "Diploma in Multimedia",
+    "category": "Diploma",
+    "type": "Offline",
+    "image": "https://i.ibb.co/RxCwQff/Diploma-multimedia.jpg",
+    "fee": "25000৳/10000৳",
+    "rating": 5,
+    "totalRating": 1200,
+    "totalStudentsEnroll": 1400,
+    "instructorName": "Sheikh Sakibul Hasan & Md. Zayed Uddin",
+    "instructorImg": "instructor_sakibul_zayed.jpg",
+    "instructorReviews": 300,
+    "instructorExperience": "5+ years in Multimedia Design and Development",
+    "instructorBio": "Sheikh Sakibul Hasan and Md. Zayed Uddin are experienced multimedia professionals with over 5 years in graphic design, video editing, motion graphics, and UI/UX design. They have a passion for teaching and have successfully trained numerous students in the multimedia field.",
+    "technology": "Adobe Photoshop, Adobe Illustrator, Adobe Premiere Pro, Adobe After Effects, Adobe Audition, Figma, Adobe Firefly",
+    "courseStart": "TBD",
+    "duration": "6+ Months",
+    "lectures": 84,
+    "totalExam": 6,
+    "totalProject": 6,
+    "details": "This comprehensive diploma program is designed to equip students with a diverse set of multimedia skills, including graphic design, video editing, audio production, motion graphics, and UI/UX design.",
+    "courseOverview": "Graphic design principles, branding, animation, video & audio editing, UI/UX fundamentals, and freelancing skills. Tools: Photoshop, Illustrator, Premiere Pro, After Effects, Audition, Figma, Firefly.",
+    "curriculum": [
+      "Graphic design principles, branding, and digital art",
+      "Video editing, colour grading, and animation",
+      "Audio editing, mixing, and effects",
+      "UI/UX design fundamentals, prototyping, and project management",
+      "Freelancing skills and marketplace preparation",
+      "Industry-standard tools like Photoshop, Illustrator, Premiere Pro, After Effects, Audition, and Figma"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "62 Practical Classes, 14 Theory Classes"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "4 Live On-Field Work Classes"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "Freelancing Focused Multimedia Training"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "4 Freelancing & Portfolio Classes"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "35 Industry Standard Projects"
+      }
+    ],
+    "softwareYoullLearn": [
+      "Adobe Photoshop",
+      "Adobe Illustrator",
+      "Adobe Premiere Pro",
+      "Adobe After Effects",
+      "Adobe Audition",
+      "Figma",
+      "Adobe Firefly"
+    ],
+    "jobPositions": [
+      "Multimedia Specialist",
+      "UI/UX Designer",
+      "Freelance Creative Professional"
+    ]
+  },
+  {
+    "id": 13,
+    "title": "Basic English Communication",
+    "category": "Language Skills",
+    "type": "Offline/Online",
+    "image": "https://i.ibb.co.com/CsH3cMvN/6f817ee3-b92a-4baf-908a-497994bce866.jpg",
+    "fee": "10000৳/5000৳",
+    "rating": 5,
+    "totalRating": 789,
+    "totalStudentsEnroll": 987,
+    "instructorName": "Niaz Rashid",
+    "instructorImg": "instructor_niaz_rashid.jpg",
+    "instructorReviews": 150,
+    "instructorExperience": "3+ years in English Language Training",
+    "instructorBio": "Niaz Rashid is an experienced English language trainer specializing in spoken English and communication skills for professionals and students. With over 3 years of experience, he focuses on vocabulary development, grammar structure, and real-world speaking practice.",
+    "technology": "Notion, Padlet, AI-powered pronunciation tools",
+    "courseStart": "TBD",
+    "duration": "2 Months",
+    "lectures": 24,
+    "totalExam": 2,
+    "totalProject": 2,
+    "details": "This course is designed for beginners and basic English learners to build strong communication skills through structured vocabulary building, sentence structure, reading-writing practice, and real-life conversation scenarios.",
+    "courseOverview": "Everyday vocabulary, grammar fundamentals, sentence construction, polite expressions, pronunciation, writing practice, reading comprehension, and conversational fluency using modern tools like Notion and AI-powered speaking apps.",
+    "curriculum": [
+      "Everyday vocabulary & grammar fundamentals",
+      "Sentence structure and proper questioning",
+      "Polite expressions, greetings, and etiquette",
+      "Basic pronunciation, word stress, and intonation",
+      "Writing short messages, emails, and notes",
+      "Reading comprehension and interpreting signs",
+      "Conversational fluency through role-play and practice"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Vocabulary Building & Sentence Structure"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Speaking & Listening Practice"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "Role-playing Conversations"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Email, Writing & Grammar Skills"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "Feedback and Final Review Sessions"
+      }
+    ],
+    "softwareYoullLearn": [
+      "Google Docs",
+      "Grammarly",
+      "AI-based English Pronunciation Tools (e.g., Elsa Speak)"
+    ],
+    "jobPositions": [
+      "Customer Support (Foreign)",
+      "Sales & Marketing",
+      "Telecommunication",
+      "Retail & Service Industry",
+      "Freelancing (Virtual Assistant, Customer Service Rep)",
+      "International Communication-Based Jobs"
+    ]
+  },
+  {
+    "id": 14,
+    "title": "Content Writing with SEO",
+    "category": "Language",
+    "type": "Offline/Online",
+    "image": "https://i.ibb.co.com/XddfHwQ/ea212acc-299c-485b-bf0a-8910cf2edec4.jpg",
+    "fee": "12000৳/6000৳",
+    "rating": 5,
+    "totalRating": 134,
+    "totalStudentsEnroll": 565,
+    "instructorName": "Ashraf Hossain, Farzia Haque Farin",
+    "instructorImg": "instructor_ashraf_farin.jpg",
+    "instructorReviews": 180,
+    "instructorExperience": "4+ years in SEO and Content Marketing",
+    "instructorBio": "Ashraf Hossain and Farzia Haque Farin are professionals in the field of SEO and content marketing with over 4 years of experience. They have successfully worked with agencies and freelance clients across various industries, helping brands grow with strategic content and SEO.",
+    "technology": "Google Search Console, Google Analytics, Ahrefs, SEMrush, Grammarly, WordPress, Surfer SEO",
+    "courseStart": "TBD",
+    "duration": "3 Months",
+    "lectures": 24,
+    "totalExam": 1,
+    "totalProject": 2,
+    "details": "This 3-month comprehensive course is designed with a combination of technical learning, hands-on projects, and freelancing insights. You’ll be prepared to boost visibility, grow traffic, and earn through SEO and writing.",
+    "courseOverview": "Keyword research, technical & on-page SEO, blog/content writing, storytelling, freelancing strategies, SEO tools, and WordPress integration.",
+    "curriculum": [
+      "Keyword Research & Analysis",
+      "On-Page, Off-Page and Technical SEO",
+      "SEO Audits, Local SEO, E-Commerce SEO",
+      "SEO for YouTube and Voice Search",
+      "Content Writing for Blogs, Ads, Emails, Social Media",
+      "Storytelling & Branding through Content",
+      "Freelancing Strategies in SEO & Content Writing"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "14 SEO Classes (Basics to Advanced)"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "10 Content Writing Classes"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "Industry-relevant Projects & Assignments"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Freelancing & Career Guidance Session"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "Practice Materials and Final Assessment"
+      }
+    ],
+    "softwareYoullLearn": [
+      "Google Analytics",
+      "Google Search Console",
+      "SEMrush",
+      "Ahrefs",
+      "Grammarly",
+      "Surfer SEO",
+      "WordPress"
+    ],
+    "jobPositions": [
+      "SEO Executive",
+      "Content Writer",
+      "SEO Content Strategist",
+      "Freelance SEO Specialist",
+      "Copywriter",
+      "Content Marketer"
+    ]
+  },
+  {
+    "id": 15,
+    "title": "SAP (ABAP)",
+    "category": "Management",
+    "type": "Offline-Online Both",
+    "image": "https://i.ibb.co.com/FbkRXfQx/23ceb684-2091-44c4-a572-e9f2705903e2.jpg",
+    "fee": "17000৳",
+    "rating": 5,
+    "totalRating": 170,
+    "totalStudentsEnroll": 222,
+    "instructorName": "Mahi Khan, Mohammad Salah Uddin",
+    "instructorImg": "instructor_mahi_salah.jpg",
+    "instructorReviews": 220,
+    "instructorExperience": "5+ years of experience in SAP ABAP and enterprise systems",
+    "instructorBio": "Mahi Khan and Mohammad Salah Uddin are experienced SAP consultants who specialize in ABAP development, system integration, and performance optimization. They have worked with several ERP clients and successfully led multiple implementation projects.",
+    "technology": "SAP ECC, SAP GUI, ABAP Workbench, ALV, Smart Forms, BDC, LSMW, OData, SAP Gateway",
+    "courseStart": "TBD",
+    "duration": "15 Class",
+    "lectures": 30,
+    "totalExam": 1,
+    "totalProject": 2,
+    "details": "This course is designed to cover everything from the basics of SAP architecture to advanced ABAP development techniques, including OOP, Smart Forms, BDC, and HANA Optimisations.",
+    "courseOverview": "ABAP syntax, SE11, ALV reports, Object-oriented ABAP, Smart Forms, BDC/LSMW migration, OData/Web Services, Debugging, and HANA integration.",
+    "curriculum": [
+      "ABAP Development Environment & Syntax",
+      "SAP Data Dictionary (SE11)",
+      "Report Programming (Classical, Interactive, ALV)",
+      "Object-Oriented ABAP",
+      "User Exits, BAdIs, Enhancements",
+      "Data Migration using BDC and LSMW",
+      "Debugging & Performance Optimisation",
+      "Working with Web Services and OData",
+      "Real-Time Projects and Interview Preparation"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "15 Modules with 30+ Lectures"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "SAP GUI and Workbench Hands-On"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "Dialog & Form Programming (SE51, Smart Forms)"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Real-Time Development Scenarios"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "Bonus: Interview Q&A + Debugging + HANA Optimization"
+      }
+    ],
+    "softwareYoullLearn": [
+      "SAP GUI",
+      "SE11, SE38, SE80, SE93",
+      "SE30 / SAT, ST05, ST22",
+      "SAP Gateway (for OData)",
+      "ALV (Function Module & Object-Oriented)",
+      "Smart Forms & SAP Scripts"
+    ],
+    "jobPositions": [
+      "SAP ABAP Developer",
+      "ERP Technical Consultant",
+      "SAP Technical Analyst",
+      "SAP Freelancer"
+    ]
+  },
+  {
+    "id": 16,
+    "title": "SAP (FICO)",
+    "category": "Management",
+    "type": "Offline-Online Both",
+    "image": "https://i.ibb.co.com/QF25m5pG/588c3b80-ec60-4e23-b893-1d9893defe62.jpg",
+    "fee": "17000৳",
+    "rating": 5,
+    "totalRating": 555,
+    "totalStudentsEnroll": 654,
+    "instructorName": "Pallab Kumar Moholanobish",
+    "instructorImg": "instructor_pallab.jpg",
+    "instructorReviews": 90,
+    "instructorExperience": "5+ years in SAP Finance and Controlling (FICO)",
+    "instructorBio": "Pallab Kumar Moholanobish is a seasoned SAP FICO Consultant with experience in implementing and managing ERP financial modules across various sectors. His teaching method focuses on hands-on configuration and real-world business process simulations.",
+    "technology": "SAP ERP, SAP GUI, FICO Module, ECC, General Ledger, Asset Accounting, COPA",
+    "courseStart": "TBD",
+    "duration": "15 Class",
+    "lectures": 30,
+    "totalExam": 1,
+    "totalProject": 2,
+    "details": "This course is designed to equip you with a strong foundational and practical understanding of SAP FICO — the most in-demand ERP financial module.",
+    "courseOverview": "Gain hands-on experience in financial accounting and controlling through real-time simulations, configuration practices, and understanding the full financial cycle in SAP ERP.",
+    "curriculum": [
+      "SAP ERP Navigation & Organisational Structure",
+      "General Ledger (GL), Accounts Payable (AP), Accounts Receivable (AR)",
+      "Asset & Bank Accounting",
+      "Internal Orders, Cost Centers, and Profit Centers",
+      "CO: Controlling Area, Cost Elements & Product Costing",
+      "Real-Time Business Cycle Simulation (P2P & O2C)",
+      "Manual Bank Reconciliation and Loan Posting",
+      "Profitability Analysis (COPA)",
+      "Financial Statements: P&L, Balance Sheet, Trial Balance"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "15 Classes with Step-by-Step Practice"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Real-Time Financial Process Simulations"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "End-to-End Configuration and Posting Practice"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Manual and Automated Reporting"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "Interview Questions & Troubleshooting Tips"
+      }
+    ],
+    "softwareYoullLearn": [
+      "SAP GUI",
+      "SAP ECC (FI & CO Modules)",
+      "SAP Reports and Statements Tools",
+      "Navigation with Company Code/Cost Centre Setup",
+      "Bank Reconciliation Tools"
+    ],
+    "jobPositions": [
+      "SAP FICO Consultant",
+      "ERP Finance Executive",
+      "Accounts Manager (SAP Specialisation)",
+      "Cost Controller in ERP Environment",
+      "Financial Analyst (SAP Platform)",
+      "SAP End User in Finance/Controlling"
+    ]
+  },
+  {
+    "id": 17,
+    "title": "SAP (MM)",
+    "category": "Management",
+    "type": "Offline-Online Both",
+    "image": "https://i.ibb.co.com/Kc4kzh5V/b9d5c425-334b-4b22-8c01-fecabe1563ba.jpg",
+    "fee": "17000৳",
+    "rating": 5,
+    "totalRating": 655,
+    "totalStudentsEnroll": 999,
+    "instructorName": "Borson Sarker",
+    "instructorImg": "instructor_borson.jpg",
+    "instructorReviews": 75,
+    "instructorExperience": "5+ years of SAP MM module experience in procurement and supply chain",
+    "instructorBio": "Borson Sarker is an experienced SAP MM Consultant, with a focus on procurement processes, inventory management, and material valuation. He has worked in enterprise SAP environments across multiple industries and brings hands-on knowledge into the classroom.",
+    "technology": "SAP ERP, SAP GUI, SAP MM, ECC, Procurement, Inventory Management, MRP",
+    "courseStart": "TBD",
+    "duration": "13 Classes",
+    "lectures": 26,
+    "totalExam": 1,
+    "totalProject": 2,
+    "details": "SAP MM is a key module in the SAP ERP system focused on procurement and inventory functions. This course enables learners to manage purchasing processes, material valuation, and inventory movement efficiently using SAP MM tools.",
+    "courseOverview": "Master SAP MM fundamentals including PR to PO cycle, goods movements, invoice verification, and MRP. Real-world practice with cross-module integration.",
+    "curriculum": [
+      "Organisational Structure and Master Data in MM",
+      "PR, RFQ, PO, Contracts, and Scheduling Agreements",
+      "Goods Movement: GR, GI, Transfer Posting, Stock Types",
+      "Invoice and Service Entry Verification",
+      "Special Stocks: Consignment, Subcontracting, Third-Party",
+      "Pricing Procedure and Account Determination",
+      "MRP and Integration with Other SAP Modules",
+      "Physical Inventory and Inventory Reports"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "13 Classes with Hands-On SAP Practice"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Business-Cycle-Based Mini Projects"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "MM-FI-CO-SD Module Integration Practice"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Real-Time Procurement and Inventory Scenarios"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "Troubleshooting Common SAP MM Issues"
+      }
+    ],
+    "softwareYoullLearn": [
+      "SAP GUI",
+      "SAP ECC (MM Module)",
+      "Material Valuation Tools",
+      "MRP Configuration & Reporting Tools"
+    ],
+    "jobPositions": [
+      "SAP MM Consultant",
+      "Purchase Executive with SAP Knowledge",
+      "Procurement Analyst",
+      "Inventory & Warehouse Coordinator",
+      "Logistics & Supply Chain Specialist",
+      "SAP End User in Procurement and Inventory"
+    ]
+  },
+
+  {
+    "id": 19,
+    "title": "SAP (SD)",
+    "category": "Management",
+    "type": "Offline-Online Both",
+    "image": "https://i.ibb.co.com/PzgTPdrr/016383f9-68e4-4fcd-a2eb-f29c812dadfe.jpg",
+    "fee": "17000৳",
+    "rating": 5,
+    "totalRating": 564,
+    "totalStudentsEnroll": 666,
+    "instructorName": "Md. Ali Ashraf, Mohammad Salah Uddin",
+    "instructorImg": "instructor_ali_salah.jpg",
+    "instructorReviews": 88,
+    "instructorExperience": "6+ years of SAP SD & logistics domain expertise with multinational projects",
+    "instructorBio": "Md. Ali Ashraf and Mohammad Salah Uddin are SAP SD experts with strong experience in implementing sales and distribution solutions across industries. They bring a hands-on approach and real-world insight into each class.",
+    "technology": "SAP ERP, SAP SD, SAP GUI, Sales Order Processing, Logistics Execution",
+    "courseStart": "TBD",
+    "duration": "21 Classes",
+    "lectures": 21,
+    "totalExam": 1,
+    "totalProject": 2,
+    "details": "SAP SD is a core module in SAP ERP that manages the entire sales and distribution process, from order to delivery to billing. Learners will gain insight into how SD integrates with FI, MM, and PP modules to enable complete order-to-cash (O2C) processing.",
+    "courseOverview": "Learn the full SAP SD sales cycle from inquiry to billing with hands-on projects, configuration practice, and industry-grade integration knowledge.",
+    "curriculum": [
+      "Sales Cycle from Inquiry to Billing",
+      "Customer, Material & Pricing Master Data",
+      "Sales Order Types, Delivery & Invoicing",
+      "Discounts, Freight, Credit/Debit Memos",
+      "Availability Check & Credit Management",
+      "Integration with FI, MM, PP Modules",
+      "SD Configuration and Output Determination",
+      "Real-time Project Scenarios and Reporting"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Regular Mock Tests and Performance Analysis"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Interactive Speaking Sessions"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "Writing Correction and Personalized Feedback"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Band Score-Oriented Training"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "1-on-1 Mentorship and Support"
+      }
+    ],
+    "softwareYoullLearn": [
+      "SAP GUI",
+      "SAP SD Module in SAP ECC",
+      "T-Codes: VA01, VL01N, VF01, NACE, FD32, VK11, etc.",
+      "Output Determination and Pricing Configuration Tools"
+    ],
+    "jobPositions": [
+      "SAP SD Consultant",
+      "Sales & Order Processing Executive",
+      "Order Fulfilment Analyst",
+      "Customer Relationship & Billing Specialist",
+      "ERP End User—Sales & Logistics"
+    ]
+  },
+  {
+    "id": 20,
+    "title": "Oracle Database 19c/21c",
+    "category": "Database",
+    "type": "Offline/Online",
+    "image": "https://i.ibb.co/YBNPSSBZ/oracle-card.jpg",
+    "fee": "20000৳/8000৳",
+    "rating": 5,
+    "totalRating": 644,
+    "totalStudentsEnroll": 776,
+    "instructorName": "Md. Mijanur Rahman",
+    "instructorImg": "instructor_mijan.jpg",
+    "instructorReviews": 75,
+    "instructorExperience": "10+ years of experience in Oracle DB administration and development across telecom and banking sectors.",
+    "instructorBio": "Md. Mijanur Rahman is an Oracle Certified Professional (OCP) with over a decade of experience as a senior Oracle DBA and instructor. He has led large-scale database deployments and performance tuning projects in multiple enterprise environments.",
+    "technology": "Oracle 19c/21c, Oracle SQL, PL/SQL, SQL Developer, RMAN, Oracle Data Pump, AWR Reports",
+    "courseStart": "TBD",
+    "duration": "28 Classes",
+    "lectures": 28,
+    "totalExam": 2,
+    "totalProject": 2,
+    "details": "Oracle Database 19c/21c is a powerful RDBMS platform widely used for enterprise applications. The course also includes certification guidance and DBA tools used in real-life projects.",
+    "courseOverview": "Master Oracle SQL, PL/SQL, DBA Tools, and Performance Tuning with hands-on labs, real-world projects, and certification-focused lessons.",
+    "curriculum": [
+      "Oracle Database Architecture & Environment",
+      "SQL Syntax, Joins, Subqueries, Aggregates",
+      "PL/SQL Programming, Functions, and Triggers",
+      "DBA Essentials: Backup, Recovery, Performance Tuning",
+      "Partitioning, Indexing, Security, JSON in Oracle",
+      "User & Role Management, Oracle Scheduler",
+      "Oracle Data Pump, RMAN, AWR Reports",
+      "Certification Preparation and Practical Scenarios"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Regular Mock Tests and Performance Analysis"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Interactive Speaking Sessions"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "Writing Correction and Personalized Feedback"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Band Score-Oriented Training"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "1-on-1 Mentorship and Support"
+      }
+    ],
+    "softwareYoullLearn": [
+      "Oracle Database 19c/21c",
+      "Oracle SQL Developer",
+      "SQL*Plus",
+      "Oracle RMAN",
+      "Oracle Data Pump",
+      "Performance Tuning Tools (AWR Reports)",
+      "Oracle Scheduler"
+    ],
+    "jobPositions": [
+      "Oracle Database Administrator (DBA)",
+      "PL/SQL Developer",
+      "SQL Analyst",
+      "Data Engineer (Oracle Ecosystem)",
+      "Technical Support: Oracle SQL & DB",
+      "Database Automation Engineer"
+    ]
+  },
+  {
+    "id": 51,
+    "title": "Mastering MERN Stack Web Development",
+    "category": "Programming",
+    "type": "Online",
+    "image": "https://i.ibb.co/XZ78JQ9f/Mern-card.jpg",
+    "fee": "20000৳",
+    "rating": 5,
+    "totalRating": 585,
+    "totalStudentsEnroll": 660,
+    "instructorName": "Sheikh Sakibul Hasan",
+    "instructorImg": "instructor_sakib.jpg",
+    "instructorReviews": 150,
+    "instructorExperience": "5+ years in Full Stack Development",
+    "instructorBio": "Sheikh Sakibul Hasan is a seasoned full-stack developer with over 5 years of experience in building modern web applications using the MERN stack. He has a passion for teaching and has helped numerous students become proficient in full-stack development.",
+    "technology": "MongoDB, Express.js, React, Node.js, Redux, TypeScript",
+    "courseStart": "01-July-2025",
+    "duration": 6,
+    "lectures": 60,
+    "totalExam": 6,
+    "totalProject": 6,
+    "details": "The Mastering MERN Stack Web Development course equips students with in-depth knowledge of full-stack web development using MongoDB, Express, React, and Node.js. It includes real-world project building, RESTful API integration, secure authentication, and scalable TypeScript code practices. Ideal for those pursuing freelance or job-based careers in full-stack development.",
+    "courseOverview": "",
+    "curriculum": [
+      "Introduction to Web Development & MERN Stack Overview",
+      "MongoDB: Database Design, Aggregation & CRUD Operations",
+      "Express.js: RESTful APIs, Middleware & Routing",
+      "React.js: Components, Hooks, Routing & Redux State Management",
+      "Authentication: JWT, OAuth, and Security Best Practices",
+      "TypeScript with Node.js & React for Scalable Development",
+      "Project Deployment (Netlify, Vercel, Railway, etc.)",
+      "Client Communication & Project Planning for Freelancers",
+      "Version Control with Git & GitHub Collaboration",
+      "Capstone Project: Build & Deploy Full-Stack Application"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Hands-on Projects and Real-World Assignments"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Professional Portfolio Development"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "In-Depth MERN Stack Training"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Freelancing Guidance and Career Support"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "1-on-1 Mentoring Sessions"
+      }
+    ],
+    "softwareYoullLearn": [
+      "Node.js",
+      "MongoDB Atlas",
+      "Express.js",
+      "React.js",
+      "VS Code"
+    ],
+    "jobPositions": [
+      "Full Stack Developer",
+      "Back-end Developer",
+      "Front-end Developer",
+      "Web Application Developer"
+    ]
+  },
+  {
+    "id": 54,
+    "title": "Mastering Graphic Design with AI",
+    "category": "Art & Design",
+    "type": "Online",
+    "image": "https://i.ibb.co/zWvWjS9X/GD-Card-1.jpg",
+    "fee": "8000৳",
+    "rating": 5,
+    "totalRating": 966,
+    "totalStudentsEnroll": 1250,
+    "instructorName": "Mahabubur",
+    "instructorImg": "instructor_default.jpg",
+    "instructorReviews": 100,
+    "instructorExperience": "5+ years in Graphic Design and AI Integration",
+    "instructorBio": "Mahabubur is a professional graphic designer with over 5 years of experience in the industry. He specializes in integrating AI tools into traditional design workflows, helping students leverage technology to enhance their creative processes.",
+    "technology": "Adobe Photoshop, Adobe Illustrator, Adobe Firefly, Leonardo.ai, Remaker, OpenArt, Ideogram.ai",
+    "courseStart": "10-July-2025",
+    "duration": 4,
+    "lectures": 42,
+    "totalExam": 2,
+    "totalProject": 30,
+    "details": "The Mastering Graphic Design with AI covers industry-standard software like Adobe Photoshop and Illustrator while integrating AI tools to prepare students for cutting-edge design careers. The course includes practical projects, freelancing guidance, and on-field training for real-world experience.",
+    "courseOverview": "This 4-month course combines traditional graphic design principles with next-gen AI tools. Students will master Adobe Photoshop and Illustrator while exploring generative AI technologies such as Firefly and Leonardo.ai. From logo design to product packaging and mockups, this course builds a strong portfolio and prepares learners for both freelancing and agency-level roles. Students gain exposure to printing workflows and design for both web and print.",
+    "curriculum": [
+      "Basics of Color Theory, Typography, and Composition",
+      "Foundations of Graphic Design Principles & Layouts",
+      "Image Editing and Retouching in Adobe Photoshop",
+      "Photo Manipulation Techniques for Posters and Banners",
+      "Vector Illustration and Icon Creation with Illustrator",
+      "Logo Design and Brand Identity Creation",
+      "Working with AI Tools: Adobe Firefly and Leonardo.ai",
+      "Generating AI-Based Assets for Web and Print",
+      "Designing Product Packaging and Label Templates",
+      "Mockups and Client Presentation Techniques",
+      "Creating UI/UX Previews for Websites and Apps",
+      "Portfolio Development for Behance & Dribbble",
+      "Writing Case Studies and Project Descriptions",
+      "Freelancing Platforms Overview (Fiverr, Upwork, 99designs)",
+      "Client Communication, Pricing, and Proposal Writing"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Hands-on Projects and Real-World Assignments"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Professional Portfolio Development"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "In-Depth Design & AI Tools Training"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Freelancing Guidance and Career Support"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "1-on-1 Mentoring Sessions"
+      }
+    ],
+    "softwareYoullLearn": [
+      "Adobe Photoshop",
+      "Adobe Illustrator",
+      "Adobe Firefly",
+      "Leonardo.ai",
+      "Remaker",
+      "OpenArt",
+      "Ideogram.ai"
+    ],
+    "jobPositions": [
+      "Graphic Designer",
+      "Brand Designer",
+      "Creative Director",
+      "Freelance Designer",
+      "Product Packaging Designer",
+      "Visual Content Creator"
+    ]
+  },
+  {
+    "id": 55,
+    "title": "Specialized Certification on Digital Marketing",
+    "category": "Digital Marketing",
+    "type": "Online",
+    "image": "https://i.ibb.co/GvS6k4FJ/DM-caed.jpg",
+    "fee": "8000৳",
+    "rating": 5,
+    "totalRating": 1200,
+    "totalStudentsEnroll": 1455,
+    "instructorName": "Ashraf Hossain",
+    "instructorImg": "instructor_ashraf_hossain.jpg",
+    "instructorReviews": 100,
+    "instructorExperience": "4+ years in Digital Marketing and E-commerce",
+    "instructorBio": "Ashraf Hossain is a digital marketing expert with over 4 years of experience in SEO, social media marketing, and e-commerce strategies. He has successfully helped businesses grow their online presence and is passionate about teaching the next generation of digital marketers.",
+    "technology": "SEO, WordPress, Amazon Affiliate, Google Analytics, Facebook Ads, Instagram Marketing, LinkedIn, Twitter, Email Marketing",
+    "courseStart": "TBD",
+    "duration": 3.5,
+    "lectures": 40,
+    "totalExam": 3,
+    "totalProject": 3,
+    "details": "This specialised certification program is designed for aspiring digital marketers seeking hands-on experience and practical knowledge to build successful online businesses or secure digital marketing roles.",
+    "courseOverview": "Learn SEO, WordPress customization, Amazon affiliate marketing, social media marketing, Google tools, and email automation through practical projects and real-world case studies. Gain freelancing and career guidance to succeed in the digital marketing industry.",
+    "curriculum": [
+      "Search Engine Optimisation (SEO) techniques",
+      "Keyword research for e-commerce and company websites",
+      "Technical and manual website auditing",
+      "WordPress customisation and SEO setup",
+      "Amazon affiliate marketing strategies",
+      "Competitor analysis and content writing",
+      "On-page and off-page SEO",
+      "AI-powered SEO & Content Generation (ChatGPT, Jasper, Copy.ai)",
+      "AI tools for Keyword Research & Competitor Analysis",
+      "Freelancing on Fiverr and other marketplaces",
+      "Social media marketing (Facebook, Instagram, LinkedIn, Twitter)",
+      "AI in Social Media Marketing & Ad Campaign Optimisation",
+      "Google tools (Search Console, Analytics, Business Profile)",
+      "Email marketing and automation",
+      "AI-based Email Marketing & Automation Tools"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Hands-on Projects and Real-World Assignments"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Professional Portfolio Development"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "In-Depth Digital Marketing Training"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Freelancing Guidance and Career Support"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "1-on-1 Mentoring Sessions"
+      }
+    ],
+    "softwareYoullLearn": [
+      "WordPress",
+      "Elementor",
+      "Google Analytics",
+      "Google Search Console",
+      "ManyChat",
+      "VidIQ",
+      "Mailchimp"
+    ],
+    "jobPositions": [
+      "Digital Marketing Specialist",
+      "SEO Specialist",
+      "Content Strategist",
+      "Social Media Manager",
+      "Affiliate Marketer",
+      "Marketing Consultant"
+    ]
+  },
+  {
+    "id": 52,
+    "title": "Professional WordPress Development",
+    "category": "Programming",
+    "type": "Online",
+    "image": "https://i.ibb.co/Y75bjF7c/WP-card.jpg",
+    "fee": "8000৳",
+    "rating": 5,
+    "totalRating": 765,
+    "totalStudentsEnroll": 850,
+    "instructorName": "Sheikh Sakibul Hasan",
+    "instructorImg": "instructor_sakib.jpg",
+    "instructorReviews": 150,
+    "instructorExperience": "5+ years in WordPress Development and Freelancing",
+    "instructorBio": "Sheikh Sakibul Hasan is a professional WordPress developer with over 5 years of experience in building custom themes, plugins, and eCommerce solutions. He has a strong background in freelancing and has helped numerous students launch successful WordPress careers.",
+    "technology": "HTML, CSS, Tailwind CSS, WordPress, Elementor, WooCommerce, ACF, JetEngine",
+    "courseStart": "01-August-2025",
+    "duration": 3.5,
+    "lectures": 40,
+    "totalExam": 3,
+    "totalProject": 3,
+    "details": "The Professional WordPress Development course prepares students to build fully functional, customised WordPress websites, from design to deployment, including eCommerce, LMS, and portfolio sites. The course focuses on real-world projects and freelancing success.",
+    "courseOverview": "This 3.5-month intensive course starts with web fundamentals using HTML, CSS, and Tailwind CSS. Students then dive into WordPress setup, theme customization, and advanced page building with Elementor. Key modules include WooCommerce for eCommerce, ACF and JetEngine for dynamic content, and real-world projects like LMS and news websites. The course concludes with freelancing strategies, soft skills training, and 1-on-1 mentoring to prepare learners for global job markets and freelancing platforms.",
+    "curriculum": [
+      "HTML, CSS, Tailwind Basics",
+      "WordPress Installation & Setup",
+      "Theme Customization Techniques",
+      "Elementor Page Building Essentials",
+      "ACF & JetEngine for Dynamic Sites",
+      "WooCommerce for eCommerce Sites",
+      "LMS & Blog/News Site Projects",
+      "Freelancing Platform Strategies",
+      "Portfolio Building & GitHub Setup",
+      "Client Handling & Proposal Writing",
+      "Soft Skills & Career Guidance",
+      "Website Speed & SEO Optimization"
+    ],
+    "courseIncludes": [
+      {
+        "icon": "RiLiveLine",
+        "text": "Hands-on Projects and Real-World Assignments"
+      },
+      {
+        "icon": "MdLiveTv",
+        "text": "Professional Portfolio Development"
+      },
+      {
+        "icon": "RiExpandLeftRightLine",
+        "text": "In-Depth Elementor & WordPress Training"
+      },
+      {
+        "icon": "TfiCup",
+        "text": "Freelancing Guidance and Career Support"
+      },
+      {
+        "icon": "MdWorkOutline",
+        "text": "1-on-1 Mentoring Sessions"
+      }
+    ],
+    "softwareYoullLearn": [
+      "Visual Studio Code",
+      "WordPress",
+      "Elementor",
+      "WooCommerce",
+      "ACF",
+      "JetEngine",
+      "Tailwind CSS"
+    ],
+    "jobPositions": [
+      "Web Developer",
+      "WordPress Developer",
+      "Front-End Developer",
+      "eCommerce Developer",
+      "Freelance Web Designer"
+    ]
+  }
+]
