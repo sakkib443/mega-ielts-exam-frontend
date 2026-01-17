@@ -162,16 +162,20 @@ export default function WritingExamPage() {
         const sessionData = storedSession ? JSON.parse(storedSession) : null;
         const examId = sessionData?.examId;
 
-        // Save to backend
+        // Save to backend with task responses
         try {
             const response = await studentsAPI.saveModuleScore(examId, "writing", {
                 band: bandScore,
                 task1Words: task1Words,
-                task2Words: task2Words
+                task2Words: task2Words,
+                answers: {
+                    task1: answers.task1,
+                    task2: answers.task2
+                }
             });
-            console.log("Writing score saved to backend");
+            console.log("Writing responses saved to backend");
 
-            // Update localStorage with completed modules and scores
+            // Update localStorage
             if (response.success && sessionData) {
                 sessionData.completedModules = response.data?.completedModules || [...(sessionData.completedModules || []), "writing"];
                 sessionData.scores = response.data?.scores || {

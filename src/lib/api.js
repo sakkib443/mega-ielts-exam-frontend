@@ -189,6 +189,21 @@ export const studentsAPI = {
         const response = await apiRequest("/students/statistics");
         return response;
     },
+
+    // Update score (admin)
+    updateScore: async (studentId, module, score) => {
+        const response = await apiRequest(`/students/${studentId}/update-score`, {
+            method: "PATCH",
+            body: JSON.stringify({ module, score }),
+        });
+        return response;
+    },
+
+    // Get answer sheet (admin)
+    getAnswerSheet: async (studentId, module) => {
+        const response = await apiRequest(`/students/${studentId}/answer-sheet/${module}`);
+        return response;
+    },
 };
 
 // ================== QUESTION SETS API ==================
@@ -406,6 +421,13 @@ export const uploadAPI = {
     },
 };
 
+// ================== STATS API ==================
+export const statsAPI = {
+    getOverview: async () => {
+        return await studentsAPI.getStatistics();
+    },
+};
+
 export default {
     auth: authAPI,
     students: studentsAPI,
@@ -413,4 +435,5 @@ export default {
     exams: examsAPI,
     examSessions: examSessionsAPI,
     upload: uploadAPI,
+    stats: statsAPI,
 };

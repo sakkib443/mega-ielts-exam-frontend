@@ -232,21 +232,32 @@ export default function ListeningExamPage() {
         const score = calculateScore();
         const bandScore = getBandScore(score);
 
-        // Get exam ID from session
-        const storedSession = localStorage.getItem("examSession");
-        const sessionData = storedSession ? JSON.parse(storedSession) : null;
-        const examId = sessionData?.examId;
+        // Prepare detailed answers for admin review
+        const detailedAnswers = allQuestions.map(q => {
+            const userAnswer = answers[q.questionNumber] || "";
+            const normalizedUser = userAnswer.toString().trim().toLowerCase();
+            const normalizedCorrect = q.correctAnswer?.toString().trim().toLowerCase();
+            const isCorrect = normalizedUser === normalizedCorrect;
 
-        // Save to backend
+            return {
+                questionNumber: q.questionNumber,
+                studentAnswer: userAnswer,
+                correctAnswer: q.correctAnswer,
+                isCorrect: isCorrect
+            };
+        });
+
+        // Save to backend with answers
         try {
             const response = await studentsAPI.saveModuleScore(examId, "listening", {
                 score: score,
                 total: totalMarks,
-                band: bandScore
+                band: bandScore,
+                answers: detailedAnswers // Send answers to backend
             });
-            console.log("Listening score saved to backend");
+            console.log("Listening data saved with answers");
 
-            // Update localStorage with completed modules and scores
+            // Update localStorage
             if (response.success && sessionData) {
                 sessionData.completedModules = response.data?.completedModules || [...(sessionData.completedModules || []), "listening"];
                 sessionData.scores = response.data?.scores || {

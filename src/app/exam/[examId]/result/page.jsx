@@ -4,12 +4,10 @@ import React, { useEffect, useState, Suspense, useRef } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import {
     FaCheckCircle,
-    FaRedo,
     FaHome,
-    FaHeadphones,
-    FaBook,
-    FaPen,
-    FaLayerGroup
+    FaCheck,
+    FaRegCalendarCheck,
+    FaSpinner
 } from "react-icons/fa";
 import { studentsAPI } from "@/lib/api";
 
@@ -19,36 +17,31 @@ function ResultContent() {
     const router = useRouter();
 
     const module = searchParams.get("module") || "listening";
-    const score = parseInt(searchParams.get("score") || "0");
-    const total = parseInt(searchParams.get("total") || "40");
-    const band = parseFloat(searchParams.get("band") || "0");
-
-    const [animatedScore, setAnimatedScore] = useState(0);
-    const [animatedBand, setAnimatedBand] = useState(0);
-    const [fullResults, setFullResults] = useState(null);
-    const [saveStatus, setSaveStatus] = useState(null);
+    const [saveStatus, setSaveStatus] = useState("saving");
     const savedRef = useRef(false);
 
-    // Save scores to backend when writing is completed (exam finished)
+    // Save scores to backend - but we won't show them to the student here
     useEffect(() => {
         const saveExamResults = async () => {
-            // Only save when writing module is completed (final module)
-            if (module !== "writing" || savedRef.current) return;
+            // If it's the final module (writing usually ends the full exam session)
+            // or if it's a individual module, we save it.
+            if (savedRef.current) return;
 
             try {
-                // Get all section results from localStorage
+                setSaveStatus("saving");
+
+                // Get results from localStorage
                 const listeningData = localStorage.getItem(`exam_${params.examId}_listening`);
                 const readingData = localStorage.getItem(`exam_${params.examId}_reading`);
                 const writingData = localStorage.getItem(`exam_${params.examId}_writing`);
 
-                // Parse results
+                // Parse
                 const listening = listeningData ? JSON.parse(listeningData) : null;
                 const reading = readingData ? JSON.parse(readingData) : null;
                 const writing = writingData ? JSON.parse(writingData) : null;
 
-                // Build scores object
+                // Build scores object for complete registration in backend
                 const scores = {};
-
                 if (listening) {
                     scores.listening = {
                         score: listening.score || 0,
@@ -56,7 +49,6 @@ function ResultContent() {
                         band: listening.bandScore || 0
                     };
                 }
-
                 if (reading) {
                     scores.reading = {
                         score: reading.score || 0,
@@ -64,7 +56,6 @@ function ResultContent() {
                         band: reading.bandScore || 0
                     };
                 }
-
                 if (writing) {
                     scores.writing = {
                         task1Words: writing.task1Words || 0,
@@ -73,18 +64,14 @@ function ResultContent() {
                     };
                 }
 
-                // Save to backend
+                // Call backend
                 savedRef.current = true;
                 const response = await studentsAPI.completeExam(params.examId, scores);
 
                 if (response.success) {
                     setSaveStatus("saved");
-                    console.log("Exam results saved to backend successfully");
-
-                    // Clear localStorage after successful save
-                    localStorage.removeItem(`exam_${params.examId}_listening`);
-                    localStorage.removeItem(`exam_${params.examId}_reading`);
-                    localStorage.removeItem(`exam_${params.examId}_writing`);
+                    // Important: Don't clear EVERYTHING if they carry over, 
+                    // but for complete exam result page, we clear session.
                     localStorage.removeItem("examSession");
                 }
             } catch (error) {
@@ -94,203 +81,101 @@ function ResultContent() {
         };
 
         saveExamResults();
-    }, [module, params.examId]);
+    }, [params.examId]);
 
-    // Animate scores
-    useEffect(() => {
-        const duration = 1500;
-        const steps = 50;
-        const increment = score / steps;
-        let current = 0;
-        const timer = setInterval(() => {
-            current += increment;
-            if (current >= score) {
-                setAnimatedScore(score);
-                clearInterval(timer);
-            } else {
-                setAnimatedScore(Math.floor(current));
-            }
-        }, duration / steps);
-
-        let bandCurrent = 0;
-        const bandIncrement = band / steps;
-        const bandTimer = setInterval(() => {
-            bandCurrent += bandIncrement;
-            if (bandCurrent >= band) {
-                setAnimatedBand(band);
-                clearInterval(bandTimer);
-            } else {
-                setAnimatedBand(Math.round(bandCurrent * 2) / 2);
-            }
-        }, duration / steps);
-
-        if (module === "full") {
-            const saved = localStorage.getItem(`exam_${params.examId}_full`);
-            if (saved) setFullResults(JSON.parse(saved));
-        }
-
-        return () => {
-            clearInterval(timer);
-            clearInterval(bandTimer);
-        };
-    }, [score, band, module, params.examId]);
-
-    const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
-
-    const getBandInfo = (bandScore) => {
-        if (bandScore >= 8.5) return { level: "Expert", color: "text-green-600", bgColor: "bg-green-100", desc: "Excellent command of English" };
-        if (bandScore >= 7.5) return { level: "Very Good", color: "text-green-600", bgColor: "bg-green-100", desc: "Operational command with occasional inaccuracies" };
-        if (bandScore >= 6.5) return { level: "Competent", color: "text-blue-600", bgColor: "bg-blue-100", desc: "Generally effective command of English" };
-        if (bandScore >= 5.5) return { level: "Modest", color: "text-amber-600", bgColor: "bg-amber-100", desc: "Partial command of English" };
-        if (bandScore >= 4.5) return { level: "Limited", color: "text-orange-600", bgColor: "bg-orange-100", desc: "Basic competence in familiar situations" };
-        return { level: "Beginner", color: "text-red-600", bgColor: "bg-red-100", desc: "Needs improvement" };
+    const moduleNames = {
+        listening: "Listening",
+        reading: "Reading",
+        writing: "Writing",
+        full: "Full IELTS Exam"
     };
-
-    const bandInfo = getBandInfo(band);
-
-    const moduleInfo = {
-        listening: { name: "Listening", icon: <FaHeadphones className="text-xl" />, bgColor: "bg-cyan-100", textColor: "text-cyan-600" },
-        reading: { name: "Reading", icon: <FaBook className="text-xl" />, bgColor: "bg-blue-100", textColor: "text-blue-600" },
-        writing: { name: "Writing", icon: <FaPen className="text-xl" />, bgColor: "bg-green-100", textColor: "text-green-600" },
-        full: { name: "Full Exam", icon: <FaLayerGroup className="text-xl" />, bgColor: "bg-cyan-100", textColor: "text-cyan-600" }
-    };
-
-    const currentModule = moduleInfo[module] || moduleInfo.listening;
 
     return (
-        <div className="min-h-screen bg-white flex flex-col">
-            {/* Header */}
-            <header className="bg-white border-b border-gray-200 py-4 px-4">
-                <div className="max-w-3xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <span className="text-cyan-600 font-bold text-xl">IELTS</span>
-                        <span className="text-gray-400">|</span>
-                        <span className="text-gray-600">Test Result</span>
+        <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+            {/* Minimal Header */}
+            <header className="bg-white border-b border-slate-200 py-6 px-6">
+                <div className="max-w-4xl mx-auto flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
+                            <span className="text-white font-black text-xs">IE</span>
+                        </div>
+                        <span className="text-slate-900 font-black tracking-tight text-xl uppercase">IELTS Dashboard</span>
                     </div>
-                    <span className="text-gray-500 text-sm">Exam ID: {params.examId}</span>
+                    <div className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+                        Ref ID: {params.examId}
+                    </div>
                 </div>
             </header>
 
-            {/* Main Content */}
-            <main className="flex-1 flex items-center justify-center px-4 py-8">
-                <div className="w-full max-w-xl">
-                    {/* Result Card */}
-                    <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
-                        {/* Module Badge */}
-                        <div className="flex items-center justify-center mb-6">
-                            <div className={`inline-flex items-center gap-3 ${currentModule.bgColor} ${currentModule.textColor} px-5 py-2.5 rounded-lg`}>
-                                {currentModule.icon}
-                                <span className="font-semibold">{currentModule.name} Complete</span>
-                                <FaCheckCircle />
+            {/* Content Container */}
+            <main className="flex-1 flex items-center justify-center p-6">
+                <div className="w-full max-w-xl bg-white rounded-3xl border border-slate-200 p-12 text-center shadow-sm">
+                    {/* Success Icon */}
+                    <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-8 ring-8 ring-emerald-50/50">
+                        <FaCheck className="text-3xl" />
+                    </div>
+
+                    <h1 className="text-3xl font-black text-slate-900 mb-4 uppercase tracking-tighter">
+                        {moduleNames[module] || "Exam"} Submitted
+                    </h1>
+
+                    <p className="text-slate-500 font-medium mb-10 leading-relaxed">
+                        Your responses have been successfully recorded and sent to our examiners.
+                        The official results will be processed after a through review.
+                        You will be notified once your band scores are released.
+                    </p>
+
+                    {/* Status Box */}
+                    <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 flex items-center justify-between mb-10">
+                        <div className="text-left">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Submission Status</p>
+                            <div className="flex items-center gap-2">
+                                {saveStatus === "saving" ? (
+                                    <>
+                                        <FaSpinner className="animate-spin text-slate-400" />
+                                        <span className="text-sm font-bold text-slate-700">Encrypting & Saving...</span>
+                                    </>
+                                ) : saveStatus === "error" ? (
+                                    <>
+                                        <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                                        <span className="text-sm font-bold text-rose-600">Save Failed (Syncing later)</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                        <span className="text-sm font-bold text-slate-800">Verified & Secured</span>
+                                    </>
+                                )}
                             </div>
                         </div>
-
-                        {/* Band Score Display */}
-                        <div className="text-center mb-8">
-                            <div className="relative inline-block mb-4">
-                                <div className="w-32 h-32 rounded-full border-4 border-cyan-600 flex flex-col items-center justify-center bg-cyan-50">
-                                    <span className="text-xs text-gray-500">Band Score</span>
-                                    <span className="text-4xl font-bold text-cyan-600">{animatedBand.toFixed(1)}</span>
-                                </div>
-                            </div>
-
-                            <div className={`inline-block ${bandInfo.bgColor} ${bandInfo.color} px-4 py-2 rounded-lg mb-2`}>
-                                <p className="font-bold text-lg">{bandInfo.level}</p>
-                            </div>
-                            <p className="text-gray-500">{bandInfo.desc}</p>
-                        </div>
-
-                        {/* Score Details */}
-                        <div className="grid grid-cols-2 gap-4 mb-6">
-                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-                                <p className="text-gray-500 text-sm mb-1">Correct Answers</p>
-                                <p className="text-2xl font-bold text-gray-800">{animatedScore}<span className="text-lg text-gray-400">/{total}</span></p>
-                            </div>
-                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-                                <p className="text-gray-500 text-sm mb-1">Percentage</p>
-                                <p className="text-2xl font-bold text-gray-800">{percentage}%</p>
-                            </div>
-                        </div>
-
-                        {/* Band Score Scale */}
-                        <div className="mb-6">
-                            <p className="text-gray-500 text-sm mb-2 text-center">IELTS Band Scale</p>
-                            <div className="relative h-2 bg-gradient-to-r from-red-400 via-amber-400 via-green-400 to-green-500 rounded-full overflow-hidden">
-                                <div
-                                    className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full border-2 border-gray-800 shadow"
-                                    style={{ left: `${((band - 1) / 8) * 100}%` }}
-                                />
-                            </div>
-                            <div className="flex justify-between text-xs text-gray-400 mt-1">
-                                <span>1</span>
-                                <span>5</span>
-                                <span>9</span>
-                            </div>
-                        </div>
-
-                        {/* Full Exam Breakdown */}
-                        {module === "full" && fullResults && (
-                            <div className="mb-6">
-                                <h3 className="text-gray-700 font-semibold mb-3 text-center">Section Breakdown</h3>
-                                <div className="grid grid-cols-3 gap-3">
-                                    {[
-                                        { name: "Listening", data: fullResults.listening, icon: <FaHeadphones />, color: "cyan" },
-                                        { name: "Reading", data: fullResults.reading, icon: <FaBook />, color: "blue" },
-                                        { name: "Writing", data: fullResults.writing, icon: <FaPen />, color: "green" }
-                                    ].map((section, i) => (
-                                        <div key={i} className={`bg-${section.color}-50 border border-${section.color}-200 rounded-lg p-3 text-center`}>
-                                            <div className={`text-${section.color}-600 mb-1 flex justify-center`}>{section.icon}</div>
-                                            <p className="text-xs text-gray-500">{section.name}</p>
-                                            <p className="text-lg font-bold text-gray-800">{section.data?.bandScore || "N/A"}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* University Requirements */}
-                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
-                            <p className="text-gray-600 text-sm mb-2">Your Score Meets Requirements For:</p>
-                            <div className="flex flex-wrap gap-2">
-                                {band >= 6.0 && <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">Undergraduate Programs</span>}
-                                {band >= 6.5 && <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">Many Graduate Programs</span>}
-                                {band >= 7.0 && <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm">Top Universities</span>}
-                                {band < 6.0 && <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-sm">Foundation Courses</span>}
-                            </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex gap-4">
-                            <button
-                                onClick={() => router.push(`/exam/${params.examId}`)}
-                                className="flex-1 flex items-center justify-center gap-2 bg-gray-100 border border-gray-200 py-3 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer text-gray-700"
-                            >
-                                <FaRedo />
-                                Try Again
-                            </button>
-                            <button
-                                onClick={() => router.push("/")}
-                                className="flex-1 flex items-center justify-center gap-2 bg-cyan-600 text-white py-3 rounded-lg hover:bg-cyan-700 transition-colors cursor-pointer"
-                            >
-                                <FaHome />
-                                Home
-                            </button>
+                        <div className="w-px h-10 bg-slate-200 hidden md:block"></div>
+                        <div className="text-right hidden md:block">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Exam Part</p>
+                            <p className="text-sm font-black text-slate-800 uppercase">{module}</p>
                         </div>
                     </div>
 
-                    {/* Footer Note */}
-                    <p className="text-center text-gray-400 text-sm mt-6">
-                        This is an indicative score. Official IELTS scores may vary.
+                    {/* Action Buttons */}
+                    <div className="flex flex-col md:flex-row gap-4">
+                        <button
+                            onClick={() => router.push("/")}
+                            className="flex-1 h-14 bg-slate-900 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-3 shadow-lg shadow-slate-900/10"
+                        >
+                            <FaHome /> Back to Home
+                        </button>
+                        <button
+                            onClick={() => window.print()}
+                            className="flex-1 h-14 bg-white border border-slate-200 text-slate-700 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center justify-center gap-3"
+                        >
+                            <FaRegCalendarCheck /> Print Proof
+                        </button>
+                    </div>
+
+                    <p className="mt-12 text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">
+                        © 2024 BdCalling Academy · IELTS Department
                     </p>
                 </div>
             </main>
-
-            {/* Footer */}
-            <footer className="bg-white border-t border-gray-200 py-4 px-4">
-                <div className="max-w-3xl mx-auto text-center text-gray-400 text-sm">
-                    © 2024 IELTS Exam - BdCalling Academy
-                </div>
-            </footer>
         </div>
     );
 }
@@ -299,7 +184,7 @@ export default function ResultPage() {
     return (
         <Suspense fallback={
             <div className="min-h-screen bg-white flex items-center justify-center">
-                <div className="text-gray-600">Loading results...</div>
+                <FaSpinner className="animate-spin text-slate-400 text-3xl" />
             </div>
         }>
             <ResultContent />

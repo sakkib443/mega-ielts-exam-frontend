@@ -17,6 +17,10 @@ import {
     FaBook,
     FaPen,
     FaFolderOpen,
+    FaSearch,
+    FaBell,
+    FaGlobe,
+    FaChevronDown,
 } from "react-icons/fa";
 
 const menuItems = [
@@ -29,7 +33,7 @@ const menuItems = [
         title: "Students",
         icon: FaUserGraduate,
         href: "/dashboard/admin/students",
-        badge: "new",
+        badge: "New",
     },
     {
         title: "Question Sets",
@@ -47,6 +51,9 @@ const menuItems = [
         icon: FaChartBar,
         href: "/dashboard/admin/results",
     },
+];
+
+const secondaryItems = [
     {
         title: "Users",
         icon: FaUsers,
@@ -69,20 +76,15 @@ function AdminLayoutContent({ children }) {
     const [expandedMenu, setExpandedMenu] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Get current type from URL params
     const currentType = searchParams?.get("type") || null;
-
-    // Check if we're on the login page
     const isLoginPage = pathname === "/dashboard/admin";
 
     useEffect(() => {
-        // Skip auth check on login page
         if (isLoginPage) {
             setIsLoading(false);
             return;
         }
 
-        // Check authentication
         const auth = localStorage.getItem("adminAuth");
         if (!auth) {
             router.push("/dashboard/admin");
@@ -99,7 +101,6 @@ function AdminLayoutContent({ children }) {
         setIsLoading(false);
     }, [router, isLoginPage]);
 
-    // Auto-expand Question Sets submenu when on question-sets page
     useEffect(() => {
         if (pathname.includes("/question-sets")) {
             setExpandedMenu("Question Sets");
@@ -118,231 +119,189 @@ function AdminLayoutContent({ children }) {
         return pathname === href || pathname.startsWith(href + "/");
     };
 
-    // Show login page without sidebar
-    if (isLoginPage) {
-        return <>{children}</>;
-    }
+    if (isLoginPage) return <>{children}</>;
 
     if (isLoading || !adminInfo) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full"></div>
+                <div className="animate-spin w-8 h-8 border-4 border-gray-600 border-t-transparent rounded-full"></div>
             </div>
         );
     }
 
+    const NavItem = ({ item, isSub = false }) => {
+        const active = isActive(item.href);
+        const Icon = item.icon;
+
+        if (item.submenu) {
+            const isExpanded = expandedMenu === item.title;
+            return (
+                <div className="mb-1">
+                    <button
+                        onClick={() => setExpandedMenu(isExpanded ? null : item.title)}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 ${active ? "bg-gray-100 text-gray-900 font-medium" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                            }`}
+                    >
+                        <Icon className={`text-lg ${!sidebarOpen && "mx-auto"}`} />
+                        {sidebarOpen && (
+                            <>
+                                <span className="text-sm flex-1 text-left">{item.title}</span>
+                                <FaChevronDown className={`text-xs transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                            </>
+                        )}
+                    </button>
+                    {sidebarOpen && isExpanded && (
+                        <div className="mt-1 ml-4 space-y-1 pl-2 border-l border-gray-200">
+                            {item.submenu.map((sub) => {
+                                const subActive = pathname === "/dashboard/admin/question-sets" &&
+                                    ((sub.type === null && !currentType) || (sub.type === currentType));
+                                return (
+                                    <Link
+                                        key={sub.href + (sub.type || 'all')}
+                                        href={sub.href}
+                                        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-all text-sm ${subActive
+                                            ? "bg-gray-100 text-gray-900 font-medium"
+                                            : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                                            }`}
+                                    >
+                                        <sub.icon className="text-sm" />
+                                        <span>{sub.title}</span>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        return (
+            <Link
+                href={item.href}
+                className={`flex items-center gap-3 px-3 py-2 rounded-md mb-1 transition-all duration-200 group ${active
+                    ? "bg-gray-100 text-gray-900 font-medium"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    }`}
+            >
+                <Icon className={`text-lg ${!sidebarOpen && "mx-auto"}`} />
+                {sidebarOpen && (
+                    <>
+                        <span className="text-sm flex-1">{item.title}</span>
+                        {item.badge && (
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${active ? "bg-gray-200 text-gray-800" : "bg-gray-100 text-gray-600"}`}>
+                                {item.badge}
+                            </span>
+                        )}
+                    </>
+                )}
+            </Link>
+        );
+    };
+
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Mobile Menu Overlay */}
+            {/* Mobile Sidebar Toggle Overlay */}
             {mobileMenuOpen && (
-                <div
-                    className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-                    onClick={() => setMobileMenuOpen(false)}
-                />
+                <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setMobileMenuOpen(false)} />
             )}
 
             {/* Sidebar */}
             <aside
-                className={`fixed top-0 left-0 z-50 h-full bg-white border-r border-gray-200 transition-all duration-300 ${sidebarOpen ? "w-64" : "w-20"
+                className={`fixed top-0 left-0 z-50 h-full bg-white border-r border-gray-200 transition-all duration-300 ease-in-out ${sidebarOpen ? "w-64" : "w-20"
                     } ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
             >
-                {/* Logo */}
-                <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200">
-                    {sidebarOpen ? (
-                        <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-xl flex items-center justify-center">
-                                <span className="text-white font-bold text-lg">IE</span>
-                            </div>
-                            <div>
-                                <h1 className="font-bold text-gray-800">IELTS Admin</h1>
-                                <p className="text-xs text-gray-500">Management System</p>
-                            </div>
+                {/* Logo Area */}
+                <div className="h-16 flex items-center px-6 border-b border-gray-200">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                            IE
                         </div>
-                    ) : (
-                        <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-xl flex items-center justify-center mx-auto">
-                            <span className="text-white font-bold text-lg">IE</span>
-                        </div>
-                    )}
-                    <button
-                        onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className="hidden lg:flex p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                        <FaBars className="text-gray-500" />
-                    </button>
-                    <button
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
-                    >
-                        <FaTimes className="text-gray-500" />
-                    </button>
+                        {sidebarOpen && (
+                            <span className="font-bold text-gray-800 text-lg">IELTS Admin</span>
+                        )}
+                    </div>
                 </div>
 
-                {/* Navigation */}
-                <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-180px)]">
-                    {menuItems.map((item) => (
-                        <div key={item.href}>
-                            {item.submenu ? (
-                                <>
-                                    <button
-                                        onClick={() => setExpandedMenu(expandedMenu === item.title ? null : item.title)}
-                                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive(item.href)
-                                            ? "bg-cyan-50 text-cyan-600"
-                                            : "text-gray-600 hover:bg-gray-100"
-                                            }`}
-                                    >
-                                        <item.icon className={`text-lg ${!sidebarOpen && "mx-auto"}`} />
-                                        {sidebarOpen && (
-                                            <>
-                                                <span className="font-medium flex-1 text-left">{item.title}</span>
-                                                <svg
-                                                    className={`w-4 h-4 transition-transform ${expandedMenu === item.title ? "rotate-180" : ""
-                                                        }`}
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth={2}
-                                                        d="M19 9l-7 7-7-7"
-                                                    />
-                                                </svg>
-                                            </>
-                                        )}
-                                    </button>
-                                    {sidebarOpen && expandedMenu === item.title && (
-                                        <div className="ml-4 mt-1 space-y-1 border-l-2 border-gray-200 pl-2">
-                                            {item.submenu.map((sub) => {
-                                                // Check if this submenu item is active
-                                                const isOnQuestionSetsPage = pathname === "/dashboard/admin/question-sets";
-                                                const isSubActive = isOnQuestionSetsPage && (
-                                                    (sub.type === null && !currentType) ||
-                                                    (sub.type === currentType)
-                                                );
+                {/* Navigation Scrollable */}
+                <div className="p-4 h-[calc(100vh-140px)] overflow-y-auto">
+                    <p className={`px-2 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider transition-opacity duration-300 ${!sidebarOpen && 'opacity-0'}`}>Menu</p>
+                    <nav>
+                        {menuItems.map((item) => <NavItem key={item.href} item={item} />)}
+                    </nav>
 
-                                                return (
-                                                    <Link
-                                                        key={sub.href + (sub.type || 'all')}
-                                                        href={sub.href}
-                                                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm group ${isSubActive
-                                                            ? "bg-gradient-to-r from-cyan-500 to-teal-600 text-white shadow-md"
-                                                            : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                                                            }`}
-                                                    >
-                                                        <sub.icon className={`text-base ${isSubActive ? "text-white" : "text-gray-400 group-hover:text-cyan-500"}`} />
-                                                        <span className="font-medium">{sub.title}</span>
-                                                    </Link>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                </>
-                            ) : (
-                                <Link
-                                    href={item.href}
-                                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive(item.href)
-                                        ? "bg-cyan-50 text-cyan-600"
-                                        : "text-gray-600 hover:bg-gray-100"
-                                        }`}
-                                >
-                                    <item.icon className={`text-lg ${!sidebarOpen && "mx-auto"}`} />
-                                    {sidebarOpen && (
-                                        <span className="font-medium">{item.title}</span>
-                                    )}
-                                    {sidebarOpen && item.badge && (
-                                        <span className="ml-auto bg-green-100 text-green-600 text-xs px-2 py-0.5 rounded-full font-medium">
-                                            {item.badge}
-                                        </span>
-                                    )}
-                                </Link>
-                            )}
-                        </div>
-                    ))}
-                </nav>
+                    <div className="my-6 h-px bg-gray-100 mx-2" />
 
-                {/* User Info & Logout */}
+                    <p className={`px-2 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider transition-opacity duration-300 ${!sidebarOpen && 'opacity-0'}`}>System</p>
+                    <nav>
+                        {secondaryItems.map((item) => <NavItem key={item.href} item={item} />)}
+                    </nav>
+                </div>
+
+                {/* Logout Button */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
-                    {sidebarOpen ? (
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center">
-                                <span className="text-white font-semibold">
-                                    {adminInfo.name?.charAt(0).toUpperCase()}
-                                </span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-800 truncate">{adminInfo.name}</p>
-                                <p className="text-xs text-gray-500 truncate">{adminInfo.email}</p>
-                            </div>
-                            <button
-                                onClick={handleLogout}
-                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                title="Logout"
-                            >
-                                <FaSignOutAlt />
-                            </button>
-                        </div>
-                    ) : (
-                        <button
-                            onClick={handleLogout}
-                            className="w-full p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center"
-                            title="Logout"
-                        >
-                            <FaSignOutAlt />
-                        </button>
-                    )}
+                    <button
+                        onClick={handleLogout}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors ${!sidebarOpen && 'justify-center'}`}
+                    >
+                        <FaSignOutAlt className="text-lg" />
+                        {sidebarOpen && <span className="text-sm font-medium">Sign Out</span>}
+                    </button>
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <main
-                className={`transition-all duration-300 ${sidebarOpen ? "lg:ml-64" : "lg:ml-20"
-                    }`}
-            >
-                {/* Top Header */}
-                <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30">
-                    <button
-                        onClick={() => setMobileMenuOpen(true)}
-                        className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
-                    >
-                        <FaBars className="text-gray-600" />
-                    </button>
+            {/* Main Content Area */}
+            <main className={`transition-all duration-300 ease-in-out ${sidebarOpen ? "lg:ml-64" : "lg:ml-20"}`}>
+                {/* Top Navbar */}
+                <header className="h-16 px-6 lg:px-8 flex items-center justify-between sticky top-0 z-30 bg-white border-b border-gray-200">
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => setMobileMenuOpen(true)} className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                            <FaBars />
+                        </button>
 
-                    <div className="flex items-center gap-4 ml-auto">
-                        {/* Current Date/Time */}
-                        <div className="hidden sm:block text-sm text-gray-500">
-                            {new Date().toLocaleDateString("en-US", {
-                                weekday: "long",
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                            })}
+                        {/* Desktop Sidebar Toggle */}
+                        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="hidden lg:flex p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                            <FaBars />
+                        </button>
+                    </div>
+
+                    {/* Right Side Icons & Profile */}
+                    <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-4">
+                            <button className="text-gray-400 hover:text-gray-600 transition-colors"><FaGlobe /></button>
+                            <button className="relative text-gray-400 hover:text-gray-600 transition-colors">
+                                <FaBell />
+                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+                            </button>
                         </div>
 
-                        {/* Quick Actions */}
-                        <Link
-                            href="/dashboard/admin/students/create"
-                            className="bg-gradient-to-r from-cyan-500 to-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-cyan-600 hover:to-teal-700 transition-all flex items-center gap-2"
-                        >
-                            <FaUserGraduate />
-                            <span className="hidden sm:inline">Add Student</span>
-                        </Link>
+                        <div className="h-8 w-px bg-gray-200"></div>
+
+                        <div className="flex items-center gap-3 group cursor-pointer">
+                            <div className="text-right hidden sm:block">
+                                <p className="text-sm font-semibold text-gray-700 leading-none mb-1">{adminInfo?.name || "Admin"}</p>
+                                <p className="text-xs text-gray-500">{adminInfo?.role || "System Admin"}</p>
+                            </div>
+                            <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 font-bold border border-gray-300">
+                                {adminInfo?.name?.charAt(0).toUpperCase() || "A"}
+                            </div>
+                        </div>
                     </div>
                 </header>
 
-                {/* Page Content */}
-                <div className="p-4 lg:p-8">{children}</div>
+                {/* Content Padding */}
+                <div className="p-6 lg:p-8">
+                    {children}
+                </div>
             </main>
         </div>
     );
 }
 
-// Wrap with Suspense for useSearchParams
 export default function AdminLayout({ children }) {
     return (
         <Suspense fallback={
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full"></div>
+                <div className="animate-spin w-8 h-8 border-4 border-gray-600 border-t-transparent rounded-full"></div>
             </div>
         }>
             <AdminLayoutContent>{children}</AdminLayoutContent>
