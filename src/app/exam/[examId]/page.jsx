@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import {
     FaHeadphones,
     FaBook,
@@ -12,280 +11,377 @@ import {
     FaQuestionCircle,
     FaArrowRight,
     FaLayerGroup,
-    FaShieldAlt,
-    FaGraduationCap,
-    FaChartLine
+    FaSpinner,
+    FaUser,
+    FaCheckCircle,
+    FaLock
 } from "react-icons/fa";
-import { LuGraduationCap } from "react-icons/lu";
-import { HiOutlineDocumentText } from "react-icons/hi";
+import { studentsAPI } from "@/lib/api";
 
 export default function ExamSelectionPage() {
     const params = useParams();
     const router = useRouter();
-    const examId = params.examId;
+    const sessionId = params.examId;
 
+    const [session, setSession] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [completedModules, setCompletedModules] = useState([]);
+    const [moduleScores, setModuleScores] = useState(null);
+
+    useEffect(() => {
+        // Load session from localStorage
+        const storedSession = localStorage.getItem("examSession");
+        if (!storedSession) {
+            setError("No exam session found. Please start from the exam entry page.");
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            const parsed = JSON.parse(storedSession);
+
+            // Verify session ID matches
+            if (parsed.sessionId !== sessionId) {
+                setError("Invalid session. Please start again.");
+                setIsLoading(false);
+                return;
+            }
+
+            setSession(parsed);
+
+            // Load completed modules and scores from session
+            if (parsed.completedModules && Array.isArray(parsed.completedModules)) {
+                setCompletedModules(parsed.completedModules);
+            }
+            if (parsed.scores) {
+                setModuleScores(parsed.scores);
+            }
+        } catch (err) {
+            setError("Session data corrupted. Please start again.");
+        }
+
+        setIsLoading(false);
+    }, [sessionId]);
+
+    // Refresh completed modules from session when page becomes visible
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                const storedSession = localStorage.getItem("examSession");
+                if (storedSession) {
+                    try {
+                        const parsed = JSON.parse(storedSession);
+                        if (parsed.completedModules) {
+                            setCompletedModules(parsed.completedModules);
+                        }
+                        if (parsed.scores) {
+                            setModuleScores(parsed.scores);
+                        }
+                    } catch (e) {
+                        console.error("Error refreshing session:", e);
+                    }
+                }
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, []);
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <FaSpinner className="animate-spin text-4xl text-cyan-600" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center p-4">
+                <div className="text-center">
+                    <p className="text-red-600 mb-4">{error}</p>
+                    <button
+                        onClick={() => router.push("/start-exam")}
+                        className="bg-cyan-600 text-white px-6 py-2 rounded hover:bg-cyan-700"
+                    >
+                        Go to Exam Entry
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Exam modules configuration
     const examModules = [
         {
             id: "listening",
             name: "Listening",
-            icon: <FaHeadphones className="text-3xl" />,
+            icon: <FaHeadphones className="text-2xl" />,
             duration: 40,
             questions: 40,
             sections: 4,
             description: "Audio-based comprehension",
             details: "4 recordings: conversations & lectures",
-            questionTypes: "MCQ, Form/Note/Sentence Completion, Matching",
-            gradient: "from-purple-500 to-purple-600",
-            bgGradient: "from-purple-500/10 to-purple-600/10",
-            borderColor: "border-purple-500/20",
-            hoverBorder: "hover:border-purple-400/50"
+            color: "cyan",
+            setNumber: session?.assignedSets?.listeningSetNumber
         },
         {
             id: "reading",
             name: "Reading",
-            icon: <FaBook className="text-3xl" />,
+            icon: <FaBook className="text-2xl" />,
             duration: 60,
             questions: 40,
             sections: 3,
             description: "Academic passage analysis",
             details: "3 passages with increasing difficulty",
-            questionTypes: "T/F/NG, MCQ, Sentence Completion",
-            gradient: "from-blue-500 to-blue-600",
-            bgGradient: "from-blue-500/10 to-blue-600/10",
-            borderColor: "border-blue-500/20",
-            hoverBorder: "hover:border-blue-400/50"
+            color: "blue",
+            setNumber: session?.assignedSets?.readingSetNumber
         },
         {
             id: "writing",
             name: "Writing",
-            icon: <FaPen className="text-3xl" />,
+            icon: <FaPen className="text-2xl" />,
             duration: 60,
             questions: 2,
             sections: 2,
             description: "Academic writing tasks",
             details: "Task 1: 150 words • Task 2: 250 words",
-            questionTypes: "Graph Report + Essay",
-            gradient: "from-emerald-500 to-emerald-600",
-            bgGradient: "from-emerald-500/10 to-emerald-600/10",
-            borderColor: "border-emerald-500/20",
-            hoverBorder: "hover:border-emerald-400/50"
+            color: "green",
+            setNumber: session?.assignedSets?.writingSetNumber
         }
     ];
 
     const handleStartModule = (moduleId) => {
-        router.push(`/exam/${examId}/${moduleId}`);
+        router.push(`/exam/${sessionId}/${moduleId}`);
     };
 
     const handleStartFullExam = () => {
-        router.push(`/exam/${examId}/full`);
+        router.push(`/exam/${sessionId}/full`);
     };
 
     const totalTime = examModules.reduce((sum, m) => sum + m.duration, 0);
     const totalQuestions = examModules.reduce((sum, m) => sum + m.questions, 0);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden">
-            {/* Background */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#41bfb8]/5 rounded-full blur-[120px]"></div>
-                <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#f79952]/5 rounded-full blur-[100px]"></div>
-            </div>
-
+        <div className="min-h-screen bg-white">
             {/* Header */}
-            <header className="relative z-10 py-6 px-4 border-b border-white/5">
-                <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <header className="bg-white border-b border-gray-200 py-4 px-4">
+                <div className="max-w-5xl mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-[#41bfb8] to-[#2d9a94] rounded-xl flex items-center justify-center">
-                            <LuGraduationCap className="text-white text-xl" />
-                        </div>
-                        <div>
-                            <h1 className="text-lg font-bold text-white outfit">IELTS<span className="text-[#41bfb8]">Pro</span></h1>
-                            <p className="text-slate-500 text-xs">BdCalling Academy</p>
-                        </div>
+                        <span className="text-cyan-600 font-bold text-2xl">IELTS</span>
+                        <span className="text-gray-400">|</span>
+                        <span className="text-gray-600">BdCalling Academy</span>
                     </div>
-                    <div className="flex items-center gap-2 text-slate-400 text-sm bg-white/5 px-4 py-2 rounded-lg">
-                        <HiOutlineDocumentText />
-                        <span>Exam ID: <span className="text-white font-mono">{examId}</span></span>
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                            <FaUser className="text-cyan-600" />
+                            <span>{session?.studentName || "Student"}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-500 text-sm bg-gray-100 px-4 py-2 rounded">
+                            <span>ID: <span className="font-mono font-semibold text-gray-700">{session?.examId}</span></span>
+                        </div>
                     </div>
                 </div>
             </header>
 
-            <div className="relative z-10 max-w-6xl mx-auto px-4 py-12">
+            <div className="max-w-5xl mx-auto px-4 py-10">
                 {/* Title */}
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center mb-10"
-                >
-                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 outfit">
-                        IELTS <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#41bfb8] to-[#f79952]">Academic Test</span>
+                <div className="text-center mb-8">
+                    <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                        IELTS Academic Test
                     </h1>
-                    <p className="text-slate-400 max-w-2xl mx-auto">
-                        Select individual modules for practice, or take the complete exam for official format experience.
+                    <p className="text-gray-500">
+                        Welcome, {session?.studentName}! Select a module to start your exam.
                     </p>
-                </motion.div>
+                </div>
 
                 {/* Stats Bar */}
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="grid grid-cols-3 gap-4 mb-10"
-                >
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-                        <p className="text-3xl font-bold text-[#41bfb8]">{totalQuestions}</p>
-                        <p className="text-slate-400 text-sm">Total Questions</p>
+                <div className="grid grid-cols-3 gap-4 mb-8">
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                        <p className="text-2xl font-bold text-cyan-600">{totalQuestions}</p>
+                        <p className="text-gray-500 text-sm">Total Questions</p>
                     </div>
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-                        <p className="text-3xl font-bold text-[#f79952]">{totalTime}</p>
-                        <p className="text-slate-400 text-sm">Minutes</p>
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                        <p className="text-2xl font-bold text-amber-500">{totalTime}</p>
+                        <p className="text-gray-500 text-sm">Minutes</p>
                     </div>
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-                        <p className="text-3xl font-bold text-emerald-400">9.0</p>
-                        <p className="text-slate-400 text-sm">Max Band</p>
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                        <p className="text-2xl font-bold text-green-600">9.0</p>
+                        <p className="text-gray-500 text-sm">Max Band</p>
                     </div>
-                </motion.div>
+                </div>
 
                 {/* Full Exam Card */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15 }}
-                    className="mb-8"
+                <div
+                    onClick={handleStartFullExam}
+                    className="bg-cyan-50 border-2 border-cyan-200 rounded-lg p-6 mb-8 cursor-pointer hover:border-cyan-400 transition-colors"
                 >
-                    <div
-                        onClick={handleStartFullExam}
-                        className="relative bg-gradient-to-r from-[#41bfb8]/10 via-transparent to-[#f79952]/10 backdrop-blur-sm border border-white/10 rounded-3xl p-8 cursor-pointer hover:border-[#41bfb8]/50 transition-all group overflow-hidden"
-                    >
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#41bfb8]/10 to-transparent rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
-
-                        <div className="relative flex flex-col lg:flex-row items-center justify-between gap-8">
-                            <div className="flex items-start gap-6">
-                                <div className="w-20 h-20 bg-gradient-to-br from-[#41bfb8] via-[#41bfb8] to-[#f79952] rounded-2xl flex items-center justify-center shadow-xl shadow-[#41bfb8]/20 group-hover:scale-110 transition-transform">
-                                    <FaLayerGroup className="text-white text-3xl" />
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div className="flex items-start gap-4">
+                            <div className="w-16 h-16 bg-cyan-600 rounded-xl flex items-center justify-center text-white">
+                                <FaLayerGroup className="text-2xl" />
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <h2 className="text-xl font-bold text-gray-800">Complete IELTS Exam</h2>
+                                    <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-xs font-medium">Recommended</span>
                                 </div>
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <h2 className="text-2xl font-bold text-white">Complete IELTS Exam</h2>
-                                        <span className="bg-[#f79952]/20 text-[#f79952] px-2 py-0.5 rounded text-xs font-medium">Recommended</span>
-                                    </div>
-                                    <p className="text-slate-400 mb-4">Take all three sections: Listening → Reading → Writing</p>
-                                    <div className="flex flex-wrap items-center gap-3 text-sm">
-                                        <span className="flex items-center gap-2 text-slate-300 bg-white/5 px-3 py-1.5 rounded-lg">
-                                            <FaClock className="text-[#41bfb8]" />
-                                            {totalTime} minutes
-                                        </span>
-                                        <span className="flex items-center gap-2 text-slate-300 bg-white/5 px-3 py-1.5 rounded-lg">
-                                            <FaQuestionCircle className="text-[#41bfb8]" />
-                                            {totalQuestions} questions
-                                        </span>
-                                        <span className="flex items-center gap-2 text-slate-300 bg-white/5 px-3 py-1.5 rounded-lg">
-                                            <FaChartLine className="text-[#41bfb8]" />
-                                            Band 1-9
-                                        </span>
-                                    </div>
+                                <p className="text-gray-500 mb-3">Take all three sections: Listening → Reading → Writing</p>
+                                <div className="flex flex-wrap items-center gap-3 text-sm">
+                                    <span className="flex items-center gap-2 text-gray-600 bg-white px-3 py-1.5 rounded border border-gray-200">
+                                        <FaClock className="text-cyan-600" />
+                                        {totalTime} minutes
+                                    </span>
+                                    <span className="flex items-center gap-2 text-gray-600 bg-white px-3 py-1.5 rounded border border-gray-200">
+                                        <FaQuestionCircle className="text-cyan-600" />
+                                        {totalQuestions} questions
+                                    </span>
                                 </div>
                             </div>
-
-                            <button className="flex items-center gap-3 bg-gradient-to-r from-[#41bfb8] to-[#2d9a94] text-white px-8 py-4 rounded-xl font-semibold text-lg hover:shadow-xl hover:shadow-[#41bfb8]/25 transition-all cursor-pointer whitespace-nowrap group-hover:gap-4">
-                                <FaPlay />
-                                Start Full Exam
-                                <FaArrowRight className="text-sm" />
-                            </button>
                         </div>
+
+                        <button className="flex items-center gap-2 bg-cyan-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-cyan-700 transition-colors cursor-pointer">
+                            <FaPlay />
+                            Start Full Exam
+                            <FaArrowRight className="text-sm" />
+                        </button>
                     </div>
-                </motion.div>
+                </div>
 
                 {/* Divider */}
                 <div className="flex items-center gap-4 mb-8">
-                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
-                    <span className="text-slate-500 text-sm px-4">OR PRACTICE INDIVIDUAL SECTIONS</span>
-                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+                    <div className="flex-1 h-px bg-gray-200"></div>
+                    <span className="text-gray-400 text-sm">OR PRACTICE INDIVIDUAL SECTIONS</span>
+                    <div className="flex-1 h-px bg-gray-200"></div>
                 </div>
 
                 {/* Individual Module Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {examModules.map((module, index) => (
-                        <motion.div
-                            key={module.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 + index * 0.1 }}
-                            onClick={() => handleStartModule(module.id)}
-                            className={`relative bg-gradient-to-br ${module.bgGradient} backdrop-blur-sm border ${module.borderColor} ${module.hoverBorder} rounded-2xl p-6 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-xl group`}
-                        >
-                            <div className={`w-16 h-16 bg-gradient-to-br ${module.gradient} rounded-xl flex items-center justify-center text-white mb-5 shadow-lg group-hover:scale-110 transition-transform`}>
-                                {module.icon}
+                    {examModules.map((module) => {
+                        const hasSet = module.setNumber != null;
+                        const isCompleted = completedModules.includes(module.id);
+
+                        // Get score for completed module
+                        const getModuleScore = () => {
+                            if (!moduleScores) return null;
+                            if (module.id === "listening") return moduleScores.listening?.band;
+                            if (module.id === "reading") return moduleScores.reading?.band;
+                            if (module.id === "writing") return moduleScores.writing?.overallBand;
+                            return null;
+                        };
+                        const score = getModuleScore();
+
+                        return (
+                            <div
+                                key={module.id}
+                                onClick={() => hasSet && !isCompleted && handleStartModule(module.id)}
+                                className={`bg-white border-2 rounded-lg p-5 transition-all relative ${isCompleted
+                                        ? "border-green-400 bg-green-50 cursor-not-allowed"
+                                        : hasSet
+                                            ? "border-gray-200 cursor-pointer hover:border-cyan-400 hover:shadow-md"
+                                            : "border-gray-100 opacity-60 cursor-not-allowed"
+                                    }`}
+                            >
+                                {/* Completed Badge */}
+                                {isCompleted && (
+                                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                                        <FaCheckCircle className="text-xs" />
+                                        Completed
+                                    </div>
+                                )}
+
+                                <div className={`w-14 h-14 ${isCompleted
+                                        ? 'bg-green-100 text-green-600'
+                                        : module.color === 'cyan'
+                                            ? 'bg-cyan-100 text-cyan-600'
+                                            : module.color === 'blue'
+                                                ? 'bg-blue-100 text-blue-600'
+                                                : 'bg-green-100 text-green-600'
+                                    } rounded-xl flex items-center justify-center mb-4`}>
+                                    {isCompleted ? <FaCheckCircle className="text-2xl" /> : module.icon}
+                                </div>
+
+                                <div className="flex items-center gap-2 mb-1">
+                                    <h3 className="text-lg font-bold text-gray-800">{module.name}</h3>
+                                    {hasSet && !isCompleted && (
+                                        <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium">
+                                            Set #{module.setNumber}
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="text-gray-500 text-sm mb-1">{module.description}</p>
+                                <p className="text-gray-400 text-xs mb-4">{module.details}</p>
+
+                                {/* Show score if completed */}
+                                {isCompleted && score && (
+                                    <div className="bg-green-100 border border-green-200 rounded-lg p-3 mb-4">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-green-700 font-medium">Your Band Score</span>
+                                            <span className="text-2xl font-bold text-green-600">{score.toFixed(1)}</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {!isCompleted && (
+                                    <div className="space-y-2 mb-4 text-sm">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Duration</span>
+                                            <span className="text-gray-800 font-medium">{module.duration} mins</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Questions</span>
+                                            <span className="text-gray-800 font-medium">{module.questions}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Sections</span>
+                                            <span className="text-gray-800 font-medium">{module.sections}</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {isCompleted ? (
+                                    <div className="w-full flex items-center justify-center gap-2 bg-green-200 text-green-700 py-2.5 rounded-lg font-medium">
+                                        <FaLock className="text-sm" />
+                                        Already Completed
+                                    </div>
+                                ) : hasSet ? (
+                                    <button className={`w-full flex items-center justify-center gap-2 ${module.color === 'cyan' ? 'bg-cyan-600 hover:bg-cyan-700' : module.color === 'blue' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'} text-white py-2.5 rounded-lg font-medium transition-colors cursor-pointer`}>
+                                        <FaPlay className="text-sm" />
+                                        Start {module.name}
+                                    </button>
+                                ) : (
+                                    <div className="w-full flex items-center justify-center gap-2 bg-gray-200 text-gray-500 py-2.5 rounded-lg font-medium">
+                                        Not Assigned
+                                    </div>
+                                )}
                             </div>
-
-                            <h3 className="text-xl font-bold text-white mb-2">{module.name}</h3>
-                            <p className="text-slate-400 text-sm mb-1">{module.description}</p>
-                            <p className="text-slate-500 text-xs mb-4">{module.details}</p>
-
-                            <div className="space-y-2 mb-5">
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-slate-400">Duration</span>
-                                    <span className="text-white font-medium">{module.duration} mins</span>
-                                </div>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-slate-400">Questions</span>
-                                    <span className="text-white font-medium">{module.questions}</span>
-                                </div>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-slate-400">Sections</span>
-                                    <span className="text-white font-medium">{module.sections}</span>
-                                </div>
-                            </div>
-
-                            <p className="text-xs text-slate-500 mb-4">{module.questionTypes}</p>
-
-                            <button className={`w-full flex items-center justify-center gap-2 bg-gradient-to-r ${module.gradient} text-white py-3 rounded-xl font-medium transition-all cursor-pointer group-hover:shadow-lg`}>
-                                <FaPlay className="text-sm" />
-                                Start {module.name}
-                            </button>
-                        </motion.div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 {/* Info Banner */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.6 }}
-                    className="mt-10 bg-white/5 border border-white/10 rounded-2xl p-6"
-                >
+                <div className="mt-8 bg-amber-50 border border-amber-200 rounded-lg p-5">
                     <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <FaGraduationCap className="text-amber-400" />
+                        <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <FaQuestionCircle className="text-amber-600" />
                         </div>
                         <div>
-                            <h4 className="text-white font-semibold mb-1">IELTS Band Score Information</h4>
-                            <p className="text-slate-400 text-sm">
+                            <h4 className="text-gray-800 font-semibold mb-1">IELTS Band Score Information</h4>
+                            <p className="text-gray-600 text-sm">
                                 Most universities require Band 6.0-6.5 for undergraduate and 6.5-7.0 for graduate programs.
                                 Practice regularly to improve your score!
                             </p>
                         </div>
                     </div>
-                </motion.div>
-
-                {/* Security Note */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.7 }}
-                    className="mt-6 text-center"
-                >
-                    <div className="inline-flex items-center gap-2 text-slate-500 text-sm">
-                        <FaShieldAlt className="text-emerald-500" />
-                        <span>Secure exam environment • Anti-cheat enabled</span>
-                    </div>
-                </motion.div>
+                </div>
             </div>
 
             {/* Footer */}
-            <footer className="relative z-10 py-6 px-4 border-t border-white/5 mt-auto">
-                <div className="max-w-6xl mx-auto text-center text-slate-500 text-sm">
-                    © 2024 IELTSPro - BdCalling Academy. All rights reserved.
+            <footer className="bg-white border-t border-gray-200 py-4 px-4 mt-auto">
+                <div className="max-w-5xl mx-auto text-center text-gray-400 text-sm">
+                    © 2024 IELTS Exam - BdCalling Academy. All rights reserved.
                 </div>
             </footer>
         </div>

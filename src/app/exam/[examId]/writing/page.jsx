@@ -2,121 +2,127 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import {
     FaPen,
     FaClock,
     FaCheck,
-    FaExclamationTriangle,
     FaTimes,
-    FaPlay,
     FaChevronLeft,
     FaChevronRight,
-    FaLightbulb,
-    FaSave
+    FaSpinner
 } from "react-icons/fa";
-import { HiOutlineDocumentText } from "react-icons/hi";
+import { questionSetsAPI, studentsAPI } from "@/lib/api";
 
 export default function WritingExamPage() {
     const params = useParams();
     const router = useRouter();
 
     const [currentTask, setCurrentTask] = useState(0);
-    const [answers, setAnswers] = useState({ task1: "", task2: "" });
-    const [timeLeft, setTimeLeft] = useState(60 * 60); // 60 minutes
+    const [answers, setAnswers] = useState({});
+    const [timeLeft, setTimeLeft] = useState(60 * 60);
     const [showSubmitModal, setShowSubmitModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [lastSaved, setLastSaved] = useState(null);
     const [showInstructions, setShowInstructions] = useState(true);
-    const [showTips, setShowTips] = useState(false);
 
-    // IELTS Writing Tasks
-    const tasks = [
-        {
-            id: "task1",
-            title: "Task 1",
-            subtitle: "Academic Report",
-            timeRecommend: 20,
-            instruction: `The chart below shows the percentage of households with internet access in three different countries between 2000 and 2020.
+    // Data loading states
+    const [isLoading, setIsLoading] = useState(true);
+    const [loadError, setLoadError] = useState("");
+    const [questionSet, setQuestionSet] = useState(null);
+    const [session, setSession] = useState(null);
 
-Summarize the information by selecting and reporting the main features and make comparisons where relevant.
+    // Load session and question set
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                // Get session from localStorage
+                const storedSession = localStorage.getItem("examSession");
+                if (!storedSession) {
+                    setLoadError("No exam session found. Please start from the home page.");
+                    setIsLoading(false);
+                    return;
+                }
 
-Write at least 150 words.`,
-            imageDesc: "[Line Graph: Internet access in Japan, Brazil, and Nigeria from 2000-2020]",
-            sampleData: `Data Points:
-• 2000: Japan 30%, Brazil 5%, Nigeria 1%
-• 2010: Japan 78%, Brazil 41%, Nigeria 24%
-• 2020: Japan 93%, Brazil 81%, Nigeria 58%`,
-            minWords: 150,
-            maxMarks: 9,
-            tips: [
-                "Spend about 20 minutes on this task",
-                "Write at least 150 words",
-                "Identify the main trends and significant features",
-                "Make comparisons between the data sets",
-                "Use appropriate vocabulary for describing trends",
-                "Don't include personal opinions - be objective"
-            ],
-            criteria: ["Task Achievement", "Coherence & Cohesion", "Lexical Resource", "Grammatical Range & Accuracy"]
-        },
-        {
-            id: "task2",
-            title: "Task 2",
-            subtitle: "Essay",
-            timeRecommend: 40,
-            instruction: `Some people believe that universities should focus on providing academic skills and knowledge rather than preparing students for employment.
+                const parsed = JSON.parse(storedSession);
+                setSession(parsed);
 
-To what extent do you agree or disagree?
+                // Check if writing set is assigned
+                const writingSetNumber = parsed.assignedSets?.writingSetNumber;
+                if (!writingSetNumber) {
+                    setLoadError("No writing test assigned for this exam.");
+                    setIsLoading(false);
+                    return;
+                }
 
-Give reasons for your answer and include any relevant examples from your own knowledge or experience.
+                // Fetch question set from backend
+                const response = await questionSetsAPI.getForExam("WRITING", writingSetNumber);
 
-Write at least 250 words.`,
-            minWords: 250,
-            maxMarks: 9,
-            tips: [
-                "Spend about 40 minutes on this task",
-                "Write at least 250 words",
-                "Plan your essay structure before writing",
-                "Include an introduction, body paragraphs, and conclusion",
-                "Clearly state your position/opinion",
-                "Support your arguments with examples",
-                "Use a range of vocabulary and sentence structures"
-            ],
-            criteria: ["Task Response", "Coherence & Cohesion", "Lexical Resource", "Grammatical Range & Accuracy"]
-        }
+                if (response.success && response.data) {
+                    setQuestionSet(response.data);
+                    // Initialize answers for each task
+                    const initialAnswers = {};
+                    (response.data.writingTasks || []).forEach((task, index) => {
+                        initialAnswers[`task${index + 1}`] = "";
+                    });
+                    setAnswers(initialAnswers);
+                } else {
+                    setLoadError("Failed to load writing test questions.");
+                }
+            } catch (err) {
+                console.error("Load error:", err);
+                setLoadError(err.message || "Failed to load exam data.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadData();
+    }, [params.examId]);
+
+    // Build tasks from question set
+    const tasks = (questionSet?.writingTasks || []).map((task, index) => ({
+        id: `task${index + 1}`,
+        taskNumber: task.taskNumber || index + 1,
+        title: `Task ${task.taskNumber || index + 1}`,
+        subtitle: task.taskType === "task1" ? "Academic Report" : "Essay",
+        timeRecommend: task.taskType === "task1" ? 20 : 40,
+        instruction: task.prompt || "",
+        imageUrl: task.imageUrl || null,
+        minWords: task.minWords || (task.taskType === "task1" ? 150 : 250)
+    }));
+
+    // Fallback if no tasks from backend
+    const displayTasks = tasks.length > 0 ? tasks : [
+        { id: "task1", title: "Task 1", subtitle: "Academic Report", timeRecommend: 20, instruction: "Loading...", minWords: 150 },
+        { id: "task2", title: "Task 2", subtitle: "Essay", timeRecommend: 40, instruction: "Loading...", minWords: 250 }
     ];
 
-    const currentTaskData = tasks[currentTask];
-    const currentAnswer = answers[currentTaskData.id] || "";
+    const currentTaskData = displayTasks[currentTask] || displayTasks[0];
+    const currentAnswer = answers[currentTaskData?.id] || "";
     const wordCount = currentAnswer.trim() ? currentAnswer.trim().split(/\s+/).length : 0;
 
-    // Band Score Calculation for Writing
     const getWritingBandScore = (task1Words, task2Words) => {
-        // Simplified band score based on word count and completion
         let task1Score = 0;
         let task2Score = 0;
 
-        // Task 1 scoring (150 words required)
         if (task1Words >= 150) task1Score = 6.5;
         else if (task1Words >= 120) task1Score = 5.5;
         else if (task1Words >= 80) task1Score = 4.5;
         else if (task1Words >= 40) task1Score = 3.5;
         else task1Score = 2.5;
 
-        // Task 2 scoring (250 words required, weighted double)
         if (task2Words >= 250) task2Score = 6.5;
         else if (task2Words >= 200) task2Score = 5.5;
         else if (task2Words >= 150) task2Score = 4.5;
         else if (task2Words >= 80) task2Score = 3.5;
         else task2Score = 2.5;
 
-        // Task 2 counts double
         const overallBand = (task1Score + task2Score * 2) / 3;
-        return Math.round(overallBand * 2) / 2; // Round to nearest 0.5
+        return Math.round(overallBand * 2) / 2;
     };
 
+    // Timer
     useEffect(() => {
-        if (showInstructions) return;
+        if (showInstructions || isLoading) return;
 
         const timer = setInterval(() => {
             setTimeLeft((prev) => {
@@ -129,17 +135,7 @@ Write at least 250 words.`,
             });
         }, 1000);
         return () => clearInterval(timer);
-    }, [showInstructions]);
-
-    // Auto-save simulation
-    useEffect(() => {
-        if (!showInstructions && (answers.task1 || answers.task2)) {
-            const autoSave = setInterval(() => {
-                setLastSaved(new Date());
-            }, 30000);
-            return () => clearInterval(autoSave);
-        }
-    }, [answers, showInstructions]);
+    }, [showInstructions, isLoading]);
 
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
@@ -159,127 +155,160 @@ Write at least 250 words.`,
         const task2Words = answers.task2?.trim().split(/\s+/).filter(Boolean).length || 0;
 
         const bandScore = getWritingBandScore(task1Words, task2Words);
+        const totalScore = Math.round(bandScore * 2);
 
-        // For writing, we use band score directly (max 9)
-        const totalScore = Math.round(bandScore * 2); // Convert to out of 18 for consistency
+        // Get exam ID from session
+        const storedSession = localStorage.getItem("examSession");
+        const sessionData = storedSession ? JSON.parse(storedSession) : null;
+        const examId = sessionData?.examId;
 
-        localStorage.setItem(`exam_${params.examId}_writing`, JSON.stringify({
-            answers,
-            score: totalScore,
-            total: 18,
-            bandScore,
-            task1Words,
-            task2Words,
-            timeSpent: 60 * 60 - timeLeft
-        }));
+        // Save to backend
+        try {
+            const response = await studentsAPI.saveModuleScore(examId, "writing", {
+                band: bandScore,
+                task1Words: task1Words,
+                task2Words: task2Words
+            });
+            console.log("Writing score saved to backend");
 
-        router.push(`/exam/${params.examId}/result?module=writing&score=${totalScore}&total=18&band=${bandScore}`);
+            // Update localStorage with completed modules and scores
+            if (response.success && sessionData) {
+                sessionData.completedModules = response.data?.completedModules || [...(sessionData.completedModules || []), "writing"];
+                sessionData.scores = response.data?.scores || {
+                    ...(sessionData.scores || {}),
+                    writing: { overallBand: bandScore, task1Band: bandScore, task2Band: bandScore }
+                };
+                localStorage.setItem("examSession", JSON.stringify(sessionData));
+            }
+        } catch (error) {
+            console.error("Failed to save writing score:", error);
+            // Still update localStorage even if backend fails
+            if (sessionData) {
+                sessionData.completedModules = [...(sessionData.completedModules || []), "writing"];
+                sessionData.scores = {
+                    ...(sessionData.scores || {}),
+                    writing: { overallBand: bandScore, task1Band: bandScore, task2Band: bandScore }
+                };
+                localStorage.setItem("examSession", JSON.stringify(sessionData));
+            }
+        }
+
+        // Go back to exam selection page
+        router.push(`/exam/${params.examId}`);
     };
 
-    const meetsMinWords = wordCount >= currentTaskData.minWords;
+    const meetsMinWords = wordCount >= (currentTaskData?.minWords || 150);
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <div className="text-center">
+                    <FaSpinner className="animate-spin text-4xl text-green-600 mx-auto mb-4" />
+                    <p className="text-gray-600">Loading writing test...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (loadError) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center p-4">
+                <div className="text-center max-w-md">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <FaTimes className="text-2xl text-red-600" />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-800 mb-2">Cannot Load Test</h2>
+                    <p className="text-gray-600 mb-4">{loadError}</p>
+                    <button
+                        onClick={() => router.push("/")}
+                        className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+                    >
+                        Go to Home
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     // Instructions Screen
     if (showInstructions) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white flex items-center justify-center p-4">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="max-w-3xl w-full bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8"
-                >
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                            <FaPen className="text-3xl" />
-                        </div>
-                        <div>
-                            <h1 className="text-3xl font-bold">IELTS Writing Test</h1>
-                            <p className="text-slate-400">Academic • 2 Tasks • 60 Minutes</p>
-                        </div>
+            <div className="min-h-screen bg-white flex items-center justify-center p-4">
+                <div className="max-w-2xl w-full">
+                    <div className="flex items-center gap-3 mb-6 pb-4 border-b-2 border-green-600">
+                        <span className="text-green-600 font-bold text-2xl">IELTS</span>
+                        <span className="text-gray-600">| Writing Test</span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                            <h4 className="font-semibold text-emerald-300">Task 1</h4>
-                            <p className="text-slate-400 text-sm">Describe visual data</p>
-                            <p className="text-emerald-400 text-sm mt-2">Minimum 150 words • 20 mins</p>
-                        </div>
-                        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                            <h4 className="font-semibold text-emerald-300">Task 2</h4>
-                            <p className="text-slate-400 text-sm">Write an essay</p>
-                            <p className="text-emerald-400 text-sm mt-2">Minimum 250 words • 40 mins</p>
-                        </div>
+                    <h1 className="text-2xl font-bold text-gray-800 mb-4">Writing Test Instructions</h1>
+
+                    <div className="bg-gray-50 border border-gray-200 rounded p-4 mb-4">
+                        <p className="text-gray-700 mb-3">
+                            <strong>Set:</strong> {questionSet?.title || `Writing Set #${questionSet?.setNumber}`}
+                        </p>
+                        <p className="text-gray-700 mb-3">
+                            <strong>Time:</strong> {questionSet?.duration || 60} minutes (for both tasks)
+                        </p>
+                        <p className="text-gray-700 mb-3">
+                            <strong>Tasks:</strong> {displayTasks.length} writing tasks
+                        </p>
                     </div>
 
-                    <div className="space-y-4 mb-8">
-                        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4">
-                            <h3 className="font-semibold text-emerald-300 mb-2">Assessment Criteria</h3>
-                            <div className="grid grid-cols-2 gap-2 text-sm text-slate-300">
-                                <div>• Task Achievement/Response</div>
-                                <div>• Coherence & Cohesion</div>
-                                <div>• Lexical Resource</div>
-                                <div>• Grammatical Range & Accuracy</div>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                        {displayTasks.map((task, index) => (
+                            <div key={task.id} className="bg-green-50 border border-green-200 rounded p-4">
+                                <h4 className="font-semibold text-green-800">{task.title}</h4>
+                                <p className="text-green-700 text-sm">{task.subtitle}</p>
+                                <p className="text-green-600 text-sm mt-2">Min. {task.minWords} words • {task.timeRecommend} mins</p>
                             </div>
-                        </div>
+                        ))}
+                    </div>
 
-                        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
-                            <h3 className="font-semibold text-amber-300 mb-2 flex items-center gap-2">
-                                <FaExclamationTriangle />
-                                Important Notes
-                            </h3>
-                            <ul className="text-slate-300 text-sm space-y-1">
-                                <li>• Task 2 contributes <strong>twice as much</strong> as Task 1 to your score</li>
-                                <li>• Writing below the minimum word count will lose marks</li>
-                                <li>• Your work is auto-saved every 30 seconds</li>
-                                <li>• Write in complete sentences and paragraphs</li>
-                            </ul>
-                        </div>
+                    <div className="bg-amber-50 border border-amber-200 rounded p-4 mb-6">
+                        <h3 className="font-semibold text-amber-800 mb-2">Important Notes:</h3>
+                        <ul className="text-amber-700 text-sm space-y-1">
+                            <li>• Task 2 contributes <strong>twice as much</strong> as Task 1 to your score</li>
+                            <li>• Writing below the minimum word count will lose marks</li>
+                            <li>• Write in complete sentences and paragraphs</li>
+                        </ul>
                     </div>
 
                     <button
                         onClick={() => setShowInstructions(false)}
-                        className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-500 to-emerald-600 py-4 rounded-xl font-semibold text-lg hover:shadow-xl hover:shadow-emerald-500/25 transition-all cursor-pointer"
+                        className="w-full bg-green-600 text-white py-3 rounded font-semibold hover:bg-green-700 transition-colors cursor-pointer"
                     >
-                        <FaPlay />
                         Start Writing Test
                     </button>
-                </motion.div>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
+        <div className="min-h-screen bg-white">
             {/* Header */}
-            <header className="bg-black/40 backdrop-blur-xl border-b border-white/5 sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 py-3">
+            <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-4 py-2">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                                <FaPen className="text-lg" />
-                            </div>
-                            <div>
-                                <h1 className="font-semibold">IELTS Writing</h1>
-                                <p className="text-xs text-slate-400">{currentTaskData.title} • {currentTaskData.subtitle}</p>
+                            <span className="text-green-600 font-bold text-xl">IELTS</span>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <FaPen className="text-green-600" />
+                                <span>Writing Test - {currentTaskData?.title} (Set #{questionSet?.setNumber})</span>
                             </div>
                         </div>
 
                         <div className="flex items-center gap-4">
-                            {lastSaved && (
-                                <span className="hidden md:flex items-center gap-1 text-slate-500 text-sm">
-                                    <FaSave className="text-emerald-400" />
-                                    Saved
-                                </span>
-                            )}
-
-                            <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono ${timeLeft < 300 ? "bg-red-500/20 text-red-400 animate-pulse" : "bg-white/10"
-                                }`}>
+                            <div className={`flex items-center gap-2 px-3 py-1 rounded ${timeLeft < 300 ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-700"}`}>
                                 <FaClock />
-                                <span className="text-lg">{formatTime(timeLeft)}</span>
+                                <span className="font-mono font-semibold">{formatTime(timeLeft)}</span>
                             </div>
 
                             <button
                                 onClick={() => setShowSubmitModal(true)}
-                                className="hidden md:flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 px-5 py-2 rounded-xl font-medium hover:shadow-lg transition-all cursor-pointer"
+                                className="bg-green-600 text-white px-4 py-1.5 rounded font-medium hover:bg-green-700 cursor-pointer"
                             >
                                 Submit
                             </button>
@@ -288,10 +317,10 @@ Write at least 250 words.`,
                 </div>
             </header>
 
-            <div className="max-w-7xl mx-auto px-4 py-6">
-                {/* Task Tabs */}
-                <div className="flex gap-4 mb-6">
-                    {tasks.map((task, index) => {
+            {/* Task Tabs */}
+            <div className="bg-gray-50 border-b border-gray-200 px-4 py-3">
+                <div className="max-w-7xl mx-auto flex gap-4">
+                    {displayTasks.map((task, index) => {
                         const taskWordCount = answers[task.id]?.trim().split(/\s+/).filter(Boolean).length || 0;
                         const taskMeetsMin = taskWordCount >= task.minWords;
 
@@ -299,142 +328,103 @@ Write at least 250 words.`,
                             <button
                                 key={task.id}
                                 onClick={() => setCurrentTask(index)}
-                                className={`flex-1 p-5 rounded-2xl border-2 transition-all cursor-pointer ${currentTask === index
-                                        ? "border-emerald-500 bg-emerald-500/10"
-                                        : "border-white/10 bg-white/[0.02] hover:border-white/20"
+                                className={`flex-1 p-4 rounded border-2 cursor-pointer transition-colors ${currentTask === index
+                                    ? "border-green-600 bg-white"
+                                    : "border-gray-200 bg-white hover:border-gray-300"
                                     }`}
                             >
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="font-semibold text-lg">{task.title}</span>
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className="font-semibold text-gray-800">{task.title}</span>
                                     {answers[task.id] && (
-                                        <span className={`flex items-center gap-1 text-sm ${taskMeetsMin ? "text-emerald-400" : "text-amber-400"}`}>
-                                            {taskMeetsMin && <FaCheck className="text-xs" />}
+                                        <span className={`text-sm ${taskMeetsMin ? "text-green-600" : "text-amber-600"}`}>
                                             {taskWordCount} words
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-slate-400 text-sm text-left">{task.subtitle}</p>
-                                <p className="text-slate-500 text-xs text-left mt-1">
+                                <p className="text-gray-500 text-sm text-left">{task.subtitle}</p>
+                                <p className="text-gray-400 text-xs text-left mt-1">
                                     Min. {task.minWords} words • {task.timeRecommend} mins
                                 </p>
                             </button>
                         );
                     })}
                 </div>
+            </div>
 
+            {/* Main Content */}
+            <div className="max-w-7xl mx-auto px-4 py-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Instructions Panel */}
-                    <div className="lg:col-span-1 space-y-4">
-                        <motion.div
-                            key={currentTaskData.id}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-2xl p-6"
-                        >
-                            <div className="flex items-center gap-2 mb-4">
-                                <span className="bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full text-sm font-medium">
-                                    {currentTaskData.title}
+                    <div className="lg:col-span-1">
+                        <div className="bg-white border border-gray-200 rounded p-5">
+                            <div className="mb-4">
+                                <span className="bg-green-100 text-green-700 px-3 py-1 rounded text-sm font-medium">
+                                    {currentTaskData?.title}
                                 </span>
                             </div>
 
-                            <div className="text-slate-300 text-sm leading-relaxed whitespace-pre-line">
-                                {currentTaskData.instruction}
+                            <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-line mb-4">
+                                {currentTaskData?.instruction}
                             </div>
 
-                            {currentTaskData.sampleData && (
-                                <div className="mt-4 p-4 bg-slate-800/50 rounded-xl border border-slate-600 text-sm">
-                                    <p className="text-slate-400 text-xs mb-2">Reference Data:</p>
-                                    <pre className="text-slate-300 whitespace-pre-line font-sans">{currentTaskData.sampleData}</pre>
+                            {currentTaskData?.imageUrl && (
+                                <div className="bg-gray-50 border border-gray-200 rounded p-3 mt-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <p className="text-gray-600 text-sm font-medium">📊 Reference Image:</p>
+                                        <button
+                                            onClick={() => window.open(currentTaskData.imageUrl, '_blank')}
+                                            className="text-xs text-green-600 hover:underline cursor-pointer"
+                                        >
+                                            View Full Size ↗
+                                        </button>
+                                    </div>
+                                    <div className="bg-white p-2 rounded border border-gray-100">
+                                        <img
+                                            src={currentTaskData.imageUrl}
+                                            alt="Task reference - Map/Graph/Chart"
+                                            className="w-full rounded cursor-zoom-in hover:opacity-90 transition-opacity"
+                                            style={{ maxHeight: '400px', objectFit: 'contain' }}
+                                            onClick={() => window.open(currentTaskData.imageUrl, '_blank')}
+                                        />
+                                    </div>
+                                    <p className="text-gray-400 text-xs mt-2 text-center">
+                                        Click image to view in full size
+                                    </p>
                                 </div>
                             )}
-
-                            {currentTaskData.imageDesc && (
-                                <div className="mt-4 p-4 bg-slate-800/50 rounded-xl border border-dashed border-slate-600 text-center text-slate-400 text-sm">
-                                    {currentTaskData.imageDesc}
-                                </div>
-                            )}
-                        </motion.div>
-
-                        {/* Tips */}
-                        <button
-                            onClick={() => setShowTips(!showTips)}
-                            className="w-full flex items-center justify-between p-4 bg-white/[0.03] border border-white/10 rounded-xl hover:bg-white/[0.05] transition-colors cursor-pointer"
-                        >
-                            <span className="flex items-center gap-2 text-slate-300">
-                                <FaLightbulb className="text-amber-400" />
-                                Writing Tips
-                            </span>
-                            <FaChevronRight className={`text-slate-500 transition-transform ${showTips ? 'rotate-90' : ''}`} />
-                        </button>
-
-                        {showTips && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4"
-                            >
-                                <ul className="space-y-2">
-                                    {currentTaskData.tips.map((tip, i) => (
-                                        <li key={i} className="text-slate-300 text-sm flex items-start gap-2">
-                                            <FaCheck className="text-amber-400 mt-1 flex-shrink-0 text-xs" />
-                                            {tip}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </motion.div>
-                        )}
-
-                        {/* Assessment Criteria */}
-                        <div className="bg-white/[0.03] border border-white/10 rounded-xl p-4">
-                            <p className="text-slate-400 text-sm mb-3">Assessment Criteria</p>
-                            <div className="flex flex-wrap gap-2">
-                                {currentTaskData.criteria.map((c, i) => (
-                                    <span key={i} className="text-xs bg-emerald-500/10 text-emerald-300 px-2 py-1 rounded">
-                                        {c}
-                                    </span>
-                                ))}
-                            </div>
                         </div>
                     </div>
 
                     {/* Writing Area */}
                     <div className="lg:col-span-2">
-                        <div className="bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden flex flex-col h-[calc(100vh-280px)]">
+                        <div className="bg-white border border-gray-200 rounded overflow-hidden flex flex-col h-[calc(100vh-280px)]">
                             {/* Writing Header */}
-                            <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-emerald-500/5">
-                                <span className="text-slate-300 font-medium">Your Response</span>
-                                <div className="flex items-center gap-4">
-                                    <span className={`flex items-center gap-2 text-sm ${meetsMinWords ? "text-emerald-400" : "text-amber-400"}`}>
+                            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
+                                <span className="text-gray-700 font-medium">Your Response</span>
+                                <div className="flex items-center gap-2">
+                                    <span className={`flex items-center gap-1 text-sm ${meetsMinWords ? "text-green-600" : "text-amber-600"}`}>
                                         {meetsMinWords && <FaCheck className="text-xs" />}
-                                        {wordCount} / {currentTaskData.minWords} words
+                                        {wordCount} / {currentTaskData?.minWords || 150} words
                                     </span>
                                 </div>
                             </div>
 
                             {/* Word count progress bar */}
-                            <div className="h-1.5 bg-white/5">
-                                <motion.div
-                                    className={`h-full ${meetsMinWords ? "bg-emerald-500" : "bg-amber-500"}`}
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${Math.min((wordCount / currentTaskData.minWords) * 100, 100)}%` }}
-                                ></motion.div>
+                            <div className="h-1 bg-gray-100">
+                                <div
+                                    className={`h-full ${meetsMinWords ? "bg-green-500" : "bg-amber-500"}`}
+                                    style={{ width: `${Math.min((wordCount / (currentTaskData?.minWords || 150)) * 100, 100)}%` }}
+                                ></div>
                             </div>
 
                             {/* Text Area */}
                             <textarea
                                 value={currentAnswer}
                                 onChange={(e) => handleTextChange(e.target.value)}
-                                placeholder={`Start writing your ${currentTaskData.subtitle.toLowerCase()} here...`}
-                                className="flex-1 bg-transparent p-6 resize-none focus:outline-none text-white/90 leading-relaxed placeholder-slate-600"
+                                placeholder={`Start writing your ${currentTaskData?.subtitle?.toLowerCase() || "response"} here...`}
+                                className="flex-1 p-5 resize-none focus:outline-none text-gray-800 leading-relaxed"
                                 style={{ fontFamily: 'Georgia, serif', fontSize: '17px', lineHeight: '1.8' }}
                             />
-
-                            {/* Writing Footer */}
-                            <div className="flex items-center justify-between px-5 py-3 border-t border-white/5 bg-white/[0.02]">
-                                <p className="text-slate-500 text-xs">
-                                    Auto-saves every 30 seconds
-                                </p>
-                            </div>
                         </div>
 
                         {/* Task Navigation */}
@@ -442,25 +432,25 @@ Write at least 250 words.`,
                             <button
                                 onClick={() => setCurrentTask(0)}
                                 disabled={currentTask === 0}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all cursor-pointer ${currentTask === 0 ? "text-slate-600 cursor-not-allowed" : "text-slate-300 hover:bg-white/10"
+                                className={`flex items-center gap-2 px-4 py-2 rounded cursor-pointer ${currentTask === 0 ? "text-gray-400 cursor-not-allowed" : "text-gray-700 hover:bg-gray-100"
                                     }`}
                             >
-                                <FaChevronLeft className="text-sm" />
+                                <FaChevronLeft />
                                 Task 1
                             </button>
 
                             {currentTask === 0 ? (
                                 <button
                                     onClick={() => setCurrentTask(1)}
-                                    className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-2.5 rounded-xl font-medium hover:shadow-lg transition-all cursor-pointer"
+                                    className="flex items-center gap-2 bg-green-600 text-white px-6 py-2 rounded font-medium hover:bg-green-700 cursor-pointer"
                                 >
                                     Continue to Task 2
-                                    <FaChevronRight className="text-sm" />
+                                    <FaChevronRight />
                                 </button>
                             ) : (
                                 <button
                                     onClick={() => setShowSubmitModal(true)}
-                                    className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-2.5 rounded-xl font-medium hover:shadow-lg transition-all cursor-pointer"
+                                    className="flex items-center gap-2 bg-green-600 text-white px-6 py-2 rounded font-medium hover:bg-green-700 cursor-pointer"
                                 >
                                     Submit Writing Test
                                     <FaCheck />
@@ -473,57 +463,53 @@ Write at least 250 words.`,
 
             {/* Submit Modal */}
             {showSubmitModal && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="bg-slate-900 border border-white/10 rounded-2xl p-8 max-w-md w-full"
-                    >
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold">Submit Writing Test?</h3>
-                            <button onClick={() => setShowSubmitModal(false)} className="text-slate-400 hover:text-white cursor-pointer">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xl font-bold text-gray-800">Submit Writing Test?</h3>
+                            <button onClick={() => setShowSubmitModal(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer">
                                 <FaTimes />
                             </button>
                         </div>
 
-                        <div className="space-y-3 mb-6">
-                            {tasks.map((task, index) => {
+                        <div className="space-y-3 mb-4">
+                            {displayTasks.map((task) => {
                                 const taskWordCount = answers[task.id]?.trim().split(/\s+/).filter(Boolean).length || 0;
                                 const taskMeetsMin = taskWordCount >= task.minWords;
 
                                 return (
-                                    <div key={task.id} className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+                                    <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
                                         <div>
-                                            <span className="font-medium">{task.title}</span>
-                                            <p className="text-slate-500 text-sm">{task.subtitle}</p>
+                                            <span className="font-medium text-gray-800">{task.title}</span>
+                                            <p className="text-gray-500 text-sm">{task.subtitle}</p>
                                         </div>
                                         <div className="text-right">
-                                            <span className={`${taskMeetsMin ? "text-emerald-400" : "text-amber-400"}`}>
+                                            <span className={`${taskMeetsMin ? "text-green-600" : "text-amber-600"}`}>
                                                 {taskWordCount} words
                                             </span>
-                                            <p className="text-slate-500 text-xs">min. {task.minWords}</p>
+                                            <p className="text-gray-400 text-xs">min. {task.minWords}</p>
                                         </div>
                                     </div>
                                 );
                             })}
                         </div>
 
-                        <div className="flex gap-4">
+                        <div className="flex gap-3">
                             <button
                                 onClick={() => setShowSubmitModal(false)}
-                                className="flex-1 py-3 border border-white/20 rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
+                                className="flex-1 py-2 border border-gray-300 rounded hover:bg-gray-50 cursor-pointer"
                             >
                                 Continue Writing
                             </button>
                             <button
                                 onClick={handleSubmit}
                                 disabled={isSubmitting}
-                                className="flex-1 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl font-medium hover:shadow-lg transition-all cursor-pointer disabled:opacity-70"
+                                className="flex-1 py-2 bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer disabled:opacity-70"
                             >
                                 {isSubmitting ? "Submitting..." : "Submit"}
                             </button>
                         </div>
-                    </motion.div>
+                    </div>
                 </div>
             )}
         </div>

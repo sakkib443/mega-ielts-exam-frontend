@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     FaPlay,
     FaInfoCircle,
@@ -15,41 +15,210 @@ import {
     FaPen,
     FaClock,
     FaLaptop,
-    FaWifi
+    FaWifi,
+    FaTimes,
+    FaExclamationCircle
 } from "react-icons/fa";
 import { LuGraduationCap, LuShieldCheck } from "react-icons/lu";
 import { HiOutlineDocumentText } from "react-icons/hi";
+import { studentsAPI } from "@/lib/api";
+
+// Toast Popup Component
+const ToastPopup = ({ message, type, onClose }) => {
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            onClose();
+        }, 6000);
+        return () => clearTimeout(timer);
+    }, [onClose]);
+
+    const icons = {
+        error: <FaExclamationCircle className="text-xl" />,
+        warning: <FaExclamationTriangle className="text-xl" />,
+        success: <FaCheckCircle className="text-xl" />,
+    };
+
+    const colors = {
+        error: "from-red-500 to-rose-600",
+        warning: "from-amber-500 to-orange-600",
+        success: "from-green-500 to-emerald-600",
+    };
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4"
+        >
+            <div className={`bg-gradient-to-r ${colors[type]} text-white rounded-2xl shadow-2xl overflow-hidden`}>
+                <div className="px-5 py-4 flex items-start gap-4">
+                    <div className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                        {icons[type]}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-lg mb-0.5">
+                            {type === "error" ? "Oops!" : type === "warning" ? "Warning" : "Success"}
+                        </p>
+                        <p className="text-white/90 text-sm leading-relaxed">{message}</p>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="flex-shrink-0 w-8 h-8 flex items-center justify-center hover:bg-white/20 rounded-full transition-colors"
+                    >
+                        <FaTimes />
+                    </button>
+                </div>
+                {/* Progress bar */}
+                <motion.div
+                    initial={{ width: "100%" }}
+                    animate={{ width: "0%" }}
+                    transition={{ duration: 6, ease: "linear" }}
+                    className="h-1 bg-white/30"
+                />
+            </div>
+        </motion.div>
+    );
+};
 
 export default function HomePage() {
     const router = useRouter();
     const [examId, setExamId] = useState("");
-    const [error, setError] = useState("");
+    const [toast, setToast] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [agreed, setAgreed] = useState(false);
+
+    // Parse error message to user-friendly format
+    const parseErrorMessage = (error) => {
+        // If it's a string that looks like JSON array
+        if (typeof error === "string") {
+            // Try to parse JSON
+            if (error.startsWith("[") || error.startsWith("{")) {
+                try {
+                    const parsed = JSON.parse(error);
+                    if (Array.isArray(parsed)) {
+                        // Get the first error message
+                        const firstError = parsed[0];
+                        if (firstError?.message) {
+                            return cleanErrorMessage(firstError.message);
+                        }
+                    }
+                    if (parsed.message) {
+                        return cleanErrorMessage(parsed.message);
+                    }
+                } catch (e) {
+                    // Not valid JSON, use as-is
+                }
+            }
+            return cleanErrorMessage(error);
+        }
+
+        // If it's an array
+        if (Array.isArray(error)) {
+            const firstError = error[0];
+            if (firstError?.message) {
+                return cleanErrorMessage(firstError.message);
+            }
+        }
+
+        // If it's an object with message
+        if (error?.message) {
+            return cleanErrorMessage(error.message);
+        }
+
+        return "Something went wrong. Please try again.";
+    };
+
+    // Clean up error message for better readability
+    const cleanErrorMessage = (msg) => {
+        // Map of technical messages to user-friendly messages
+        const messageMap = {
+            "Invalid Exam ID format": "Invalid Exam ID format. Example: BACIELTS260001",
+            "Invalid Exam ID": "This Exam ID does not exist. Please check and try again.",
+            "Payment not confirmed": "Your payment is not confirmed yet. Please contact admin.",
+            "This account has been deactivated": "Your account has been deactivated. Please contact admin.",
+            "You have already completed this exam": "You have already completed this exam.",
+            "Your exam was terminated": "Your exam was terminated due to violations. Please contact admin.",
+            "You have an exam in progress": "You already have an exam in progress. Please contact admin.",
+        };
+
+        // Check if message matches any known pattern
+        for (const [pattern, friendly] of Object.entries(messageMap)) {
+            if (msg.toLowerCase().includes(pattern.toLowerCase())) {
+                return friendly;
+            }
+        }
+
+        // Remove technical prefixes like "body.examId: "
+        let cleaned = msg.replace(/^body\.\w+:\s*/i, "");
+        cleaned = cleaned.replace(/\(e\.g\.,?\s*[A-Z0-9]+\)/i, "");
+
+        return cleaned.trim() || "Something went wrong. Please try again.";
+    };
+
+    const showToast = (message, type = "error") => {
+        const friendlyMessage = parseErrorMessage(message);
+        setToast({ message: friendlyMessage, type });
+    };
 
     const handleStartExam = async (e) => {
         e.preventDefault();
 
         if (!examId.trim()) {
-            setError("Please enter your Exam ID");
+            showToast("Please enter your Exam ID to continue", "warning");
             return;
         }
 
         if (examId.trim().length < 4) {
-            setError("Invalid Exam ID. Please check and try again.");
+            showToast("The Exam ID format is invalid. Please check and try again.", "error");
             return;
         }
 
         if (!agreed) {
-            setError("Please accept the terms and conditions");
+            showToast("Please accept the terms and conditions before starting", "warning");
             return;
         }
 
-        setError("");
         setIsLoading(true);
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        router.push(`/exam/${examId.trim()}`);
+        try {
+            // Step 1: Verify the exam ID exists and is valid
+            const verifyResponse = await studentsAPI.verifyExamId(examId.trim());
+
+            if (!verifyResponse.success || !verifyResponse.data?.valid) {
+                const errorMessage = verifyResponse.data?.message || "Invalid Exam ID. Please check and try again.";
+                showToast(errorMessage, "error");
+                setIsLoading(false);
+                return;
+            }
+
+            // Step 2: Start the exam session
+            const startResponse = await studentsAPI.startExam(
+                examId.trim(),
+                "", // IP address
+                "" // Browser fingerprint
+            );
+
+            if (startResponse.success && startResponse.data) {
+                // Store session info in localStorage
+                localStorage.setItem("examSession", JSON.stringify({
+                    sessionId: startResponse.data.sessionId,
+                    examId: startResponse.data.examId,
+                    studentName: startResponse.data.studentName,
+                    assignedSets: startResponse.data.assignedSets,
+                    startedAt: startResponse.data.startedAt
+                }));
+
+                // Navigate to exam page
+                router.push(`/exam/${startResponse.data.sessionId}`);
+            } else {
+                showToast("Failed to start exam. Please try again.", "error");
+            }
+        } catch (err) {
+            showToast(err.message || "An error occurred. Please try again.", "error");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const examSections = [
@@ -67,6 +236,17 @@ export default function HomePage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden">
+            {/* Toast Popup */}
+            <AnimatePresence>
+                {toast && (
+                    <ToastPopup
+                        message={toast.message}
+                        type={toast.type}
+                        onClose={() => setToast(null)}
+                    />
+                )}
+            </AnimatePresence>
+
             {/* Animated Background */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#41bfb8]/8 rounded-full blur-[120px] animate-pulse"></div>
@@ -192,9 +372,8 @@ export default function HomePage() {
                                                 value={examId}
                                                 onChange={(e) => {
                                                     setExamId(e.target.value.toUpperCase());
-                                                    setError("");
                                                 }}
-                                                placeholder="e.g., IELTS2024"
+                                                placeholder="e.g., BACIELTS240001"
                                                 className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-white placeholder-slate-600 focus:border-[#41bfb8] focus:bg-white/[0.07] outline-none transition-all text-lg font-mono tracking-widest"
                                                 autoComplete="off"
                                                 spellCheck="false"
@@ -210,7 +389,6 @@ export default function HomePage() {
                                                 checked={agreed}
                                                 onChange={(e) => {
                                                     setAgreed(e.target.checked);
-                                                    setError("");
                                                 }}
                                                 className="w-5 h-5 rounded border-2 border-slate-600 bg-transparent checked:bg-[#41bfb8] checked:border-[#41bfb8] appearance-none cursor-pointer transition-all"
                                             />
@@ -222,18 +400,6 @@ export default function HomePage() {
                                             I agree to the exam rules and understand that my activity will be monitored during the test.
                                         </span>
                                     </label>
-
-                                    {/* Error */}
-                                    {error && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: -10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3"
-                                        >
-                                            <FaExclamationTriangle />
-                                            {error}
-                                        </motion.div>
-                                    )}
 
                                     {/* Submit Button */}
                                     <button
