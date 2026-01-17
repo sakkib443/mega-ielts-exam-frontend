@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -59,7 +59,7 @@ const menuItems = [
     },
 ];
 
-export default function AdminLayout({ children }) {
+function AdminLayoutContent({ children }) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -70,7 +70,7 @@ export default function AdminLayout({ children }) {
     const [isLoading, setIsLoading] = useState(true);
 
     // Get current type from URL params
-    const currentType = searchParams.get("type");
+    const currentType = searchParams?.get("type") || null;
 
     // Check if we're on the login page
     const isLoginPage = pathname === "/dashboard/admin";
@@ -334,5 +334,18 @@ export default function AdminLayout({ children }) {
                 <div className="p-4 lg:p-8">{children}</div>
             </main>
         </div>
+    );
+}
+
+// Wrap with Suspense for useSearchParams
+export default function AdminLayout({ children }) {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="animate-spin w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full"></div>
+            </div>
+        }>
+            <AdminLayoutContent>{children}</AdminLayoutContent>
+        </Suspense>
     );
 }
