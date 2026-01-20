@@ -27,7 +27,7 @@ const Login = () => {
       const res = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gmail: email, password }),
+        body: JSON.stringify({ email: email, password }),
       });
 
       const data = await res.json();
@@ -41,9 +41,17 @@ const Login = () => {
         localStorage.setItem("token", data.data.token);
         localStorage.setItem("user", JSON.stringify(data.data.user));
         console.log("Token saved:", localStorage.getItem("token"));
-      }
 
-      router.push("/dashboard/admin");
+        // Redirect based on role
+        if (data.data.user.role === "admin") {
+          router.push("/dashboard/admin");
+        } else {
+          // If student, we also need to set the examSession for compatibility
+          // But since the student record is linked by email, we might need to fetch it
+          // For now, just redirect to student dashboard
+          router.push("/dashboard/student");
+        }
+      }
     } catch (err) {
       setError(err.message);
       console.error("Login Error:", err.message);
@@ -55,8 +63,8 @@ const Login = () => {
   return (
     <div className="py-16 bg-gray-50 min-h-screen flex items-center">
       <div className="container mx-auto px-4 sm:px-6 lg:px-24">
-    
-   
+
+
 
         <div className="max-w-5xl mx-auto mt-8 bg-white rounded-2xl shadow-lg overflow-hidden grid grid-cols-1 lg:grid-cols-2">
           {/* Left Image */}

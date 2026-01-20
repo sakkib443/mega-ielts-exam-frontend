@@ -30,56 +30,89 @@ export default function ExamSelectionPage() {
     const [moduleScores, setModuleScores] = useState(null);
 
     useEffect(() => {
-        // Load session from localStorage
-        const storedSession = localStorage.getItem("examSession");
-        if (!storedSession) {
-            setError("No exam session found. Please start from the exam entry page.");
-            setIsLoading(false);
-            return;
-        }
-
-        try {
-            const parsed = JSON.parse(storedSession);
-
-            // Verify session ID matches
-            if (parsed.sessionId !== sessionId) {
-                setError("Invalid session. Please start again.");
+        const loadSessionAndVerify = async () => {
+            // Load session from localStorage
+            const storedSession = localStorage.getItem("examSession");
+            if (!storedSession) {
+                setError("No exam session found. Please start from the exam entry page.");
                 setIsLoading(false);
                 return;
             }
 
-            setSession(parsed);
+            try {
+                const parsed = JSON.parse(storedSession);
 
-            // Load completed modules and scores from session
-            if (parsed.completedModules && Array.isArray(parsed.completedModules)) {
-                setCompletedModules(parsed.completedModules);
-            }
-            if (parsed.scores) {
-                setModuleScores(parsed.scores);
-            }
-        } catch (err) {
-            setError("Session data corrupted. Please start again.");
-        }
+                // Verify session ID matches
+                if (parsed.sessionId !== sessionId) {
+                    setError("Invalid session. Please start again.");
+                    setIsLoading(false);
+                    return;
+                }
 
-        setIsLoading(false);
+                setSession(parsed);
+
+                // IMPORTANT: Fetch completedModules from DATABASE (not just localStorage)
+                // This prevents students from bypassing by clearing localStorage
+                try {
+                    const verifyResponse = await studentsAPI.verifyExamId(parsed.examId);
+                    if (verifyResponse.success && verifyResponse.data) {
+                        const dbCompletedModules = verifyResponse.data.completedModules || [];
+                        const dbScores = verifyResponse.data.scores || null;
+
+                        // Update state with database values (source of truth)
+                        setCompletedModules(dbCompletedModules);
+                        if (dbScores) setModuleScores(dbScores);
+
+                        // Also update localStorage to keep in sync
+                        parsed.completedModules = dbCompletedModules;
+                        parsed.scores = dbScores;
+                        localStorage.setItem("examSession", JSON.stringify(parsed));
+                    }
+                } catch (apiError) {
+                    console.error("Failed to verify from database, using localStorage:", apiError);
+                    // Fallback to localStorage if API fails
+                    if (parsed.completedModules && Array.isArray(parsed.completedModules)) {
+                        setCompletedModules(parsed.completedModules);
+                    }
+                    if (parsed.scores) {
+                        setModuleScores(parsed.scores);
+                    }
+                }
+            } catch (err) {
+                setError("Session data corrupted. Please start again.");
+            }
+
+            setIsLoading(false);
+        };
+
+        loadSessionAndVerify();
     }, [sessionId]);
 
-    // Refresh completed modules from session when page becomes visible
+    // Refresh completed modules from DATABASE when page becomes visible
     useEffect(() => {
-        const handleVisibilityChange = () => {
+        const handleVisibilityChange = async () => {
             if (document.visibilityState === 'visible') {
                 const storedSession = localStorage.getItem("examSession");
                 if (storedSession) {
                     try {
                         const parsed = JSON.parse(storedSession);
-                        if (parsed.completedModules) {
-                            setCompletedModules(parsed.completedModules);
-                        }
-                        if (parsed.scores) {
-                            setModuleScores(parsed.scores);
+
+                        // Fetch fresh data from database
+                        const verifyResponse = await studentsAPI.verifyExamId(parsed.examId);
+                        if (verifyResponse.success && verifyResponse.data) {
+                            const dbCompletedModules = verifyResponse.data.completedModules || [];
+                            const dbScores = verifyResponse.data.scores || null;
+
+                            setCompletedModules(dbCompletedModules);
+                            if (dbScores) setModuleScores(dbScores);
+
+                            // Update localStorage
+                            parsed.completedModules = dbCompletedModules;
+                            parsed.scores = dbScores;
+                            localStorage.setItem("examSession", JSON.stringify(parsed));
                         }
                     } catch (e) {
-                        console.error("Error refreshing session:", e);
+                        console.error("Error refreshing from database:", e);
                     }
                 }
             }
@@ -278,10 +311,10 @@ export default function ExamSelectionPage() {
                                 key={module.id}
                                 onClick={() => hasSet && !isCompleted && handleStartModule(module.id)}
                                 className={`bg-white border-2 rounded-lg p-5 transition-all relative ${isCompleted
-                                        ? "border-green-400 bg-green-50 cursor-not-allowed"
-                                        : hasSet
-                                            ? "border-gray-200 cursor-pointer hover:border-cyan-400 hover:shadow-md"
-                                            : "border-gray-100 opacity-60 cursor-not-allowed"
+                                    ? "border-green-400 bg-green-50 cursor-not-allowed"
+                                    : hasSet
+                                        ? "border-gray-200 cursor-pointer hover:border-cyan-400 hover:shadow-md"
+                                        : "border-gray-100 opacity-60 cursor-not-allowed"
                                     }`}
                             >
                                 {/* Completed Badge */}
@@ -293,12 +326,12 @@ export default function ExamSelectionPage() {
                                 )}
 
                                 <div className={`w-14 h-14 ${isCompleted
-                                        ? 'bg-green-100 text-green-600'
-                                        : module.color === 'cyan'
-                                            ? 'bg-cyan-100 text-cyan-600'
-                                            : module.color === 'blue'
-                                                ? 'bg-blue-100 text-blue-600'
-                                                : 'bg-green-100 text-green-600'
+                                    ? 'bg-green-100 text-green-600'
+                                    : module.color === 'cyan'
+                                        ? 'bg-cyan-100 text-cyan-600'
+                                        : module.color === 'blue'
+                                            ? 'bg-blue-100 text-blue-600'
+                                            : 'bg-green-100 text-green-600'
                                     } rounded-xl flex items-center justify-center mb-4`}>
                                     {isCompleted ? <FaCheckCircle className="text-2xl" /> : module.icon}
                                 </div>

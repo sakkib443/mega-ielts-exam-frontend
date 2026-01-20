@@ -101,6 +101,12 @@ export const studentsAPI = {
         return response;
     },
 
+    // Get current student profile
+    getMyProfile: async () => {
+        const response = await apiRequest("/students/my-profile");
+        return response;
+    },
+
     // Update student
     update: async (id, updateData) => {
         const response = await apiRequest(`/students/${id}`, {
@@ -202,6 +208,33 @@ export const studentsAPI = {
     // Get answer sheet (admin)
     getAnswerSheet: async (studentId, module) => {
         const response = await apiRequest(`/students/${studentId}/answer-sheet/${module}`);
+        return response;
+    },
+
+    // Update all scores at once (admin)
+    updateAllScores: async (studentId, scoresData) => {
+        const response = await apiRequest(`/students/${studentId}/update-all-scores`, {
+            method: "PATCH",
+            body: JSON.stringify(scoresData),
+        });
+        return response;
+    },
+
+    // Publish results for student (admin)
+    publishResults: async (studentId, publish = true) => {
+        const response = await apiRequest(`/students/${studentId}/publish-results`, {
+            method: "POST",
+            body: JSON.stringify({ publish }),
+        });
+        return response;
+    },
+
+    // Reset individual module (admin)
+    resetModule: async (studentId, module) => {
+        const response = await apiRequest(`/students/${studentId}/reset-module`, {
+            method: "POST",
+            body: JSON.stringify({ module }),
+        });
         return response;
     },
 };

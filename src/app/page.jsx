@@ -235,7 +235,7 @@ export default function HomePage() {
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden">
+        <div className="min-h-screen bg-[#f8fafc] relative overflow-hidden">
             {/* Toast Popup */}
             <AnimatePresence>
                 {toast && (
@@ -247,15 +247,15 @@ export default function HomePage() {
                 )}
             </AnimatePresence>
 
-            {/* Animated Background */}
+            {/* Static Background Blobs */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#41bfb8]/8 rounded-full blur-[120px] animate-pulse"></div>
-                <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#f79952]/8 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }}></div>
+                <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-[#41bfb8]/10 rounded-full blur-[120px]"></div>
+                <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#f79952]/10 rounded-full blur-[100px]"></div>
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-[#41bfb8]/5 to-[#f79952]/5 rounded-full blur-[150px]"></div>
 
                 {/* Grid Pattern */}
-                <div className="absolute inset-0 opacity-[0.02]" style={{
-                    backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+                <div className="absolute inset-0 opacity-[0.03]" style={{
+                    backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 23, 42, 0.1) 1px, transparent 1px)`,
                     backgroundSize: '50px 50px'
                 }}></div>
             </div>
@@ -273,11 +273,11 @@ export default function HomePage() {
                                 <LuGraduationCap className="text-white text-2xl" />
                             </div>
                             <div>
-                                <h1 className="text-xl font-bold text-white outfit">IELTS<span className="text-[#41bfb8]">Pro</span></h1>
-                                <p className="text-slate-500 text-xs">Online Examination System</p>
+                                <h1 className="text-xl font-bold text-slate-900 outfit">IELTS<span className="text-[#41bfb8]">Pro</span></h1>
+                                <p className="text-slate-500 text-xs font-medium">Online Examination System</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2 text-slate-400 text-sm">
+                        <div className="flex items-center gap-2 text-slate-500 text-sm font-medium">
                             <LuShieldCheck className="text-emerald-500" />
                             <span>Secure Platform</span>
                         </div>
@@ -294,14 +294,14 @@ export default function HomePage() {
                             transition={{ delay: 0.2 }}
                             className="hidden lg:block"
                         >
-                            <h2 className="text-4xl font-bold text-white mb-4 outfit leading-tight">
+                            <h2 className="text-4xl font-bold text-slate-900 mb-4 outfit leading-tight">
                                 Professional IELTS
                                 <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#41bfb8] to-[#f79952]">
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#41bfb8] to-[#e87d32]">
                                     Examination System
                                 </span>
                             </h2>
-                            <p className="text-slate-400 mb-8">
+                            <p className="text-slate-600 mb-8 text-lg font-medium leading-relaxed">
                                 Experience a realistic IELTS test environment with our advanced online examination platform.
                                 Get instant results for Listening and Reading sections.
                             </p>
@@ -314,14 +314,14 @@ export default function HomePage() {
                                         initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: 0.3 + index * 0.1 }}
-                                        className={`flex items-center gap-4 p-4 rounded-xl bg-${section.color}-500/10 border border-${section.color}-500/20`}
+                                        className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-shadow"
                                     >
-                                        <div className={`w-12 h-12 rounded-xl bg-${section.color}-500/20 flex items-center justify-center text-${section.color}-400 text-xl`}>
+                                        <div className={`w-12 h-12 rounded-xl bg-${section.color}-50 flex items-center justify-center text-${section.color}-500 text-xl`}>
                                             {section.icon}
                                         </div>
                                         <div className="flex-1">
-                                            <h3 className="text-white font-medium">{section.name}</h3>
-                                            <p className="text-slate-500 text-sm">{section.duration} • {section.questions} {section.questions === 2 ? 'tasks' : 'questions'}</p>
+                                            <h3 className="text-slate-900 font-semibold">{section.name}</h3>
+                                            <p className="text-slate-500 text-sm font-medium">{section.duration} • {section.questions} {section.questions === 2 ? 'tasks' : 'questions'}</p>
                                         </div>
                                     </motion.div>
                                 ))}
@@ -335,7 +335,7 @@ export default function HomePage() {
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         transition={{ delay: 0.6 + index * 0.05 }}
-                                        className="flex items-center gap-2 text-slate-400 text-sm"
+                                        className="flex items-center gap-2 text-slate-600 text-sm font-medium"
                                     >
                                         <span className="text-[#41bfb8]">{req.icon}</span>
                                         {req.text}
@@ -351,22 +351,22 @@ export default function HomePage() {
                             transition={{ delay: 0.1 }}
                             className="w-full max-w-md mx-auto lg:mx-0 lg:ml-auto"
                         >
-                            <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+                            <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-xl shadow-slate-200/50">
                                 {/* Card Header */}
                                 <div className="text-center mb-8">
-                                    <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-[#41bfb8] to-[#2d9a94] rounded-2xl flex items-center justify-center shadow-lg shadow-[#41bfb8]/25">
-                                        <HiOutlineDocumentText className="text-white text-3xl" />
+                                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-50 border border-slate-100 rounded-2xl flex items-center justify-center shadow-sm">
+                                        <HiOutlineDocumentText className="text-[#41bfb8] text-3xl" />
                                     </div>
-                                    <h3 className="text-2xl font-bold text-white outfit">Start Your Exam</h3>
-                                    <p className="text-slate-400 text-sm mt-2">Enter your unique Exam ID to begin</p>
+                                    <h3 className="text-2xl font-bold text-slate-900 outfit">Start Your Exam</h3>
+                                    <p className="text-slate-500 text-sm mt-2 font-medium">Enter your unique Exam ID to begin</p>
                                 </div>
 
                                 {/* Form */}
-                                <form onSubmit={handleStartExam} className="space-y-5">
+                                <form onSubmit={handleStartExam} className="space-y-6">
                                     <div>
-                                        <label className="block text-slate-400 text-sm mb-2">Exam ID</label>
+                                        <label className="block text-slate-700 text-sm mb-2 font-semibold">Exam ID</label>
                                         <div className="relative">
-                                            <FaKeyboard className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                                            <FaKeyboard className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                                             <input
                                                 type="text"
                                                 value={examId}
@@ -374,7 +374,7 @@ export default function HomePage() {
                                                     setExamId(e.target.value.toUpperCase());
                                                 }}
                                                 placeholder="e.g., BACIELTS240001"
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-white placeholder-slate-600 focus:border-[#41bfb8] focus:bg-white/[0.07] outline-none transition-all text-lg font-mono tracking-widest"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-12 pr-4 py-4 text-slate-900 placeholder-slate-400 focus:border-[#41bfb8] focus:bg-white focus:ring-4 focus:ring-[#41bfb8]/10 outline-none transition-all text-lg font-mono tracking-widest"
                                                 autoComplete="off"
                                                 spellCheck="false"
                                             />
@@ -390,13 +390,13 @@ export default function HomePage() {
                                                 onChange={(e) => {
                                                     setAgreed(e.target.checked);
                                                 }}
-                                                className="w-5 h-5 rounded border-2 border-slate-600 bg-transparent checked:bg-[#41bfb8] checked:border-[#41bfb8] appearance-none cursor-pointer transition-all"
+                                                className="w-5 h-5 rounded border-2 border-slate-300 bg-white checked:bg-[#41bfb8] checked:border-[#41bfb8] appearance-none cursor-pointer transition-all"
                                             />
                                             {agreed && (
                                                 <FaCheckCircle className="absolute inset-0 text-white w-5 h-5 pointer-events-none" />
                                             )}
                                         </div>
-                                        <span className="text-slate-400 text-sm group-hover:text-slate-300 transition-colors">
+                                        <span className="text-slate-600 text-sm font-medium group-hover:text-slate-800 transition-colors leading-relaxed">
                                             I agree to the exam rules and understand that my activity will be monitored during the test.
                                         </span>
                                     </label>
@@ -405,7 +405,7 @@ export default function HomePage() {
                                     <button
                                         type="submit"
                                         disabled={isLoading}
-                                        className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-[#41bfb8] to-[#2d9a94] text-white py-4 rounded-xl font-semibold text-lg hover:shadow-xl hover:shadow-[#41bfb8]/25 transition-all cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                                        className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-[#41bfb8] to-[#2d9a94] text-white py-4 rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-[#41bfb8]/30 transition-all cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed transform hover:-translate-y-0.5 active:translate-y-0"
                                     >
                                         {isLoading ? (
                                             <>
@@ -414,7 +414,7 @@ export default function HomePage() {
                                             </>
                                         ) : (
                                             <>
-                                                <FaPlay />
+                                                <FaPlay className="text-sm" />
                                                 Start Examination
                                             </>
                                         )}
@@ -422,9 +422,9 @@ export default function HomePage() {
                                 </form>
 
                                 {/* Security Note */}
-                                <div className="mt-6 pt-6 border-t border-white/5">
-                                    <div className="flex items-start gap-3 text-slate-500 text-xs">
-                                        <FaShieldAlt className="text-amber-500 mt-0.5" />
+                                <div className="mt-8 pt-8 border-t border-slate-100">
+                                    <div className="flex items-start gap-3 text-slate-500 text-xs leading-relaxed">
+                                        <FaShieldAlt className="text-amber-500 mt-0.5 flex-shrink-0" />
                                         <p>
                                             This exam is conducted in a secure environment. Tab switching, screen recording, and copy-paste are monitored.
                                         </p>
@@ -436,13 +436,13 @@ export default function HomePage() {
                 </main>
 
                 {/* Footer */}
-                <footer className="py-6 px-8 border-t border-white/5">
-                    <div className="max-w-7xl mx-auto flex items-center justify-between text-slate-500 text-sm">
+                <footer className="py-8 px-8 border-t border-slate-200 bg-white/50 backdrop-blur-sm">
+                    <div className="max-w-7xl mx-auto flex flex-col md:row items-center justify-between gap-4 text-slate-600 text-sm font-medium">
                         <p>© 2024 IELTSPro. All rights reserved.</p>
-                        <div className="flex items-center gap-4">
-                            <span>Privacy Policy</span>
-                            <span>Terms of Service</span>
-                            <span>Support</span>
+                        <div className="flex items-center gap-6">
+                            <span className="hover:text-[#41bfb8] cursor-pointer transition-colors">Privacy Policy</span>
+                            <span className="hover:text-[#41bfb8] cursor-pointer transition-colors">Terms of Service</span>
+                            <span className="hover:text-[#41bfb8] cursor-pointer transition-colors">Support</span>
                         </div>
                     </div>
                 </footer>

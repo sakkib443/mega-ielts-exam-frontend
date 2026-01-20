@@ -164,6 +164,20 @@ export default function WritingExamPage() {
 
         // Save to backend with task responses
         try {
+            console.log("Saving writing with data:", {
+                examId,
+                module: "writing",
+                scoreData: {
+                    band: bandScore,
+                    task1Words: task1Words,
+                    task2Words: task2Words,
+                    answers: {
+                        task1: answers.task1,
+                        task2: answers.task2
+                    }
+                }
+            });
+
             const response = await studentsAPI.saveModuleScore(examId, "writing", {
                 band: bandScore,
                 task1Words: task1Words,
@@ -173,7 +187,8 @@ export default function WritingExamPage() {
                     task2: answers.task2
                 }
             });
-            console.log("Writing responses saved to backend");
+
+            console.log("Writing save response:", response);
 
             // Update localStorage
             if (response.success && sessionData) {

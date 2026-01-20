@@ -186,17 +186,34 @@ export default function ReadingExamPage() {
         // Prepare detailed answers for admin review
         const detailedAnswers = allQuestions.map(q => {
             const userAnswer = answers[q.questionNumber] || "";
-            const normalizedUser = userAnswer.toString().trim().toLowerCase();
-            const normalizedCorrect = q.correctAnswer?.toString().trim().toLowerCase();
-            const isCorrect = normalizedUser === normalizedCorrect;
+
+            // For MCQ/TFNG/matching, extract the letter or answer from selected option
+            let studentAnswerForComparison = userAnswer.toString().trim();
+            const qType = q.type || q.questionType || "";
+
+            if ((qType === "multiple-choice" || qType === "mcq" || qType === "matching") && userAnswer) {
+                // Extract the first letter if it's like "A. Some text" or "B. Some text"
+                const letterMatch = userAnswer.toString().match(/^([A-Za-z])\./);
+                if (letterMatch) {
+                    studentAnswerForComparison = letterMatch[1].toUpperCase();
+                }
+            }
 
             return {
                 questionNumber: q.questionNumber,
-                studentAnswer: userAnswer,
+                questionText: q.text || q.questionText || "", // Include question text
+                questionType: qType || "fill-in-blank",
+                studentAnswer: studentAnswerForComparison, // Store extracted answer
+                studentAnswerFull: userAnswer, // Store full answer text for reference
                 correctAnswer: q.correctAnswer,
-                isCorrect: isCorrect
+                isCorrect: false // Will be recalculated on backend
             };
         });
+
+        // Get session data from localStorage or state
+        const storedSession = localStorage.getItem("examSession");
+        let sessionData = storedSession ? JSON.parse(storedSession) : session;
+        const examId = sessionData?.examId || session?.examId;
 
         // Save to backend
         try {

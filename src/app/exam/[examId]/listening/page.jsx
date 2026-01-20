@@ -91,8 +91,11 @@ export default function ListeningExamPage() {
     const currentSec = sections[currentSection] || { questions: [] };
     const allQuestions = sections.flatMap(s => s.questions || []);
 
-    // Pagination: 5 questions per page
-    const QUESTIONS_PER_PAGE = 5;
+    // Debug: Log question structure
+    console.log("Question sample:", allQuestions[0]);
+
+    // Pagination: 10 questions per page
+    const QUESTIONS_PER_PAGE = 10;
     const totalPages = Math.ceil((currentSec.questions?.length || 0) / QUESTIONS_PER_PAGE);
     const startIndex = currentPage * QUESTIONS_PER_PAGE;
     const endIndex = Math.min(startIndex + QUESTIONS_PER_PAGE, currentSec.questions?.length || 0);
@@ -235,17 +238,32 @@ export default function ListeningExamPage() {
         // Prepare detailed answers for admin review
         const detailedAnswers = allQuestions.map(q => {
             const userAnswer = answers[q.questionNumber] || "";
-            const normalizedUser = userAnswer.toString().trim().toLowerCase();
-            const normalizedCorrect = q.correctAnswer?.toString().trim().toLowerCase();
-            const isCorrect = normalizedUser === normalizedCorrect;
+
+            // For MCQ/matching, extract the letter (A, B, C, D) from the selected option
+            let studentAnswerForComparison = userAnswer.toString().trim();
+            if ((q.questionType === "multiple-choice" || q.questionType === "matching") && userAnswer) {
+                // Extract the first letter if it's like "A. Some text" or "B. Some text"
+                const letterMatch = userAnswer.toString().match(/^([A-Za-z])\./);
+                if (letterMatch) {
+                    studentAnswerForComparison = letterMatch[1].toUpperCase();
+                }
+            }
 
             return {
                 questionNumber: q.questionNumber,
-                studentAnswer: userAnswer,
+                questionText: q.questionText || "", // Include question text
+                questionType: q.questionType || "fill-in-blank",
+                studentAnswer: studentAnswerForComparison, // Store extracted letter for MCQ
+                studentAnswerFull: userAnswer, // Store full answer text for reference
                 correctAnswer: q.correctAnswer,
-                isCorrect: isCorrect
+                isCorrect: false // Will be recalculated on backend
             };
         });
+
+        // Get session data from state
+        const storedSession = localStorage.getItem("examSession");
+        let sessionData = storedSession ? JSON.parse(storedSession) : session;
+        const examId = sessionData?.examId || session?.examId;
 
         // Save to backend with answers
         try {
@@ -452,57 +470,56 @@ export default function ListeningExamPage() {
 
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 py-6">
-                <div className="mb-4">
-                    <h3 className="text-lg font-bold text-gray-800 mb-2">
+                <div className="mb-3">
+                    <h3 className="text-base font-medium text-gray-700">
                         Questions {globalStartIndex + 1}–{globalStartIndex + currentQuestions.length}
                     </h3>
                 </div>
 
-                {/* Questions - 5 per page */}
-                <div className="space-y-6 mb-6">
+                {/* Questions - 10 per page - compact design */}
+                <div className="space-y-3 mb-4">
                     {currentQuestions.map((currentQ, qIdx) => {
                         const globalIndex = globalStartIndex + qIdx;
                         const questionId = currentQ.questionNumber;
 
                         return (
-                            <div key={questionId} className="bg-white border border-gray-200 rounded p-6">
-                                <div className="mb-4">
-                                    <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm font-medium">
-                                        Question {globalIndex + 1}
+                            <div key={questionId} className="bg-white border border-gray-200 rounded p-3">
+                                <div className="flex items-start gap-2 mb-2">
+                                    <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium">
+                                        {globalIndex + 1}
                                     </span>
+                                    <p className="text-gray-700 text-sm">{currentQ.questionText}</p>
                                 </div>
 
-                                <p className="text-gray-800 text-lg mb-4">{currentQ.questionText}</p>
-
                                 {currentQ.questionType === "multiple-choice" || currentQ.questionType === "matching" ? (
-                                    <div className="space-y-2">
+                                    <div className="space-y-1 ml-7">
                                         {(currentQ.options || []).map((option, index) => (
                                             <label
                                                 key={index}
                                                 onClick={() => handleAnswer(questionId, option)}
-                                                className={`flex items-center gap-3 p-3 border rounded cursor-pointer transition-colors ${answers[questionId] === option
-                                                    ? "border-cyan-600 bg-cyan-50"
-                                                    : "border-gray-200 hover:border-gray-300"
+                                                className={`flex items-center gap-2 p-2 border rounded cursor-pointer transition-colors text-sm ${answers[questionId] === option
+                                                    ? "border-gray-400 bg-gray-100"
+                                                    : "border-gray-200 hover:bg-gray-50"
                                                     }`}
                                             >
-                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${answers[questionId] === option ? "border-cyan-600 bg-cyan-600" : "border-gray-400"
+                                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${answers[questionId] === option ? "border-gray-600 bg-gray-600" : "border-gray-400"
                                                     }`}>
-                                                    {answers[questionId] === option && <FaCheck className="text-xs text-white" />}
+                                                    {answers[questionId] === option && <FaCheck className="text-[8px] text-white" />}
                                                 </div>
-                                                <span className="text-gray-700">{option}</span>
+                                                <span className="text-gray-600 text-sm">{option}</span>
                                             </label>
                                         ))}
                                     </div>
                                 ) : (
-                                    <div>
+                                    <div className="ml-7">
                                         <input
                                             type="text"
                                             value={answers[questionId] || ""}
                                             onChange={(e) => handleAnswer(questionId, e.target.value)}
                                             placeholder="Type your answer..."
-                                            className="w-full max-w-md border-2 border-gray-300 rounded px-4 py-3 text-lg focus:border-cyan-600 focus:outline-none"
+                                            className="w-full max-w-sm border border-gray-300 rounded px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
                                         />
-                                        <p className="text-gray-500 text-sm mt-2">Write ONE WORD AND/OR A NUMBER</p>
+                                        <p className="text-gray-400 text-xs mt-1">ONE WORD AND/OR A NUMBER</p>
                                     </div>
                                 )}
                             </div>
