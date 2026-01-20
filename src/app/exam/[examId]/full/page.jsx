@@ -42,10 +42,25 @@ export default function FullExamPage() {
         const storedSession = localStorage.getItem("examSession");
         if (storedSession) {
             const parsed = JSON.parse(storedSession);
+
+            // Check localStorage first for immediate feedback
             if (parsed.completedModules && parsed.completedModules.length >= 3) {
                 router.push(`/exam/${params.examId}`);
                 return;
             }
+
+            // Also verify with DATABASE for cross-tab consistency
+            studentsAPI.verifyExamId(parsed.examId).then(response => {
+                if (response.success && response.data) {
+                    const dbCompletedModules = response.data.completedModules || [];
+                    if (dbCompletedModules.length >= 3) {
+                        // Update localStorage and redirect
+                        parsed.completedModules = dbCompletedModules;
+                        localStorage.setItem("examSession", JSON.stringify(parsed));
+                        router.push(`/exam/${params.examId}`);
+                    }
+                }
+            }).catch(err => console.error("Completion verify error:", err));
         }
 
         const checkResults = () => {
@@ -69,20 +84,8 @@ export default function FullExamPage() {
             } else if (!results.writing) {
                 setCurrentModule(2);
             } else {
-                const overallBand = calculateOverallBand();
-                const totalScore = (results.listening?.score || 0) + (results.reading?.score || 0) + (results.writing?.score || 0);
-                const totalPossible = 40 + 40 + 18;
-
-                localStorage.setItem(`exam_${params.examId}_full`, JSON.stringify({
-                    listening: results.listening,
-                    reading: results.reading,
-                    writing: results.writing,
-                    overallBand,
-                    totalScore,
-                    totalPossible
-                }));
-
-                router.push(`/exam/${params.examId}/result?module=full&score=${totalScore}&total=${totalPossible}&band=${overallBand}`);
+                // All modules completed - redirect to result page (no scores in URL)
+                router.push(`/exam/${params.examId}/result?module=full`);
             }
         };
 
@@ -197,7 +200,7 @@ export default function FullExamPage() {
                             <FaArrowRight />
                         </button>
 
-                        {/* Previous Results */}
+                        {/* Previous Results - Show completion only, no scores */}
                         {Object.keys(moduleResults).length > 0 && (
                             <div className="mt-6 pt-6 border-t border-gray-200">
                                 <p className="text-gray-500 text-sm mb-3">Completed Sections</p>
@@ -208,7 +211,9 @@ export default function FullExamPage() {
                                         return (
                                             <div key={mod.id} className="bg-green-50 border border-green-200 rounded px-4 py-2">
                                                 <p className="text-xs text-gray-500">{mod.name}</p>
-                                                <p className="text-lg font-bold text-green-600">Band {result.bandScore}</p>
+                                                <p className="text-sm font-bold text-green-600 flex items-center gap-1">
+                                                    <FaCheck className="text-xs" /> Submitted
+                                                </p>
                                             </div>
                                         );
                                     })}

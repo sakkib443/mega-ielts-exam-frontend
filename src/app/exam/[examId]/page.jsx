@@ -17,6 +17,7 @@ import {
     FaLock
 } from "react-icons/fa";
 import { studentsAPI } from "@/lib/api";
+import Logo from "@/components/Logo";
 
 export default function ExamSelectionPage() {
     const params = useParams();
@@ -56,8 +57,16 @@ export default function ExamSelectionPage() {
                 try {
                     const verifyResponse = await studentsAPI.verifyExamId(parsed.examId);
                     if (verifyResponse.success && verifyResponse.data) {
+                        // Even if valid is false, it might be because it's already completed
+                        // in which case we still want to show the completion screen
                         const dbCompletedModules = verifyResponse.data.completedModules || [];
                         const dbScores = verifyResponse.data.scores || null;
+
+                        if (!verifyResponse.data.valid && dbCompletedModules.length < 3) {
+                            setError(verifyResponse.data.message || "Invalid session. Please start again.");
+                            setIsLoading(false);
+                            return;
+                        }
 
                         // Update state with database values (source of truth)
                         setCompletedModules(dbCompletedModules);
@@ -203,9 +212,7 @@ export default function ExamSelectionPage() {
             <header className="bg-white border-b border-gray-200 py-4 px-4">
                 <div className="max-w-5xl mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <span className="text-cyan-600 font-bold text-2xl">IELTS</span>
-                        <span className="text-gray-400">|</span>
-                        <span className="text-gray-600">BdCalling Academy</span>
+                        <Logo />
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2 text-gray-600 text-sm">
@@ -230,42 +237,29 @@ export default function ExamSelectionPage() {
                             Examination Completed!
                         </h1>
                         <p className="text-gray-600 max-w-lg mx-auto mb-8 text-lg">
-                            Well done, {session?.studentName}! You have successfully completed all three modules of the IELTS Academic Test. Your scores have been submitted and are now being processed.
+                            Well done, {session?.studentName}! You have successfully completed all three modules of the IELTS Academic Test.
                         </p>
 
-                        {/* Overall Result Preview */}
+                        {/* Submission Status Box - No Scores Shown */}
                         <div className="bg-white p-6 rounded-xl border border-green-200 shadow-sm inline-block min-w-[300px] mb-8">
-                            <p className="text-gray-500 text-sm font-medium uppercase tracking-wider mb-2">Overall Performance</p>
-                            <div className="flex items-center justify-center gap-4">
-                                <div className="text-center">
-                                    <p className="text-3xl font-black text-green-600">
-                                        {(moduleScores ?
-                                            ((moduleScores.listening?.band || 0) +
-                                                (moduleScores.reading?.band || 0) +
-                                                (moduleScores.writing?.overallBand || 0)) / 3
-                                            : 0).toFixed(1)}
-                                    </p>
-                                    <p className="text-xs text-gray-400 font-bold uppercase">Band Score</p>
-                                </div>
+                            <div className="flex items-center justify-center gap-3 mb-3">
+                                <FaCheckCircle className="text-green-600 text-2xl" />
+                                <p className="text-gray-700 font-semibold text-lg">All Modules Submitted</p>
                             </div>
+                            <p className="text-gray-500 text-sm">
+                                Your responses are being reviewed by our examiners. Results will be available once the evaluation is complete.
+                            </p>
                         </div>
 
                         <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-                            <button
-                                onClick={() => router.push("/dashboard/student/results")}
-                                className="w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 text-white px-8 py-3.5 rounded-xl font-bold hover:bg-green-700 hover:shadow-lg transition-all active:scale-95"
-                            >
-                                <FaLayerGroup />
-                                View Full Results
-                            </button>
                             <button
                                 onClick={() => {
                                     localStorage.removeItem("examSession");
                                     router.push("/start-exam");
                                 }}
-                                className="w-full md:w-auto flex items-center justify-center gap-2 bg-white text-gray-600 border border-gray-200 px-8 py-3.5 rounded-xl font-bold hover:bg-gray-50 transition-all active:scale-95"
+                                className="w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 text-white px-8 py-3.5 rounded-xl font-bold hover:bg-green-700 hover:shadow-lg transition-all active:scale-95"
                             >
-                                Logout Exam
+                                Exit Exam Session
                             </button>
                         </div>
                     </div>
@@ -397,16 +391,6 @@ export default function ExamSelectionPage() {
                                         </div>
                                         <p className="text-gray-500 text-sm mb-1">{module.description}</p>
                                         <p className="text-gray-400 text-xs mb-4">{module.details}</p>
-
-                                        {/* Show score if completed */}
-                                        {isCompleted && score && (
-                                            <div className="bg-green-100 border border-green-200 rounded-lg p-3 mb-4">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-green-700 font-medium">Your Band Score</span>
-                                                    <span className="text-2xl font-bold text-green-600">{score.toFixed(1)}</span>
-                                                </div>
-                                            </div>
-                                        )}
 
                                         {!isCompleted && (
                                             <div className="space-y-2 mb-4 text-sm">

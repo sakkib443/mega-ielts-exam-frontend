@@ -22,6 +22,7 @@ import {
 import { LuGraduationCap, LuShieldCheck } from "react-icons/lu";
 import { HiOutlineDocumentText } from "react-icons/hi";
 import { studentsAPI } from "@/lib/api";
+import Logo from "@/components/Logo";
 
 // Toast Popup Component
 const ToastPopup = ({ message, type, onClose }) => {
@@ -268,15 +269,7 @@ export default function HomePage() {
                         animate={{ opacity: 1, y: 0 }}
                         className="flex items-center justify-between max-w-7xl mx-auto"
                     >
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-gradient-to-br from-[#41bfb8] to-[#2d9a94] rounded-xl flex items-center justify-center shadow-lg shadow-[#41bfb8]/20">
-                                <LuGraduationCap className="text-white text-2xl" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl font-bold text-slate-900 outfit">IELTS<span className="text-[#41bfb8]">Pro</span></h1>
-                                <p className="text-slate-500 text-xs font-medium">Online Examination System</p>
-                            </div>
-                        </div>
+                        <Logo />
                         <div className="flex items-center gap-2 text-slate-500 text-sm font-medium">
                             <LuShieldCheck className="text-emerald-500" />
                             <span>Secure Platform</span>

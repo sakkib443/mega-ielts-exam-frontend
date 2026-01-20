@@ -55,14 +55,33 @@ export default function ListeningExamPage() {
                 }
 
                 const parsed = JSON.parse(storedSession);
-
-                // Security check: If listening is already completed, redirect back
-                if (parsed.completedModules && parsed.completedModules.includes("listening")) {
-                    router.push(`/exam/${params.examId}`);
-                    return;
-                }
-
                 setSession(parsed);
+
+                // IMPORTANT: Fetch fresh completion status from DATABASE
+                try {
+                    const verifyResponse = await studentsAPI.verifyExamId(parsed.examId);
+                    if (verifyResponse.success && verifyResponse.data) {
+                        const dbCompletedModules = verifyResponse.data.completedModules || [];
+                        const isFinished = dbCompletedModules.length >= 3;
+
+                        // Security check: If listening is already completed OR all 3 are done, redirect back
+                        if (dbCompletedModules.includes("listening") || isFinished) {
+                            // Update localStorage to keep in sync
+                            parsed.completedModules = dbCompletedModules;
+                            localStorage.setItem("examSession", JSON.stringify(parsed));
+
+                            router.push(`/exam/${params.examId}`);
+                            return;
+                        }
+                    }
+                } catch (apiError) {
+                    console.error("Failed to verify completion from DB, using localStorage:", apiError);
+                    // Fallback to localStorage check
+                    if (parsed.completedModules && (parsed.completedModules.includes("listening") || parsed.completedModules.length >= 3)) {
+                        router.push(`/exam/${params.examId}`);
+                        return;
+                    }
+                }
 
                 // Check if listening set is assigned
                 const listeningSetNumber = parsed.assignedSets?.listeningSetNumber;

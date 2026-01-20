@@ -22,6 +22,7 @@ import {
     FaGlobe,
     FaChevronDown,
 } from "react-icons/fa";
+import Logo from "@/components/Logo";
 
 const menuItems = [
     {
@@ -212,14 +213,13 @@ function AdminLayoutContent({ children }) {
             >
                 {/* Logo Area */}
                 <div className="h-16 flex items-center px-6 border-b border-gray-200">
-                    <div className="flex items-center gap-3">
+                    {sidebarOpen ? (
+                        <Logo className="w-32" />
+                    ) : (
                         <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center text-white font-bold text-sm">
                             IE
                         </div>
-                        {sidebarOpen && (
-                            <span className="font-bold text-gray-800 text-lg">IELTS Admin</span>
-                        )}
-                    </div>
+                    )}
                 </div>
 
                 {/* Navigation Scrollable */}

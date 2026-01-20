@@ -14,6 +14,7 @@ import {
     FaSpinner
 } from "react-icons/fa";
 import { studentsAPI } from "@/lib/api";
+import Logo from "@/components/Logo";
 
 function ExamEntryContent() {
     const router = useRouter();
@@ -130,8 +131,8 @@ function ExamEntryContent() {
             <div className="w-full max-w-xl">
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <div className="flex items-center justify-center gap-3 mb-2">
-                        <span className="text-cyan-600 font-bold text-3xl">IELTS</span>
+                    <div className="flex items-center justify-center mb-2">
+                        <Logo className="w-40" />
                     </div>
                     <p className="text-gray-500">Online Examination System</p>
                 </div>

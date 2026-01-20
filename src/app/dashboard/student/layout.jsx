@@ -14,6 +14,7 @@ import {
     FaGlobe,
     FaCheckCircle,
 } from "react-icons/fa";
+import Logo from "@/components/Logo";
 
 const menuItems = [
     {
@@ -117,14 +118,13 @@ function StudentLayoutContent({ children }) {
             >
                 {/* Logo Area */}
                 <div className="h-20 flex items-center px-6 border-b border-slate-100 mb-6">
-                    <div className="flex items-center gap-3">
+                    {sidebarOpen ? (
+                        <Logo className="w-36" />
+                    ) : (
                         <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-100">
                             i
                         </div>
-                        {sidebarOpen && (
-                            <span className="font-bold text-slate-800 text-xl tracking-tight">IELTS HUB</span>
-                        )}
-                    </div>
+                    )}
                 </div>
 
                 {/* Navigation */}

@@ -8,6 +8,7 @@ import { RiFacebookFill } from "react-icons/ri";
 import { FaGoogle } from "react-icons/fa";
 
 import { useRouter } from "next/navigation";
+import Logo from "@/components/Logo";
 
 const Login = () => {
   const router = useRouter();
@@ -63,6 +64,10 @@ const Login = () => {
   return (
     <div className="py-16 bg-gray-50 min-h-screen flex items-center">
       <div className="container mx-auto px-4 sm:px-6 lg:px-24">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <Logo className="mx-auto" />
+        </div>
 
 
 
@@ -84,10 +89,10 @@ const Login = () => {
               Sign in to your account
             </h3>
             <p className="text-sm text-gray-500 mt-1 mb-6">
-              Don't have an account?{" "}
+              New student?{" "}
               <Link href="/register">
-                <span className="text-[#41bfb8] font-semibold cursor-pointer">
-                  Create one
+                <span className="text-[#41bfb8] font-semibold cursor-pointer hover:underline">
+                  Accounts are created by admin
                 </span>
               </Link>
             </p>

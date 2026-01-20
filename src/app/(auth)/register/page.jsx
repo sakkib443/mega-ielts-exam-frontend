@@ -1,252 +1,137 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MdOutlineRemoveRedEye, MdOutlineVisibilityOff } from "react-icons/md";
-import { RiFacebookFill } from "react-icons/ri";
-import { FaGoogle } from "react-icons/fa";
-
-import { useRouter } from "next/navigation";
+import { FaUserLock, FaUserShield, FaArrowLeft } from "react-icons/fa";
+import Logo from "@/components/Logo";
 
 const Register = () => {
-  const router = useRouter();
-
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    gmail: "",
-    phoneNumber: "",
-    password: "",
-    confirmPassword: "",
-  });
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(0);
-
-  // 🔹 Input Handler
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  // 🔹 Password strength
-  useEffect(() => {
-    const p = formData.password || "";
-    let score = 0;
-    if (p.length >= 8) score++;
-    if (/[0-9]/.test(p)) score++;
-    if (/[^A-Za-z0-9]/.test(p)) score++;
-    setPasswordStrength(score);
-  }, [formData.password]);
-
-  // 🔹 Submit
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    if (formData.password !== formData.confirmPassword) {
-      return setError("Passwords do not match");
-    }
-
-    setLoading(true);
-
-    try {
-      const res = await fetch("http://localhost:5000/api/user/create-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          gmail: formData.gmail,
-          phoneNumber: formData.phoneNumber,
-          password: formData.password,
-          role: "student",
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Registration failed");
-      }
-
-      // ✅ Success → Login page
-      router.push("/dashboard/admin");
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="py-16 bg-gray-50 min-h-screen flex items-center">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-24">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 flex items-center justify-center px-4 py-16">
+      <div className="max-w-2xl w-full">
+        {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Create an Account</h1>
-          <p className="text-gray-500 mt-2">Join Bdcalling Academy — get access to courses and dashboard</p>
+          <Logo className="mx-auto" />
         </div>
 
-        <div className="max-w-5xl mx-auto mt-8 bg-white rounded-2xl shadow-lg grid grid-cols-1 lg:grid-cols-2 overflow-hidden">
-          {/* Image */}
-          <div className="hidden lg:flex items-center justify-center bg-gradient-to-br from-[#f7fdfc] to-[#e8f7f6] p-8">
-            <Image
-              src="/images/Register Image.png"
-              alt="Register"
-              width={520}
-              height={420}
-            />
+        {/* Back to Login */}
+        <Link
+          href="/login"
+          className="inline-flex items-center gap-2 text-slate-600 hover:text-indigo-600 font-semibold mb-8 transition-colors"
+        >
+          <FaArrowLeft /> Back to Login
+        </Link>
+
+        {/* Main Card */}
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+          {/* Icon Header */}
+          <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-12 text-center">
+            <div className="w-24 h-24 bg-white/20 backdrop-blur-lg rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-white/30">
+              <FaUserLock className="text-5xl text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Registration Not Available
+            </h1>
+            <p className="text-indigo-100 text-lg">
+              Student accounts are created by administrators only
+            </p>
           </div>
 
-          {/* Form */}
+          {/* Content */}
           <div className="p-8 sm:p-12">
-            <h3 className="text-2xl font-semibold text-gray-800">
-              Sign up for free
-            </h3>
-
-            <form className="space-y-5 mt-6" onSubmit={handleSubmit}>
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  name="firstName"
-                  placeholder="First name"
-                  onChange={handleChange}
-                  required
-                  className="mt-2 w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 focus:ring-2 focus:ring-[#41bfb8] outline-none"
-                />
-                <input
-                  name="lastName"
-                  placeholder="Last name"
-                  onChange={handleChange}
-                  required
-                  className="mt-2 w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 focus:ring-2 focus:ring-[#41bfb8] outline-none"
-                />
+            <div className="space-y-6">
+              {/* Info Box */}
+              <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <FaUserShield className="text-2xl text-indigo-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-indigo-900 text-lg mb-2">
+                      How to Get Started
+                    </h3>
+                    <p className="text-indigo-700 leading-relaxed">
+                      Student accounts are registered by our administrative team. When you're enrolled for the IELTS exam, an account will be automatically created for you.
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              <input
-                name="gmail"
-                type="email"
-                placeholder="Email"
-                onChange={handleChange}
-                required
-                className="mt-2 w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 focus:ring-2 focus:ring-[#41bfb8] outline-none"
-              />
+              {/* Steps */}
+              <div className="space-y-4">
+                <h3 className="font-bold text-slate-900 text-lg">What You'll Receive:</h3>
 
-              <input
-                name="phoneNumber"
-                placeholder="Phone (optional)"
-                onChange={handleChange}
-                className="mt-2 w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 focus:ring-2 focus:ring-[#41bfb8] outline-none"
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="relative">
-                  <input
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Password"
-                    onChange={handleChange}
-                    required
-                    className="mt-2 w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 focus:ring-2 focus:ring-[#41bfb8] outline-none"
-                  />
-                  <span
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 cursor-pointer text-gray-400"
-                    aria-hidden
-                  >
-                    {showPassword ? (
-                      <MdOutlineVisibilityOff />
-                    ) : (
-                      <MdOutlineRemoveRedEye />
-                    )}
-                  </span>
-
-                  {/* Password strength */}
-                  <div className="mt-2">
-                    <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-300 ${passwordStrength === 0
-                            ? "w-0 bg-red-400"
-                            : passwordStrength === 1
-                              ? "w-1/3 bg-red-400"
-                              : passwordStrength === 2
-                                ? "w-2/3 bg-yellow-400"
-                                : "w-full bg-green-400"
-                          }`}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {passwordStrength === 0 && "Too weak"}
-                      {passwordStrength === 1 && "Weak"}
-                      {passwordStrength === 2 && "Medium"}
-                      {passwordStrength === 3 && "Strong"}
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center flex-shrink-0 font-bold">
+                    1
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-900 mb-1">Exam ID</h4>
+                    <p className="text-slate-600 text-sm">
+                      A unique exam ID (e.g., BACIELTS260001) for your exam session
                     </p>
                   </div>
                 </div>
 
-                <input
-                  name="confirmPassword"
-                  type="password"
-                  placeholder="Confirm password"
-                  onChange={handleChange}
-                  required
-                  className="mt-2 w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 focus:ring-2 focus:ring-[#41bfb8] outline-none"
-                />
-              </div>
-
-              {error && <p className="text-red-500 text-sm">{error}</p>}
-
-              <label className="flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  checked={termsAccepted}
-                  onChange={(e) => setTermsAccepted(e.target.checked)}
-                  className="mt-1 accent-[#41bfb8]"
-                />
-                <span className="text-sm text-gray-600">
-                  I agree to the <Link href="/terms"><span className="text-[#41bfb8] font-medium">Terms & Conditions</span></Link> and <Link href="/privacy"><span className="text-[#41bfb8] font-medium">Privacy Policy</span></Link>.
-                </span>
-              </label>
-
-              <button
-                disabled={loading || !termsAccepted}
-                className={`w-full py-3 rounded-lg text-white font-semibold ${loading || !termsAccepted ? "bg-gray-300 cursor-not-allowed" : "bg-[#41bfb8] hover:bg-[#38a8a1]"
-                  }`}
-              >
-                {loading ? "Creating..." : "Create account"}
-              </button>
-
-              {/* Social buttons */}
-              <div className="mt-4">
-                <div className="flex items-center gap-4 justify-center text-sm text-gray-500">
-                  <hr className="w-20" />
-                  <span>or sign up with</span>
-                  <hr className="w-20" />
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center flex-shrink-0 font-bold">
+                    2
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-900 mb-1">Login Credentials</h4>
+                    <p className="text-slate-600 text-sm">
+                      Your email and password will be provided by the admin after registration
+                    </p>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <button type="button" className="flex items-center justify-center gap-3 py-3 rounded-lg border border-gray-200 bg-white text-gray-700 hover:shadow-sm">
-                    <RiFacebookFill className="text-[#41bfb8]" size={18} />
-                    Facebook
-                  </button>
-                  <button type="button" className="flex items-center justify-center gap-3 py-3 rounded-lg border border-gray-200 bg-white text-gray-700 hover:shadow-sm">
-                    <FaGoogle className="text-[#41bfb8]" size={18} />
-                    Google
-                  </button>
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center flex-shrink-0 font-bold">
+                    3
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-900 mb-1">Dashboard Access</h4>
+                    <p className="text-slate-600 text-sm">
+                      Full access to your student dashboard, exam modules, and results
+                    </p>
+                  </div>
                 </div>
               </div>
-            </form>
 
-            <p className="text-sm text-gray-500 mt-4">
-              Already have an account?{" "}
-              <Link href="/auth/login" className="text-[#41bfb8] font-medium">
-                Sign in
-              </Link>
-            </p>
+              {/* CTA */}
+              <div className="pt-6 border-t border-slate-200">
+                <p className="text-slate-700 mb-4">
+                  Already have an account? Sign in to access your dashboard.
+                </p>
+                <Link
+                  href="/login"
+                  className="block w-full py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-indigo-200 transition-all text-center"
+                >
+                  Go to Login Page
+                </Link>
+              </div>
+
+              {/* Contact Support */}
+              <div className="bg-slate-50 rounded-xl p-6 text-center">
+                <p className="text-slate-600 text-sm mb-3">
+                  Need help or have questions about registration?
+                </p>
+                <a
+                  href="mailto:admin@ielts.com"
+                  className="inline-flex items-center gap-2 text-indigo-600 font-semibold hover:text-indigo-700 transition-colors"
+                >
+                  Contact Administrator →
+                </a>
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* Footer Note */}
+        <p className="text-center text-slate-500 text-sm mt-8">
+          BdCalling Academy IELTS Examination System © 2024
+        </p>
       </div>
     </div>
   );
