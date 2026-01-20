@@ -142,7 +142,7 @@ export default function EditStudentPage() {
             const response = await studentsAPI.update(params.id, updateData);
 
             if (response.success) {
-                router.push(`/admin/students/${params.id}`);
+                router.push("/dashboard/admin/students");
             }
         } catch (err) {
             setError(err.message || "Failed to update student");
@@ -164,7 +164,7 @@ export default function EditStudentPage() {
             {/* Header */}
             <div className="flex items-center gap-4 mb-6">
                 <Link
-                    href={`/admin/students/${params.id}`}
+                    href={`/dashboard/admin/students/${params.id}`}
                     className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                     <FaArrowLeft className="text-gray-600" />
@@ -417,7 +417,7 @@ export default function EditStudentPage() {
                 {/* Submit Buttons */}
                 <div className="flex justify-end gap-4">
                     <Link
-                        href={`/admin/students/${params.id}`}
+                        href={`/dashboard/admin/students/${params.id}`}
                         className="px-6 py-2.5 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50"
                     >
                         Cancel

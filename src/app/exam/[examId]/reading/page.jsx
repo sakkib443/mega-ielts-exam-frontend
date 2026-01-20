@@ -45,6 +45,13 @@ export default function ReadingExamPage() {
                 }
 
                 const parsed = JSON.parse(storedSession);
+
+                // Security check: If reading is already completed, redirect back
+                if (parsed.completedModules && parsed.completedModules.includes("reading")) {
+                    router.push(`/exam/${params.examId}`);
+                    return;
+                }
+
                 setSession(parsed);
 
                 // Check if reading set is assigned
@@ -94,8 +101,10 @@ export default function ReadingExamPage() {
 
     const currentPass = passages[currentPassage] || { questions: [], content: "" };
     const allQuestions = passages.flatMap(p => p.questions);
-    const globalQuestionIndex = passages.slice(0, currentPassage).reduce((acc, p) => acc + p.questions.length, 0) + currentQuestion;
-    const currentQ = currentPass.questions[currentQuestion] || {};
+
+    // Show all questions for the current passage (usually 13-14)
+    const currentQuestions = currentPass.questions || [];
+
     const totalQuestions = allQuestions.length;
     const totalMarks = allQuestions.reduce((sum, q) => sum + (q.marks || 1), 0);
 
@@ -144,20 +153,18 @@ export default function ReadingExamPage() {
     };
 
     const goNext = () => {
-        if (currentQuestion < currentPass.questions.length - 1) {
-            setCurrentQuestion((prev) => prev + 1);
-        } else if (currentPassage < passages.length - 1) {
+        if (currentPassage < passages.length - 1) {
             setCurrentPassage((prev) => prev + 1);
             setCurrentQuestion(0);
+        } else {
+            setShowSubmitModal(true);
         }
     };
 
     const goPrev = () => {
-        if (currentQuestion > 0) {
-            setCurrentQuestion((prev) => prev - 1);
-        } else if (currentPassage > 0) {
+        if (currentPassage > 0) {
             setCurrentPassage((prev) => prev - 1);
-            setCurrentQuestion(passages[currentPassage - 1].questions.length - 1);
+            setCurrentQuestion(0);
         }
     };
 
@@ -420,102 +427,112 @@ export default function ReadingExamPage() {
                         </div>
 
                         {/* Question */}
-                        {currentQ.questionNumber && (
-                            <div className="bg-white border border-gray-200 rounded p-5">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm font-medium">
-                                        Question {globalQuestionIndex + 1}
-                                    </span>
-                                    <span className="text-xs text-gray-500">
-                                        {getQuestionTypeLabel(currentQ.type)}
-                                    </span>
-                                </div>
+                        {/* Questions List */}
+                        <div className="space-y-6 max-h-[calc(100vh-250px)] overflow-y-auto pr-2">
+                            {currentQuestions.map((q, idx) => {
+                                const globalIdx = passages.slice(0, currentPassage).reduce((acc, p) => acc + p.questions.length, 0) + idx + 1;
 
-                                <p className="text-gray-800 mb-4">{currentQ.text}</p>
+                                return (
+                                    <div key={q.id} id={`q-${q.questionNumber}`} className="bg-white border border-gray-200 shadow-sm rounded-lg p-5 hover:border-blue-200 transition-colors">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <span className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold">
+                                                Question {globalIdx}
+                                            </span>
+                                            <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
+                                                {getQuestionTypeLabel(q.type)}
+                                            </span>
+                                        </div>
 
-                                {(currentQ.type === "multiple-choice" || currentQ.type === "mcq" ||
-                                    currentQ.type === "true-false-not-given" || currentQ.type === "tfng" ||
-                                    currentQ.type === "yes-no-not-given" || currentQ.type === "matching") && currentQ.options?.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {currentQ.options.map((option, index) => (
-                                            <label
-                                                key={index}
-                                                onClick={() => handleAnswer(currentQ.questionNumber, option)}
-                                                className={`flex items-center gap-3 p-3 border rounded cursor-pointer transition-colors ${answers[currentQ.questionNumber] === option
-                                                    ? "border-blue-600 bg-blue-50"
-                                                    : "border-gray-200 hover:border-gray-300"
-                                                    }`}
-                                            >
-                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${answers[currentQ.questionNumber] === option ? "border-blue-600 bg-blue-600" : "border-gray-400"
-                                                    }`}>
-                                                    {answers[currentQ.questionNumber] === option && <FaCheck className="text-xs text-white" />}
-                                                </div>
-                                                <span className="text-gray-700">{option}</span>
-                                            </label>
-                                        ))}
+                                        <p className="text-gray-800 mb-5 font-medium leading-relaxed">{q.text}</p>
+
+                                        {(q.type === "multiple-choice" || q.type === "mcq" ||
+                                            q.type === "true-false-not-given" || q.type === "tfng" ||
+                                            q.type === "yes-no-not-given" || q.type === "matching") && q.options?.length > 0 ? (
+                                            <div className="grid grid-cols-1 gap-2.5">
+                                                {q.options.map((option, oIdx) => (
+                                                    <label
+                                                        key={oIdx}
+                                                        onClick={() => handleAnswer(q.questionNumber, option)}
+                                                        className={`flex items-center gap-3 p-3.5 border rounded-xl cursor-pointer transition-all duration-200 ${answers[q.questionNumber] === option
+                                                            ? "border-blue-600 bg-blue-50/50 ring-1 ring-blue-600 shadow-sm"
+                                                            : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
+                                                            }`}
+                                                    >
+                                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${answers[q.questionNumber] === option ? "border-blue-600 bg-blue-600" : "border-gray-300"
+                                                            }`}>
+                                                            {answers[q.questionNumber] === option && <div className="w-2 h-2 bg-white rounded-full"></div>}
+                                                        </div>
+                                                        <span className={`text-[15px] ${answers[q.questionNumber] === option ? "text-blue-900 font-semibold" : "text-gray-700"}`}>{option}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="mt-2 group">
+                                                <input
+                                                    type="text"
+                                                    value={answers[q.questionNumber] || ""}
+                                                    onChange={(e) => handleAnswer(q.questionNumber, e.target.value)}
+                                                    placeholder="Type your answer here..."
+                                                    className="w-full max-w-lg border border-gray-300 rounded-xl px-5 py-3 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all"
+                                                />
+                                                <p className="text-gray-400 text-xs mt-2.5 ml-1 italic">{q.instruction || "Write your answer"}</p>
+                                            </div>
+                                        )}
                                     </div>
-                                ) : (
-                                    <div>
-                                        <input
-                                            type="text"
-                                            value={answers[currentQ.questionNumber] || ""}
-                                            onChange={(e) => handleAnswer(currentQ.questionNumber, e.target.value)}
-                                            placeholder="Type your answer..."
-                                            className="w-full border-2 border-gray-300 rounded px-4 py-3 focus:border-blue-600 focus:outline-none"
-                                        />
-                                        <p className="text-gray-500 text-sm mt-2">{currentQ.instruction}</p>
-                                    </div>
-                                )}
+                                );
+                            })}
+                        </div>
 
-                                {/* Navigation */}
-                                <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
-                                    <button
-                                        onClick={goPrev}
-                                        disabled={globalQuestionIndex === 0}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded cursor-pointer ${globalQuestionIndex === 0 ? "text-gray-400 cursor-not-allowed" : "text-gray-700 hover:bg-gray-100"
-                                            }`}
-                                    >
-                                        <FaChevronLeft />
-                                        Previous
-                                    </button>
+                        <div className="flex items-center justify-between border-t border-gray-200 pt-6 mt-4">
+                            <button
+                                onClick={goPrev}
+                                disabled={currentPassage === 0}
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-bold transition-all ${currentPassage === 0
+                                    ? "text-gray-300 cursor-not-allowed"
+                                    : "text-gray-700 hover:bg-gray-100 border border-gray-200 shadow-sm"
+                                    }`}
+                            >
+                                <FaChevronLeft />
+                                Previous Passage
+                            </button>
 
-                                    {globalQuestionIndex < totalQuestions - 1 ? (
-                                        <button
-                                            onClick={goNext}
-                                            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 cursor-pointer"
-                                        >
-                                            Next
-                                            <FaChevronRight />
-                                        </button>
-                                    ) : (
-                                        <button
-                                            onClick={() => setShowSubmitModal(true)}
-                                            className="flex items-center gap-2 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 cursor-pointer"
-                                        >
-                                            Finish Test
-                                            <FaCheck />
-                                        </button>
-                                    )}
-                                </div>
+                            <div className="text-sm font-semibold text-gray-500 flex items-center gap-2">
+                                <span className="bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
+                                    Passage {currentPassage + 1} of {passages.length}
+                                </span>
                             </div>
-                        )}
+
+                            <button
+                                onClick={goNext}
+                                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-2.5 rounded-lg font-bold hover:shadow-lg hover:shadow-blue-500/20 active:scale-95 transition-all shadow-md shadow-blue-200"
+                            >
+                                {currentPassage === passages.length - 1 ? (
+                                    "Finish Test"
+                                ) : (
+                                    <>Next Passage <FaChevronRight /></>
+                                )}
+                            </button>
+                        </div>
 
                         {/* Question Navigator */}
                         <div className="bg-white border border-gray-200 rounded p-4">
                             <div className="flex flex-wrap gap-1 mb-3">
                                 {currentPass.questions.map((q, idx) => {
                                     const isAnswered = answers[q.questionNumber] && answers[q.questionNumber] !== "";
-                                    const isCurrent = currentQuestion === idx;
+                                    const scrollToIndex = () => {
+                                        const element = document.getElementById(`q-${q.questionNumber}`);
+                                        if (element) {
+                                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        }
+                                    };
 
                                     return (
                                         <button
                                             key={q.questionNumber}
-                                            onClick={() => setCurrentQuestion(idx)}
-                                            className={`w-8 h-8 rounded text-sm font-medium cursor-pointer ${isCurrent
-                                                ? "bg-blue-600 text-white"
-                                                : isAnswered
-                                                    ? "bg-green-100 text-green-700 border border-green-300"
-                                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                            onClick={scrollToIndex}
+                                            className={`w-8 h-8 rounded text-sm font-medium cursor-pointer transition-all ${isAnswered
+                                                ? "bg-green-600 text-white border border-green-700 shadow-md"
+                                                : "bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-600 border border-gray-200 shadow-sm"
                                                 }`}
                                         >
                                             {passages.slice(0, currentPassage).reduce((acc, p) => acc + p.questions.length, 0) + idx + 1}

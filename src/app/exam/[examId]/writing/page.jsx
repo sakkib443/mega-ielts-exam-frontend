@@ -43,6 +43,13 @@ export default function WritingExamPage() {
                 }
 
                 const parsed = JSON.parse(storedSession);
+
+                // Security check: If writing is already completed, redirect back
+                if (parsed.completedModules && parsed.completedModules.includes("writing")) {
+                    router.push(`/exam/${params.examId}`);
+                    return;
+                }
+
                 setSession(parsed);
 
                 // Check if writing set is assigned

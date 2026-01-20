@@ -38,6 +38,16 @@ export default function FullExamPage() {
     };
 
     useEffect(() => {
+        // Load session to check completion
+        const storedSession = localStorage.getItem("examSession");
+        if (storedSession) {
+            const parsed = JSON.parse(storedSession);
+            if (parsed.completedModules && parsed.completedModules.length >= 3) {
+                router.push(`/exam/${params.examId}`);
+                return;
+            }
+        }
+
         const checkResults = () => {
             const results = {};
 
@@ -124,10 +134,10 @@ export default function FullExamPage() {
                                 return (
                                     <div key={mod.id} className="flex items-center">
                                         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${isComplete
-                                                ? "bg-green-500 text-white"
-                                                : isCurrent
-                                                    ? "bg-cyan-100 border-2 border-cyan-600 text-cyan-600"
-                                                    : "bg-gray-100 text-gray-400"
+                                            ? "bg-green-500 text-white"
+                                            : isCurrent
+                                                ? "bg-cyan-100 border-2 border-cyan-600 text-cyan-600"
+                                                : "bg-gray-100 text-gray-400"
                                             }`}>
                                             {isComplete ? <FaCheck /> : mod.icon}
                                         </div>

@@ -220,195 +220,248 @@ export default function ExamSelectionPage() {
             </header>
 
             <div className="max-w-5xl mx-auto px-4 py-10">
-                {/* Title */}
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                        IELTS Academic Test
-                    </h1>
-                    <p className="text-gray-500">
-                        Welcome, {session?.studentName}! Select a module to start your exam.
-                    </p>
-                </div>
+                {/* Check if all modules are completed */}
+                {completedModules.length >= 3 ? (
+                    <div className="text-center py-16 px-4 bg-green-50 rounded-2xl border-2 border-green-100 shadow-sm">
+                        <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <FaCheckCircle className="text-5xl" />
+                        </div>
+                        <h1 className="text-3xl font-bold text-gray-800 mb-3">
+                            Examination Completed!
+                        </h1>
+                        <p className="text-gray-600 max-w-lg mx-auto mb-8 text-lg">
+                            Well done, {session?.studentName}! You have successfully completed all three modules of the IELTS Academic Test. Your scores have been submitted and are now being processed.
+                        </p>
 
-                {/* Stats Bar */}
-                <div className="grid grid-cols-3 gap-4 mb-8">
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-                        <p className="text-2xl font-bold text-cyan-600">{totalQuestions}</p>
-                        <p className="text-gray-500 text-sm">Total Questions</p>
-                    </div>
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-                        <p className="text-2xl font-bold text-amber-500">{totalTime}</p>
-                        <p className="text-gray-500 text-sm">Minutes</p>
-                    </div>
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-                        <p className="text-2xl font-bold text-green-600">9.0</p>
-                        <p className="text-gray-500 text-sm">Max Band</p>
-                    </div>
-                </div>
-
-                {/* Full Exam Card */}
-                <div
-                    onClick={handleStartFullExam}
-                    className="bg-cyan-50 border-2 border-cyan-200 rounded-lg p-6 mb-8 cursor-pointer hover:border-cyan-400 transition-colors"
-                >
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div className="flex items-start gap-4">
-                            <div className="w-16 h-16 bg-cyan-600 rounded-xl flex items-center justify-center text-white">
-                                <FaLayerGroup className="text-2xl" />
-                            </div>
-                            <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <h2 className="text-xl font-bold text-gray-800">Complete IELTS Exam</h2>
-                                    <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-xs font-medium">Recommended</span>
-                                </div>
-                                <p className="text-gray-500 mb-3">Take all three sections: Listening → Reading → Writing</p>
-                                <div className="flex flex-wrap items-center gap-3 text-sm">
-                                    <span className="flex items-center gap-2 text-gray-600 bg-white px-3 py-1.5 rounded border border-gray-200">
-                                        <FaClock className="text-cyan-600" />
-                                        {totalTime} minutes
-                                    </span>
-                                    <span className="flex items-center gap-2 text-gray-600 bg-white px-3 py-1.5 rounded border border-gray-200">
-                                        <FaQuestionCircle className="text-cyan-600" />
-                                        {totalQuestions} questions
-                                    </span>
+                        {/* Overall Result Preview */}
+                        <div className="bg-white p-6 rounded-xl border border-green-200 shadow-sm inline-block min-w-[300px] mb-8">
+                            <p className="text-gray-500 text-sm font-medium uppercase tracking-wider mb-2">Overall Performance</p>
+                            <div className="flex items-center justify-center gap-4">
+                                <div className="text-center">
+                                    <p className="text-3xl font-black text-green-600">
+                                        {(moduleScores ?
+                                            ((moduleScores.listening?.band || 0) +
+                                                (moduleScores.reading?.band || 0) +
+                                                (moduleScores.writing?.overallBand || 0)) / 3
+                                            : 0).toFixed(1)}
+                                    </p>
+                                    <p className="text-xs text-gray-400 font-bold uppercase">Band Score</p>
                                 </div>
                             </div>
                         </div>
 
-                        <button className="flex items-center gap-2 bg-cyan-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-cyan-700 transition-colors cursor-pointer">
-                            <FaPlay />
-                            Start Full Exam
-                            <FaArrowRight className="text-sm" />
-                        </button>
-                    </div>
-                </div>
-
-                {/* Divider */}
-                <div className="flex items-center gap-4 mb-8">
-                    <div className="flex-1 h-px bg-gray-200"></div>
-                    <span className="text-gray-400 text-sm">OR PRACTICE INDIVIDUAL SECTIONS</span>
-                    <div className="flex-1 h-px bg-gray-200"></div>
-                </div>
-
-                {/* Individual Module Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {examModules.map((module) => {
-                        const hasSet = module.setNumber != null;
-                        const isCompleted = completedModules.includes(module.id);
-
-                        // Get score for completed module
-                        const getModuleScore = () => {
-                            if (!moduleScores) return null;
-                            if (module.id === "listening") return moduleScores.listening?.band;
-                            if (module.id === "reading") return moduleScores.reading?.band;
-                            if (module.id === "writing") return moduleScores.writing?.overallBand;
-                            return null;
-                        };
-                        const score = getModuleScore();
-
-                        return (
-                            <div
-                                key={module.id}
-                                onClick={() => hasSet && !isCompleted && handleStartModule(module.id)}
-                                className={`bg-white border-2 rounded-lg p-5 transition-all relative ${isCompleted
-                                    ? "border-green-400 bg-green-50 cursor-not-allowed"
-                                    : hasSet
-                                        ? "border-gray-200 cursor-pointer hover:border-cyan-400 hover:shadow-md"
-                                        : "border-gray-100 opacity-60 cursor-not-allowed"
-                                    }`}
+                        <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+                            <button
+                                onClick={() => router.push("/dashboard/student/results")}
+                                className="w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 text-white px-8 py-3.5 rounded-xl font-bold hover:bg-green-700 hover:shadow-lg transition-all active:scale-95"
                             >
-                                {/* Completed Badge */}
-                                {isCompleted && (
-                                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                                        <FaCheckCircle className="text-xs" />
-                                        Completed
-                                    </div>
-                                )}
-
-                                <div className={`w-14 h-14 ${isCompleted
-                                    ? 'bg-green-100 text-green-600'
-                                    : module.color === 'cyan'
-                                        ? 'bg-cyan-100 text-cyan-600'
-                                        : module.color === 'blue'
-                                            ? 'bg-blue-100 text-blue-600'
-                                            : 'bg-green-100 text-green-600'
-                                    } rounded-xl flex items-center justify-center mb-4`}>
-                                    {isCompleted ? <FaCheckCircle className="text-2xl" /> : module.icon}
-                                </div>
-
-                                <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="text-lg font-bold text-gray-800">{module.name}</h3>
-                                    {hasSet && !isCompleted && (
-                                        <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium">
-                                            Set #{module.setNumber}
-                                        </span>
-                                    )}
-                                </div>
-                                <p className="text-gray-500 text-sm mb-1">{module.description}</p>
-                                <p className="text-gray-400 text-xs mb-4">{module.details}</p>
-
-                                {/* Show score if completed */}
-                                {isCompleted && score && (
-                                    <div className="bg-green-100 border border-green-200 rounded-lg p-3 mb-4">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-green-700 font-medium">Your Band Score</span>
-                                            <span className="text-2xl font-bold text-green-600">{score.toFixed(1)}</span>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {!isCompleted && (
-                                    <div className="space-y-2 mb-4 text-sm">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-gray-500">Duration</span>
-                                            <span className="text-gray-800 font-medium">{module.duration} mins</span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-gray-500">Questions</span>
-                                            <span className="text-gray-800 font-medium">{module.questions}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-gray-500">Sections</span>
-                                            <span className="text-gray-800 font-medium">{module.sections}</span>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {isCompleted ? (
-                                    <div className="w-full flex items-center justify-center gap-2 bg-green-200 text-green-700 py-2.5 rounded-lg font-medium">
-                                        <FaLock className="text-sm" />
-                                        Already Completed
-                                    </div>
-                                ) : hasSet ? (
-                                    <button className={`w-full flex items-center justify-center gap-2 ${module.color === 'cyan' ? 'bg-cyan-600 hover:bg-cyan-700' : module.color === 'blue' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'} text-white py-2.5 rounded-lg font-medium transition-colors cursor-pointer`}>
-                                        <FaPlay className="text-sm" />
-                                        Start {module.name}
-                                    </button>
-                                ) : (
-                                    <div className="w-full flex items-center justify-center gap-2 bg-gray-200 text-gray-500 py-2.5 rounded-lg font-medium">
-                                        Not Assigned
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-
-                {/* Info Banner */}
-                <div className="mt-8 bg-amber-50 border border-amber-200 rounded-lg p-5">
-                    <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <FaQuestionCircle className="text-amber-600" />
+                                <FaLayerGroup />
+                                View Full Results
+                            </button>
+                            <button
+                                onClick={() => {
+                                    localStorage.removeItem("examSession");
+                                    router.push("/start-exam");
+                                }}
+                                className="w-full md:w-auto flex items-center justify-center gap-2 bg-white text-gray-600 border border-gray-200 px-8 py-3.5 rounded-xl font-bold hover:bg-gray-50 transition-all active:scale-95"
+                            >
+                                Logout Exam
+                            </button>
                         </div>
-                        <div>
-                            <h4 className="text-gray-800 font-semibold mb-1">IELTS Band Score Information</h4>
-                            <p className="text-gray-600 text-sm">
-                                Most universities require Band 6.0-6.5 for undergraduate and 6.5-7.0 for graduate programs.
-                                Practice regularly to improve your score!
+                    </div>
+                ) : (
+                    <>
+                        {/* Title */}
+                        <div className="text-center mb-8">
+                            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                                IELTS Academic Test
+                            </h1>
+                            <p className="text-gray-500">
+                                Welcome, {session?.studentName}! Select a module to start your exam.
                             </p>
                         </div>
-                    </div>
-                </div>
+
+                        {/* Stats Bar */}
+                        <div className="grid grid-cols-3 gap-4 mb-8">
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                                <p className="text-2xl font-bold text-cyan-600">{totalQuestions}</p>
+                                <p className="text-gray-500 text-sm">Total Questions</p>
+                            </div>
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                                <p className="text-2xl font-bold text-amber-500">{totalTime}</p>
+                                <p className="text-gray-500 text-sm">Minutes</p>
+                            </div>
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                                <p className="text-2xl font-bold text-green-600">9.0</p>
+                                <p className="text-gray-500 text-sm">Max Band</p>
+                            </div>
+                        </div>
+
+                        {/* Full Exam Card */}
+                        <div
+                            onClick={handleStartFullExam}
+                            className="bg-cyan-50 border-2 border-cyan-200 rounded-lg p-6 mb-8 cursor-pointer hover:border-cyan-400 transition-colors"
+                        >
+                            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-16 h-16 bg-cyan-600 rounded-xl flex items-center justify-center text-white">
+                                        <FaLayerGroup className="text-2xl" />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <h2 className="text-xl font-bold text-gray-800">Complete IELTS Exam</h2>
+                                            <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-xs font-medium">Recommended</span>
+                                        </div>
+                                        <p className="text-gray-500 mb-3">Take all three sections: Listening → Reading → Writing</p>
+                                        <div className="flex flex-wrap items-center gap-3 text-sm">
+                                            <span className="flex items-center gap-2 text-gray-600 bg-white px-3 py-1.5 rounded border border-gray-200">
+                                                <FaClock className="text-cyan-600" />
+                                                {totalTime} minutes
+                                            </span>
+                                            <span className="flex items-center gap-2 text-gray-600 bg-white px-3 py-1.5 rounded border border-gray-200">
+                                                <FaQuestionCircle className="text-cyan-600" />
+                                                {totalQuestions} questions
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button className="flex items-center gap-2 bg-cyan-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-cyan-700 transition-colors cursor-pointer">
+                                    <FaPlay />
+                                    Start Full Exam
+                                    <FaArrowRight className="text-sm" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Divider */}
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="flex-1 h-px bg-gray-200"></div>
+                            <span className="text-gray-400 text-sm">OR PRACTICE INDIVIDUAL SECTIONS</span>
+                            <div className="flex-1 h-px bg-gray-200"></div>
+                        </div>
+
+                        {/* Individual Module Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {examModules.map((module) => {
+                                const hasSet = module.setNumber != null;
+                                const isCompleted = completedModules.includes(module.id);
+
+                                // Get score for completed module
+                                const getModuleScore = () => {
+                                    if (!moduleScores) return null;
+                                    if (module.id === "listening") return moduleScores.listening?.band;
+                                    if (module.id === "reading") return moduleScores.reading?.band;
+                                    if (module.id === "writing") return moduleScores.writing?.overallBand;
+                                    return null;
+                                };
+                                const score = getModuleScore();
+
+                                return (
+                                    <div
+                                        key={module.id}
+                                        onClick={() => hasSet && !isCompleted && handleStartModule(module.id)}
+                                        className={`bg-white border-2 rounded-lg p-5 transition-all relative ${isCompleted
+                                            ? "border-green-400 bg-green-50 cursor-not-allowed"
+                                            : hasSet
+                                                ? "border-gray-200 cursor-pointer hover:border-cyan-400 hover:shadow-md"
+                                                : "border-gray-100 opacity-60 cursor-not-allowed"
+                                            }`}
+                                    >
+                                        {/* Completed Badge */}
+                                        {isCompleted && (
+                                            <div className="absolute top-3 right-3 flex items-center gap-1 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                                                <FaCheckCircle className="text-xs" />
+                                                Completed
+                                            </div>
+                                        )}
+
+                                        <div className={`w-14 h-14 ${isCompleted
+                                            ? 'bg-green-100 text-green-600'
+                                            : module.color === 'cyan'
+                                                ? 'bg-cyan-100 text-cyan-600'
+                                                : module.color === 'blue'
+                                                    ? 'bg-blue-100 text-blue-600'
+                                                    : 'bg-green-100 text-green-600'
+                                            } rounded-xl flex items-center justify-center mb-4`}>
+                                            {isCompleted ? <FaCheckCircle className="text-2xl" /> : module.icon}
+                                        </div>
+
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <h3 className="text-lg font-bold text-gray-800">{module.name}</h3>
+                                            {hasSet && !isCompleted && (
+                                                <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium">
+                                                    Set #{module.setNumber}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="text-gray-500 text-sm mb-1">{module.description}</p>
+                                        <p className="text-gray-400 text-xs mb-4">{module.details}</p>
+
+                                        {/* Show score if completed */}
+                                        {isCompleted && score && (
+                                            <div className="bg-green-100 border border-green-200 rounded-lg p-3 mb-4">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-green-700 font-medium">Your Band Score</span>
+                                                    <span className="text-2xl font-bold text-green-600">{score.toFixed(1)}</span>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {!isCompleted && (
+                                            <div className="space-y-2 mb-4 text-sm">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-gray-500">Duration</span>
+                                                    <span className="text-gray-800 font-medium">{module.duration} mins</span>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-gray-500">Questions</span>
+                                                    <span className="text-gray-800 font-medium">{module.questions}</span>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-gray-500">Sections</span>
+                                                    <span className="text-gray-800 font-medium">{module.sections}</span>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {isCompleted ? (
+                                            <div className="w-full flex items-center justify-center gap-2 bg-green-200 text-green-700 py-2.5 rounded-lg font-medium">
+                                                <FaLock className="text-sm" />
+                                                Already Completed
+                                            </div>
+                                        ) : hasSet ? (
+                                            <button className={`w-full flex items-center justify-center gap-2 ${module.color === 'cyan' ? 'bg-cyan-600 hover:bg-cyan-700' : module.color === 'blue' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'} text-white py-2.5 rounded-lg font-medium transition-colors cursor-pointer`}>
+                                                <FaPlay className="text-sm" />
+                                                Start {module.name}
+                                            </button>
+                                        ) : (
+                                            <div className="w-full flex items-center justify-center gap-2 bg-gray-200 text-gray-500 py-2.5 rounded-lg font-medium">
+                                                Not Assigned
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Info Banner */}
+                        <div className="mt-8 bg-amber-50 border border-amber-200 rounded-lg p-5">
+                            <div className="flex items-start gap-4">
+                                <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <FaQuestionCircle className="text-amber-600" />
+                                </div>
+                                <div>
+                                    <h4 className="text-gray-800 font-semibold mb-1">IELTS Band Score Information</h4>
+                                    <p className="text-gray-600 text-sm">
+                                        Most universities require Band 6.0-6.5 for undergraduate and 6.5-7.0 for graduate programs.
+                                        Practice regularly to improve your score!
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
 
             {/* Footer */}

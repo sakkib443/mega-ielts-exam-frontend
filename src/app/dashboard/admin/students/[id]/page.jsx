@@ -296,7 +296,7 @@ const ViewAnswersModal = ({ show, onClose, module, answers, loading, scores }) =
                                                 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                                                 : 'bg-rose-100 text-rose-800 border border-rose-200'
                                                 }`}>
-                                                {ans.studentAnswer || <span className="italic opacity-60">(No answer)</span>}
+                                                {ans.studentAnswerFull || ans.studentAnswer || <span className="italic opacity-60">(No answer)</span>}
                                             </div>
                                         </div>
 

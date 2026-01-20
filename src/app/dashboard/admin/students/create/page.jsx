@@ -228,8 +228,11 @@ export default function CreateStudentPage() {
             const response = await studentsAPI.create(studentData);
 
             if (response.success && response.data) {
-                setSuccess(response.data);
                 setToast({ message: "Student registered successfully!", type: "success" });
+                // Redirect to students list after a short delay
+                setTimeout(() => {
+                    router.push("/dashboard/admin/students");
+                }, 2000);
             }
         } catch (err) {
             // Parse the error

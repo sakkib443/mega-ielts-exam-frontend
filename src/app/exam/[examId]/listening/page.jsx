@@ -55,6 +55,13 @@ export default function ListeningExamPage() {
                 }
 
                 const parsed = JSON.parse(storedSession);
+
+                // Security check: If listening is already completed, redirect back
+                if (parsed.completedModules && parsed.completedModules.includes("listening")) {
+                    router.push(`/exam/${params.examId}`);
+                    return;
+                }
+
                 setSession(parsed);
 
                 // Check if listening set is assigned
@@ -94,13 +101,9 @@ export default function ListeningExamPage() {
     // Debug: Log question structure
     console.log("Question sample:", allQuestions[0]);
 
-    // Pagination: 10 questions per page
-    const QUESTIONS_PER_PAGE = 10;
-    const totalPages = Math.ceil((currentSec.questions?.length || 0) / QUESTIONS_PER_PAGE);
-    const startIndex = currentPage * QUESTIONS_PER_PAGE;
-    const endIndex = Math.min(startIndex + QUESTIONS_PER_PAGE, currentSec.questions?.length || 0);
-    const currentQuestions = (currentSec.questions || []).slice(startIndex, endIndex);
-    const globalStartIndex = sections.slice(0, currentSection).reduce((acc, s) => acc + (s.questions?.length || 0), 0) + startIndex;
+    // Show all questions for the current section (usually 10)
+    const currentQuestions = currentSec.questions || [];
+    const globalStartIndex = sections.slice(0, currentSection).reduce((acc, s) => acc + (s.questions?.length || 0), 0);
 
     const totalQuestions = allQuestions.length;
     const totalMarks = allQuestions.reduce((sum, q) => sum + (q.marks || 1), 0);
@@ -195,21 +198,18 @@ export default function ListeningExamPage() {
     };
 
     const goNext = () => {
-        if (currentPage < totalPages - 1) {
-            setCurrentPage((prev) => prev + 1);
-        } else if (currentSection < sections.length - 1) {
+        if (currentSection < sections.length - 1) {
             setCurrentSection((prev) => prev + 1);
             setCurrentPage(0);
+        } else {
+            setShowSubmitModal(true);
         }
     };
 
     const goPrev = () => {
-        if (currentPage > 0) {
-            setCurrentPage((prev) => prev - 1);
-        } else if (currentSection > 0) {
-            const prevSectionPages = Math.ceil((sections[currentSection - 1].questions?.length || 0) / QUESTIONS_PER_PAGE);
+        if (currentSection > 0) {
             setCurrentSection((prev) => prev - 1);
-            setCurrentPage(prevSectionPages - 1);
+            setCurrentPage(0);
         }
     };
 
@@ -476,50 +476,49 @@ export default function ListeningExamPage() {
                     </h3>
                 </div>
 
-                {/* Questions - 10 per page - compact design */}
-                <div className="space-y-3 mb-4">
+                <div className="space-y-3 mb-6">
                     {currentQuestions.map((currentQ, qIdx) => {
                         const globalIndex = globalStartIndex + qIdx;
                         const questionId = currentQ.questionNumber;
 
                         return (
-                            <div key={questionId} className="bg-white border border-gray-200 rounded p-3">
-                                <div className="flex items-start gap-2 mb-2">
-                                    <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium">
+                            <div key={questionId} id={`q-${questionId}`} className="bg-white border border-gray-200 rounded-lg p-4 hover:border-cyan-200 transition-colors shadow-sm">
+                                <div className="flex items-start gap-3 mb-3">
+                                    <span className="bg-cyan-600 text-white px-2.5 py-0.5 rounded text-sm font-bold shadow-sm">
                                         {globalIndex + 1}
                                     </span>
-                                    <p className="text-gray-700 text-sm">{currentQ.questionText}</p>
+                                    <p className="text-gray-800 font-medium leading-relaxed">{currentQ.questionText}</p>
                                 </div>
 
                                 {currentQ.questionType === "multiple-choice" || currentQ.questionType === "matching" ? (
-                                    <div className="space-y-1 ml-7">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-10">
                                         {(currentQ.options || []).map((option, index) => (
                                             <label
                                                 key={index}
                                                 onClick={() => handleAnswer(questionId, option)}
-                                                className={`flex items-center gap-2 p-2 border rounded cursor-pointer transition-colors text-sm ${answers[questionId] === option
-                                                    ? "border-gray-400 bg-gray-100"
-                                                    : "border-gray-200 hover:bg-gray-50"
+                                                className={`flex items-center gap-3 p-2.5 border rounded-xl cursor-pointer transition-all duration-200 ${answers[questionId] === option
+                                                    ? "border-cyan-600 bg-cyan-50/50 ring-1 ring-cyan-600 shadow-sm"
+                                                    : "border-gray-100 hover:border-cyan-300 hover:bg-gray-50"
                                                     }`}
                                             >
-                                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${answers[questionId] === option ? "border-gray-600 bg-gray-600" : "border-gray-400"
+                                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${answers[questionId] === option ? "border-cyan-600 bg-cyan-600" : "border-gray-300"
                                                     }`}>
-                                                    {answers[questionId] === option && <FaCheck className="text-[8px] text-white" />}
+                                                    {answers[questionId] === option && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
                                                 </div>
-                                                <span className="text-gray-600 text-sm">{option}</span>
+                                                <span className={`text-sm ${answers[questionId] === option ? "text-cyan-900 font-semibold" : "text-gray-700"}`}>{option}</span>
                                             </label>
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="ml-7">
+                                    <div className="ml-10">
                                         <input
                                             type="text"
                                             value={answers[questionId] || ""}
                                             onChange={(e) => handleAnswer(questionId, e.target.value)}
-                                            placeholder="Type your answer..."
-                                            className="w-full max-w-sm border border-gray-300 rounded px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+                                            placeholder="Type your answer here..."
+                                            className="w-full max-w-md border border-gray-200 rounded-xl px-4 py-2.5 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 focus:outline-none transition-all"
                                         />
-                                        <p className="text-gray-400 text-xs mt-1">ONE WORD AND/OR A NUMBER</p>
+                                        <p className="text-gray-400 text-[11px] mt-2 italic font-medium tracking-wide uppercase">ONE WORD AND/OR A NUMBER</p>
                                     </div>
                                 )}
                             </div>
@@ -531,35 +530,28 @@ export default function ListeningExamPage() {
                 <div className="flex items-center justify-between">
                     <button
                         onClick={goPrev}
-                        disabled={currentSection === 0 && currentPage === 0}
-                        className={`flex items-center gap-2 px-4 py-2 rounded transition-colors cursor-pointer ${currentSection === 0 && currentPage === 0 ? "text-gray-400 cursor-not-allowed" : "text-gray-700 hover:bg-gray-100"
+                        disabled={currentSection === 0}
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-bold transition-all ${currentSection === 0 ? "text-gray-300 cursor-not-allowed" : "text-gray-700 hover:bg-gray-100 border border-gray-200 shadow-sm"
                             }`}
                     >
                         <FaChevronLeft />
-                        Previous
+                        Previous Part
                     </button>
 
-                    <div className="text-gray-500 text-sm">
-                        Page {currentPage + 1} of {totalPages} • Part {currentSection + 1}
+                    <div className="text-sm font-semibold text-gray-500">
+                        Part {currentSection + 1} of {sections.length}
                     </div>
 
-                    {currentSection === sections.length - 1 && currentPage === totalPages - 1 ? (
-                        <button
-                            onClick={() => setShowSubmitModal(true)}
-                            className="flex items-center gap-2 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition-colors cursor-pointer"
-                        >
-                            Finish Test
-                            <FaCheck />
-                        </button>
-                    ) : (
-                        <button
-                            onClick={goNext}
-                            className="flex items-center gap-2 bg-cyan-600 text-white px-6 py-2 rounded hover:bg-cyan-700 transition-colors cursor-pointer"
-                        >
-                            Next
-                            <FaChevronRight />
-                        </button>
-                    )}
+                    <button
+                        onClick={goNext}
+                        className={`flex items-center gap-2 bg-gradient-to-r ${currentSection === sections.length - 1 ? 'from-green-600 to-green-700 shadow-green-200' : 'from-cyan-600 to-cyan-700 shadow-cyan-200'} text-white px-8 py-2.5 rounded-lg font-bold hover:shadow-lg active:scale-95 transition-all shadow-md`}
+                    >
+                        {currentSection === sections.length - 1 ? (
+                            <>Finish Test <FaCheck /></>
+                        ) : (
+                            <>Next Part <FaChevronRight /></>
+                        )}
+                    </button>
                 </div>
 
                 {/* Question Navigator */}
@@ -584,19 +576,21 @@ export default function ListeningExamPage() {
                         {(currentSec.questions || []).map((q, idx) => {
                             const questionId = q.questionNumber;
                             const isAnswered = answers[questionId] && answers[questionId] !== "";
-                            const pageOfQuestion = Math.floor(idx / QUESTIONS_PER_PAGE);
-                            const isCurrent = currentPage === pageOfQuestion;
                             const globalQNum = sections.slice(0, currentSection).reduce((acc, s) => acc + (s.questions?.length || 0), 0) + idx + 1;
+                            const scrollToIndex = () => {
+                                const element = document.getElementById(`q-${questionId}`);
+                                if (element) {
+                                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+                            };
 
                             return (
                                 <button
                                     key={questionId}
-                                    onClick={() => setCurrentPage(pageOfQuestion)}
-                                    className={`w-8 h-8 rounded text-sm font-medium cursor-pointer ${isCurrent
-                                        ? "bg-cyan-600 text-white"
-                                        : isAnswered
-                                            ? "bg-green-100 text-green-700 border border-green-300"
-                                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                    onClick={scrollToIndex}
+                                    className={`w-8 h-8 rounded text-sm font-medium cursor-pointer transition-all ${isAnswered
+                                        ? "bg-green-600 text-white shadow-md border border-green-700"
+                                        : "bg-gray-100 text-gray-600 hover:bg-cyan-100 hover:text-cyan-700 border border-gray-200 shadow-sm"
                                         }`}
                                 >
                                     {globalQNum}
