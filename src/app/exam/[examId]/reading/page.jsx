@@ -86,7 +86,82 @@ export default function ReadingExamPage() {
                 const response = await questionSetsAPI.getForExam("READING", readingSetNumber);
 
                 if (response.success && response.data) {
-                    setQuestionSet(response.data);
+                    const data = response.data;
+                    // Assign global continuous question numbers
+                    let globalCounter = 0;
+                    if (data.sections) {
+                        data.sections.forEach(section => {
+                            // Update direct questions
+                            if (section.questions) {
+                                section.questions.forEach(q => {
+                                    globalCounter++;
+                                    q.questionNumber = globalCounter;
+                                });
+                            }
+
+                            // Update question groups
+                            if (section.questionGroups) {
+                                section.questionGroups.forEach(group => {
+                                    // q.questions
+                                    if (group.questions) {
+                                        group.questions.forEach(q => {
+                                            globalCounter++;
+                                            q.questionNumber = globalCounter;
+                                        });
+                                    }
+
+                                    // notesSections
+                                    group.notesSections?.forEach(s => {
+                                        s.bullets?.forEach(b => {
+                                            if (b.type === "question" || (b.type !== "context" && b.correctAnswer)) {
+                                                globalCounter++;
+                                                b.questionNumber = globalCounter;
+                                            }
+                                        });
+                                    });
+
+                                    // statements
+                                    group.statements?.forEach(s => {
+                                        globalCounter++;
+                                        s.questionNumber = globalCounter;
+                                    });
+
+                                    // matchingItems
+                                    group.matchingItems?.forEach(i => {
+                                        globalCounter++;
+                                        i.questionNumber = globalCounter;
+                                    });
+
+                                    // summarySegments
+                                    group.summarySegments?.forEach(s => {
+                                        if (s.type === "blank") {
+                                            globalCounter++;
+                                            s.questionNumber = globalCounter;
+                                        }
+                                    });
+
+                                    // questionSets
+                                    group.questionSets?.forEach(qs => {
+                                        if (qs.questionNumbers) {
+                                            const newNums = [];
+                                            for (let i = 0; i < qs.questionNumbers.length; i++) {
+                                                globalCounter++;
+                                                newNums.push(globalCounter);
+                                            }
+                                            qs.questionNumbers = newNums;
+                                        }
+                                    });
+
+                                    // mcQuestions
+                                    group.mcQuestions?.forEach(q => {
+                                        globalCounter++;
+                                        q.questionNumber = globalCounter;
+                                    });
+                                });
+                            }
+                        });
+                    }
+                    setQuestionSet(data);
                 } else {
                     setLoadError("Failed to load reading test questions.");
                 }

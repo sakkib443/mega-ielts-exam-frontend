@@ -273,10 +273,10 @@ const ViewAnswersModal = ({ show, onClose, module, answers, loading, scores }) =
                                     <div className="flex items-start gap-3 mb-3">
                                         <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0 ${ans.isCorrect ? 'bg-emerald-500' : 'bg-rose-500'
                                             }`}>
-                                            {ans.questionNumber}
+                                            {i + 1}
                                         </span>
                                         <p className="text-slate-700 text-sm flex-1 font-medium">
-                                            {ans.questionText || `Question ${ans.questionNumber}`}
+                                            {ans.questionText || `Question ${i + 1}`}
                                         </p>
                                         <div className="flex-shrink-0">
                                             {ans.isCorrect ? (
