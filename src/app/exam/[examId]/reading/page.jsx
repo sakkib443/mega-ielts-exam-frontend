@@ -102,13 +102,9 @@ export default function ReadingExamPage() {
     }, [params.examId]);
 
     // Build passages from question set sections
-    const passages = (questionSet?.sections || []).map((section, index) => ({
-        id: section.sectionNumber || index + 1,
-        title: section.title || `Passage ${index + 1}`,
-        source: section.source || "",
-        content: section.passage || "",
-        questionGroups: section.questionGroups || [],
-        questions: (section.questions || []).map(q => ({
+    const passages = (questionSet?.sections || []).map((section, index) => {
+        // Extract questions from section.questions array
+        const directQuestions = (section.questions || []).map(q => ({
             id: q.questionNumber,
             questionNumber: q.questionNumber,
             type: q.questionType,
@@ -117,8 +113,35 @@ export default function ReadingExamPage() {
             instruction: q.instruction || "Write your answer",
             correctAnswer: q.correctAnswer,
             marks: q.marks || 1
-        }))
-    }));
+        }));
+
+        // Extract questions from section.questionGroups[].questions[] arrays
+        const groupQuestions = (section.questionGroups || []).flatMap(group =>
+            (group.questions || []).map(q => ({
+                id: q.questionNumber,
+                questionNumber: q.questionNumber,
+                type: q.questionType || group.questionType,
+                text: q.questionText,
+                options: q.options || [],
+                instruction: q.instruction || group.instructions || "Write your answer",
+                correctAnswer: q.correctAnswer,
+                marks: q.marks || 1
+            }))
+        );
+
+        // Combine both sources and sort by question number
+        const allSectionQuestions = [...directQuestions, ...groupQuestions]
+            .sort((a, b) => a.questionNumber - b.questionNumber);
+
+        return {
+            id: section.sectionNumber || index + 1,
+            title: section.title || `Passage ${index + 1}`,
+            source: section.source || "",
+            content: section.passage || "",
+            questionGroups: section.questionGroups || [],
+            questions: allSectionQuestions
+        };
+    });
 
     const currentPass = passages[currentPassage] || { questions: [], content: "" };
     const allQuestions = passages.flatMap(p => p.questions);
@@ -839,74 +862,7 @@ export default function ReadingExamPage() {
                                 ))
                             ) : null}
 
-                            {/* Render remaining questions not covered by questionGroups */}
-                            {(() => {
-                                // Get all question numbers covered by questionGroups
-                                const coveredQuestions = new Set();
-                                currentPass.questionGroups?.forEach(group => {
-                                    for (let i = group.startQuestion; i <= group.endQuestion; i++) {
-                                        coveredQuestions.add(i);
-                                    }
-                                });
 
-                                // Filter questions not covered
-                                const remainingQuestions = currentQuestions.filter(q => !coveredQuestions.has(q.questionNumber));
-
-                                if (remainingQuestions.length === 0) return null;
-
-                                return remainingQuestions.map((q, idx) => {
-                                    const globalIdx = q.questionNumber;
-                                    return (
-                                        <div key={q.id} id={`q-${q.questionNumber}`} className="bg-white border border-gray-200 shadow-sm rounded-lg p-5 hover:border-blue-200 transition-colors mb-4">
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">
-                                                    {globalIdx}
-                                                </span>
-                                                <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
-                                                    {getQuestionTypeLabel(q.type)}
-                                                </span>
-                                            </div>
-                                            <p className="text-gray-800 mb-4">{q.text}</p>
-                                            {q.options?.length > 0 ? (
-                                                <div className="grid grid-cols-1 gap-2">
-                                                    {q.options.map((option, oIdx) => {
-                                                        // Extract letter from option like "A. Some text" -> "A"
-                                                        const letterMatch = option.toString().match(/^([A-Za-z])\./);
-                                                        const letter = letterMatch ? letterMatch[1].toUpperCase() : String.fromCharCode(65 + oIdx);
-                                                        const isSelected = answers[q.questionNumber] === letter || answers[q.questionNumber] === option;
-
-                                                        return (
-                                                            <label
-                                                                key={oIdx}
-                                                                onClick={() => handleAnswer(q.questionNumber, letter)}
-                                                                className={`flex items-center gap-3 p-3 border cursor-pointer transition-all ${isSelected
-                                                                    ? "border-blue-600 bg-blue-50"
-                                                                    : "border-gray-200 hover:border-blue-300"
-                                                                    }`}
-                                                            >
-                                                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${isSelected ? "border-blue-600 bg-blue-600" : "border-gray-300"}`}>
-                                                                    {isSelected && <div className="w-2 h-2 bg-white rounded-full"></div>}
-                                                                </div>
-                                                                <span className={`${isSelected ? "text-blue-900 font-semibold" : "text-gray-700"}`}>{option}</span>
-                                                            </label>
-                                                        );
-                                                    })}
-                                                </div>
-                                            ) : (
-                                                <div className="mt-2">
-                                                    <input
-                                                        type="text"
-                                                        value={answers[q.questionNumber] || ""}
-                                                        onChange={(e) => handleAnswer(q.questionNumber, e.target.value)}
-                                                        placeholder="Type your answer..."
-                                                        className="w-full max-w-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                });
-                            })()}
                         </div>
 
                         <div className="flex items-center justify-between border-t border-gray-200 pt-6 mt-4">
