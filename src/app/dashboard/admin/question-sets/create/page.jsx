@@ -358,7 +358,7 @@ export default function CreateQuestionSetPage() {
                                 value={formData.title}
                                 onChange={handleInputChange}
                                 required
-                                placeholder="e.g., Cambridge 18 Test 1"
+                                placeholder="e.g., IELTS Practice Test 1"
                                 className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
                             />
                         </div>
@@ -647,7 +647,7 @@ export default function CreateQuestionSetPage() {
                                                 placeholder={
                                                     formData.setType === "READING"
                                                         ? "Paste the reading passage here..."
-                                                        : "Enter text with blanks like {1}, {2} for Cambridge format..."
+                                                        : "Enter text with blanks like {1}, {2} to create interactive questions..."
                                                 }
                                                 className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
                                             />

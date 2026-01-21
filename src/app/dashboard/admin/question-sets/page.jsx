@@ -357,7 +357,8 @@ export default function QuestionSetsPage() {
                                         <td className="px-4 py-4">
                                             <div>
                                                 <p className="font-medium text-gray-800">{set.title}</p>
-                                                <code className="text-xs text-gray-500 font-mono">{set.setId}</code>
+                                                {/* Hidden setId to remove branding like 'Cambridge' */}
+                                                {/* <code className="text-xs text-gray-500 font-mono">{set.setId}</code> */}
                                             </div>
                                         </td>
                                         <td className="px-4 py-4">
@@ -495,7 +496,7 @@ export default function QuestionSetsPage() {
                         <h3 className="text-lg font-semibold text-gray-800 mb-2">Delete Question Set</h3>
                         <p className="text-gray-600 mb-4">
                             Are you sure you want to delete <strong>{deleteModal.set?.title}</strong>?
-                            This will deactivate the set.
+                            This will <strong>permanently delete</strong> the set from the database. This action cannot be undone.
                         </p>
                         <div className="flex justify-end gap-3">
                             <button

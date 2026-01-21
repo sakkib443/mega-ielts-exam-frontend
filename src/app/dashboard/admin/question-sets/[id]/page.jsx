@@ -125,9 +125,10 @@ export default function QuestionSetDetailPage() {
                             {getTypeIcon(set.setType)}
                             {set.title}
                         </h1>
-                        <p className="text-gray-500">
+                        {/* Hidden setId to remove branding like 'Cambridge' */}
+                        {/* <p className="text-gray-500">
                             <code className="bg-gray-100 px-2 py-0.5 rounded text-sm">{set.setId}</code>
-                        </p>
+                        </p> */}
                     </div>
                 </div>
                 <div className="flex items-center gap-3">

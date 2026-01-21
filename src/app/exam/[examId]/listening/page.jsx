@@ -542,7 +542,7 @@ export default function ListeningExamPage() {
                 </div>
             </div>
 
-            {/* Main Content - 100% Cambridge Style */}
+            {/* Main Content - Professional Exam Style */}
             <div className="max-w-7xl mx-auto px-4 py-8">
                 <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
                     {/* Header Info */}
