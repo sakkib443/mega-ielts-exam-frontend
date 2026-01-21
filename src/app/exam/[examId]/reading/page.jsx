@@ -12,6 +12,7 @@ import {
     FaSpinner
 } from "react-icons/fa";
 import { questionSetsAPI, studentsAPI } from "@/lib/api";
+import ExamSecurity from "@/components/ExamSecurity";
 
 export default function ReadingExamPage() {
     const params = useParams();
@@ -489,6 +490,16 @@ export default function ReadingExamPage() {
 
     return (
         <div className="min-h-screen bg-white">
+
+            {/* Exam Security - Tab Switch & Fullscreen Detection */}
+            {!showInstructions && (
+                <ExamSecurity
+                    examId={session?.examId}
+                    onViolationLimit={() => {
+                        handleSubmit();
+                    }}
+                />
+            )}
 
             {/* Header */}
             <header className="bg-white border-b border-gray-200 sticky top-0 z-50">

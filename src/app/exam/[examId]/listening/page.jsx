@@ -15,6 +15,7 @@ import {
     FaSpinner
 } from "react-icons/fa";
 import { questionSetsAPI, studentsAPI } from "@/lib/api";
+import ExamSecurity from "@/components/ExamSecurity";
 
 export default function ListeningExamPage() {
     const params = useParams();
@@ -428,6 +429,17 @@ export default function ListeningExamPage() {
 
     return (
         <div className="min-h-screen bg-white">
+
+            {/* Exam Security - Tab Switch & Fullscreen Detection */}
+            {!showInstructions && (
+                <ExamSecurity
+                    examId={session?.examId}
+                    onViolationLimit={() => {
+                        // Force submit on max violations
+                        handleSubmit();
+                    }}
+                />
+            )}
 
             <audio ref={audioRef} preload="auto" />
 
