@@ -9,7 +9,9 @@ import {
     FaTimes,
     FaChevronLeft,
     FaChevronRight,
-    FaSpinner
+    FaSpinner,
+    FaPlay,
+    FaArrowRight
 } from "react-icons/fa";
 import { questionSetsAPI, studentsAPI } from "@/lib/api";
 import ExamSecurity from "@/components/ExamSecurity";
@@ -330,9 +332,11 @@ export default function WritingExamPage() {
 
                     <button
                         onClick={() => setShowInstructions(false)}
-                        className="w-full bg-green-600 text-white py-3 rounded font-semibold hover:bg-green-700 transition-colors cursor-pointer"
+                        className="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-green-700 hover:shadow-lg transition-all flex items-center justify-center gap-3 cursor-pointer group"
                     >
-                        Start Writing Test
+                        <FaPlay className="text-sm transition-transform group-hover:scale-110" />
+                        <span>Start Writing Test</span>
+                        <FaArrowRight className="text-sm transition-transform group-hover:translate-x-1" />
                     </button>
                 </div>
             </div>

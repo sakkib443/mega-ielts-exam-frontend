@@ -418,9 +418,11 @@ export default function ListeningExamPage() {
 
                     <button
                         onClick={() => setShowInstructions(false)}
-                        className="w-full bg-cyan-600 text-white py-3 rounded font-semibold hover:bg-cyan-700 transition-colors cursor-pointer"
+                        className="w-full bg-cyan-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-cyan-700 hover:shadow-lg transition-all flex items-center justify-center gap-3 cursor-pointer group"
                     >
-                        Start Listening Test
+                        <FaPlay className="text-sm transition-transform group-hover:scale-110" />
+                        <span>Start Listening Test</span>
+                        <FaArrowRight className="text-sm transition-transform group-hover:translate-x-1" />
                     </button>
                 </div>
             </div>

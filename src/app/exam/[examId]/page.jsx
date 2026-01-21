@@ -382,9 +382,10 @@ export default function ExamSelectionPage() {
                                                 Already Completed
                                             </div>
                                         ) : hasSet ? (
-                                            <button className={`w-full flex items-center justify-center gap-2 ${module.color === 'cyan' ? 'bg-cyan-600 hover:bg-cyan-700' : module.color === 'blue' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'} text-white py-2.5 rounded-lg font-medium transition-colors cursor-pointer`}>
-                                                <FaPlay className="text-sm" />
-                                                Start {module.name}
+                                            <button className={`w-full flex items-center justify-center gap-3 ${module.color === 'cyan' ? 'bg-cyan-600 hover:bg-cyan-700' : module.color === 'blue' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'} text-white py-3 rounded-xl font-bold transition-all hover:shadow-lg cursor-pointer group`}>
+                                                <FaPlay className="text-sm transition-transform group-hover:scale-110" />
+                                                <span>Start {module.name}</span>
+                                                <FaArrowRight className="text-sm transition-transform group-hover:translate-x-1" />
                                             </button>
                                         ) : (
                                             <div className="w-full flex items-center justify-center gap-2 bg-gray-200 text-gray-500 py-2.5 rounded-lg font-medium">

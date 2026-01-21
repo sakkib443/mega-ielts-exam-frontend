@@ -406,10 +406,11 @@ export default function HomePage() {
                                                 Verifying Exam ID...
                                             </>
                                         ) : (
-                                            <>
+                                            <div className="flex items-center gap-3">
                                                 <FaPlay className="text-sm" />
-                                                Start Examination
-                                            </>
+                                                <span>Start Examination</span>
+                                                <FaArrowRight className="text-sm" />
+                                            </div>
                                         )}
                                     </button>
                                 </form>
