@@ -116,14 +116,20 @@ export default function ListeningExamPage() {
     const audioUrl = questionSet?.mainAudioUrl || "/audio/Listening-1.mpeg";
 
     const currentSec = sections[currentSection] || { questions: [] };
-    const allQuestions = sections.flatMap(s => s.questions || []);
 
-    // Debug: Log question structure
-    console.log("Question sample:", allQuestions[0]);
+    // Process all questions to ensure continuous numbering 1-40
+    const allQuestions = sections.flatMap(s => s.questions || []).map((q, idx) => ({
+        ...q,
+        // Use the questionNumber from data if it exists and looks valid (not restarting at 1)
+        // Otherwise use index + 1
+        displayNumber: q.questionNumber || (idx + 1)
+    }));
 
-    // Show all questions for the current section (usually 10)
-    const currentQuestions = currentSec.questions || [];
-    const globalStartIndex = sections.slice(0, currentSection).reduce((acc, s) => acc + (s.questions?.length || 0), 0);
+    // Group questions for display in current section
+    const currentQuestions = (currentSec.questions || []).map(q => {
+        const found = allQuestions.find(aq => aq._id === q._id || (aq.questionNumber === q.questionNumber && aq.questionText === q.questionText));
+        return found ? found : q;
+    });
 
     const totalQuestions = allQuestions.length;
     const totalMarks = allQuestions.reduce((sum, q) => sum + (q.marks || 1), 0);
@@ -578,11 +584,15 @@ export default function ListeningExamPage() {
                                                     const match = part.match(/\{?\{(\d+)\}\}?/);
                                                     if (match) {
                                                         const qNum = parseInt(match[1]);
+                                                        // Find the corresponding question object to get its proper displayNumber
+                                                        const qObj = currentQuestions.find(q => q.questionNumber === qNum);
+                                                        const displayNum = qObj ? qObj.displayNumber : qNum;
+
                                                         // Render question input
                                                         return (
                                                             <span key={index} className="inline-flex items-center align-middle mx-1 my-0.5">
                                                                 <span className="inline-block border border-gray-300 font-bold px-1.5 py-0 text-[13px] bg-gray-50 min-w-[28px] text-center text-gray-600 rounded">
-                                                                    {qNum}
+                                                                    {displayNum}
                                                                 </span>
                                                                 <input
                                                                     type="text"
@@ -616,7 +626,8 @@ export default function ListeningExamPage() {
 
                                     while (i < qs.length) {
                                         const q = qs[i];
-                                        const cleanText = q.questionText.replace(/\s*\(Choice \d+\)\s*/g, '');
+                                        // Remove trailing parenthetical instructions to group "Choose TWO" questions
+                                        const cleanText = q.questionText.replace(/\s*\([^)]+\)\s*$/g, '').trim();
                                         const group = [q];
                                         let j = i + 1;
 
@@ -628,13 +639,16 @@ export default function ListeningExamPage() {
                                             }
                                             blocks.push({
                                                 type: 'matching',
-                                                text: "Choose FOUR answers from the box and write the correct letter, A-F, next to questions.",
+                                                text: q.questionText || "Choose the correct letter, A-G, next to questions.",
                                                 questions: group,
                                                 isGrouped: true
                                             });
                                         } else {
-                                            // Detect if next questions are part of the same "Choose TWO/THREE" block (Multi-select)
-                                            while (j < qs.length && qs[j].questionText.replace(/\s*\(Choice \d+\)\s*/g, '') === cleanText && qs[j].questionType !== 'matching') {
+                                            // Detect if next questions are part of the same block
+                                            while (j < qs.length &&
+                                                qs[j].questionText.replace(/\s*\([^)]+\)\s*$/g, '').trim() === cleanText &&
+                                                qs[j].questionType === q.questionType &&
+                                                q.questionType !== 'note-completion') {
                                                 group.push(qs[j]);
                                                 j++;
                                             }
@@ -677,7 +691,7 @@ export default function ListeningExamPage() {
                                                         {block.questions.map((q, idx) => (
                                                             <div key={idx} className="flex items-center gap-4 group">
                                                                 <div className="bg-white border border-gray-400 text-gray-700 w-8 h-8 flex items-center justify-center rounded font-bold text-sm flex-shrink-0">
-                                                                    {q.questionNumber}
+                                                                    {q.displayNumber}
                                                                 </div>
                                                                 <p className="text-gray-700 font-medium text-[16px] flex-1">{q.questionText}</p>
                                                                 <div className="w-28">
@@ -723,7 +737,7 @@ export default function ListeningExamPage() {
                                             <div key={bIdx} className="bg-white border border-gray-100 rounded-xl p-5 hover:bg-gray-50/50 transition-all">
                                                 <div className="flex items-start gap-3 mb-4">
                                                     <span className="text-gray-700 font-bold text-lg pt-0.5">
-                                                        {qNumbers.join(' & ')}
+                                                        {qNumbers.length > 1 ? `${block.questions[0].displayNumber} & ${block.questions[block.questions.length - 1].displayNumber}` : block.questions[0].displayNumber}
                                                     </span>
                                                     <div className="flex-1">
                                                         {isMulti && <p className="text-cyan-600 text-[11px] font-bold uppercase tracking-widest mb-1">Choose {block.questions.length} letters, A-E</p>}
