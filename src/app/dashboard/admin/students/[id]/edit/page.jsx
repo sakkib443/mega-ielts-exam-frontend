@@ -35,6 +35,7 @@ export default function EditStudentPage() {
         nameEnglish: "",
         nameBengali: "",
         phone: "",
+        nidNumber: "",
         examDate: "",
         paymentStatus: "pending",
         paymentAmount: 0,
@@ -65,6 +66,7 @@ export default function EditStudentPage() {
                     nameEnglish: student.nameEnglish || "",
                     nameBengali: student.nameBengali || "",
                     phone: student.phone || "",
+                    nidNumber: student.nidNumber || "",
                     examDate: student.examDate ? new Date(student.examDate).toISOString().split("T")[0] : "",
                     paymentStatus: student.paymentStatus || "pending",
                     paymentAmount: student.paymentAmount || 0,
@@ -120,6 +122,7 @@ export default function EditStudentPage() {
                 nameEnglish: formData.nameEnglish,
                 nameBengali: formData.nameBengali || undefined,
                 phone: formData.phone,
+                nidNumber: formData.nidNumber || undefined,
                 examDate: new Date(formData.examDate).toISOString(),
                 paymentStatus: formData.paymentStatus,
                 paymentAmount: formData.paymentAmount,
@@ -220,6 +223,19 @@ export default function EditStudentPage() {
                                 value={formData.phone}
                                 onChange={handleInputChange}
                                 required
+                                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                NID / Voter ID Number (Optional)
+                            </label>
+                            <input
+                                type="text"
+                                name="nidNumber"
+                                value={formData.nidNumber}
+                                onChange={handleInputChange}
+                                placeholder="10 or 17 number (optional)"
                                 className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
                             />
                         </div>

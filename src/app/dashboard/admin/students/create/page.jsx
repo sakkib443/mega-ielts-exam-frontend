@@ -181,9 +181,7 @@ export default function CreateStudentPage() {
             errors.phone = "Please enter a valid 11-digit BD phone number";
         }
 
-        if (!formData.nidNumber.trim()) {
-            errors.nidNumber = "NID number is required";
-        } else if (!/^\d{10}$|^\d{17}$/.test(formData.nidNumber)) {
+        if (formData.nidNumber && !/^\d{10}$|^\d{17}$/.test(formData.nidNumber)) {
             errors.nidNumber = "NID must be 10 or 17 digits only";
         }
 
@@ -502,7 +500,7 @@ export default function CreateStudentPage() {
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 <FaIdCard className="inline mr-1 text-gray-400" />
-                                NID / Voter ID Number *
+                                NID / Voter ID Number (Optional)
                             </label>
                             <input
                                 type="text"
@@ -510,7 +508,7 @@ export default function CreateStudentPage() {
                                 value={formData.nidNumber}
                                 onChange={handleInputChange}
                                 className={getInputClass("nidNumber")}
-                                placeholder="10 or 17 digit NID number"
+                                placeholder="10 or 17 number (optional)"
                             />
                             <FieldError error={fieldErrors.nidNumber} />
                         </div>

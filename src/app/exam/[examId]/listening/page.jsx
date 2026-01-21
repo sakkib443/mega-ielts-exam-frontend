@@ -682,7 +682,7 @@ export default function ListeningExamPage() {
                                     return blocks.map((block, bIdx) => {
                                         const isMulti = block.type === 'multiple-choice' && block.isGrouped;
                                         const isMatching = block.type === 'matching';
-                                        const qNumbers = block.questions.map(q => q.questionNumber);
+                                        const qNumbers = block.questions.map(q => q.displayNumber);
                                         const firstQ = block.questions[0];
 
                                         if (isMatching) {
