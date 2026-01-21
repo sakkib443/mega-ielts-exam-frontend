@@ -438,39 +438,71 @@ export default function ListeningExamPage() {
                 </div>
             </div>
 
-            {/* Audio Player */}
-            <div className="bg-gray-50 border-b border-gray-200 px-4 py-4">
+            {/* Audio Player - Simple */}
+            <div className="bg-gray-100 border-b border-gray-200 px-4 py-4">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex items-center gap-4">
+                        {/* Play/Pause */}
                         <button
                             onClick={togglePlay}
-                            className="w-12 h-12 bg-cyan-600 text-white rounded-full flex items-center justify-center hover:bg-cyan-700 transition-colors cursor-pointer"
+                            className="w-12 h-12 bg-cyan-600 text-white rounded-full flex items-center justify-center hover:bg-cyan-700 transition-colors cursor-pointer shadow"
                         >
                             {isPlaying ? <FaPause /> : <FaPlay className="ml-1" />}
                         </button>
 
+                        {/* Progress Bar - Draggable */}
                         <div className="flex-1">
-                            <input
-                                type="range"
-                                min="0"
-                                max={duration || 100}
-                                value={currentTime}
-                                onChange={(e) => {
-                                    if (audioRef.current) {
-                                        audioRef.current.currentTime = parseFloat(e.target.value);
+                            <div className="relative">
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max={duration || 100}
+                                    value={currentTime}
+                                    onChange={(e) => {
+                                        const newTime = parseFloat(e.target.value);
+                                        setCurrentTime(newTime);
+                                        if (audioRef.current) {
+                                            audioRef.current.currentTime = newTime;
+                                        }
+                                    }}
+                                    className="w-full h-2 rounded-full cursor-pointer"
+                                    style={{
+                                        WebkitAppearance: 'none',
+                                        appearance: 'none',
+                                        background: `linear-gradient(to right, #0891b2 0%, #0891b2 ${(currentTime / (duration || 100)) * 100}%, #e5e7eb ${(currentTime / (duration || 100)) * 100}%, #e5e7eb 100%)`,
+                                        outline: 'none',
+                                    }}
+                                />
+                                <style jsx>{`
+                                    input[type="range"]::-webkit-slider-thumb {
+                                        -webkit-appearance: none;
+                                        appearance: none;
+                                        width: 16px;
+                                        height: 16px;
+                                        background: #0891b2;
+                                        border-radius: 50%;
+                                        cursor: pointer;
+                                        border: 2px solid white;
+                                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
                                     }
-                                }}
-                                className="w-full h-2 bg-gray-300 rounded appearance-none cursor-pointer"
-                                style={{
-                                    background: `linear-gradient(to right, #0891b2 ${(currentTime / (duration || 100)) * 100}%, #d1d5db ${(currentTime / (duration || 100)) * 100}%)`
-                                }}
-                            />
-                            <div className="flex justify-between text-xs text-gray-500 mt-1">
-                                <span>{formatTime(currentTime)}</span>
-                                <span>{formatTime(duration)}</span>
+                                    input[type="range"]::-moz-range-thumb {
+                                        width: 16px;
+                                        height: 16px;
+                                        background: #0891b2;
+                                        border-radius: 50%;
+                                        cursor: pointer;
+                                        border: 2px solid white;
+                                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                                    }
+                                `}</style>
+                            </div>
+                            <div className="flex justify-between text-xs text-gray-600 mt-1">
+                                <span className="font-mono">{formatTime(currentTime)}</span>
+                                <span className="font-mono">{formatTime(duration)}</span>
                             </div>
                         </div>
 
+                        {/* Volume */}
                         <div className="flex items-center gap-2">
                             <FaVolumeUp className="text-gray-500" />
                             <input
@@ -480,7 +512,7 @@ export default function ListeningExamPage() {
                                 step="0.1"
                                 value={volume}
                                 onChange={handleVolumeChange}
-                                className="w-20 h-1 bg-gray-300 rounded appearance-none cursor-pointer"
+                                className="w-20 h-1 bg-gray-300 rounded cursor-pointer"
                             />
                         </div>
                     </div>

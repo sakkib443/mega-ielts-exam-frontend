@@ -61,6 +61,10 @@ export default function EditQuestionSetPage() {
     const [audioFile, setAudioFile] = useState(null);
     const [uploadProgress, setUploadProgress] = useState("");
 
+    // Image upload states for writing tasks
+    const [imageUploading, setImageUploading] = useState({});
+    const [imageProgress, setImageProgress] = useState({});
+
     const [formData, setFormData] = useState({
         title: "",
         description: "",
@@ -142,7 +146,33 @@ export default function EditQuestionSetPage() {
                 if (set.sections) {
                     setSections(set.sections);
                 }
-                if (set.writingTasks) {
+
+                // Handle Writing tasks - create default if none exist
+                if (set.setType === "WRITING") {
+                    if (set.writingTasks && set.writingTasks.length > 0) {
+                        setWritingTasks(set.writingTasks);
+                    } else {
+                        // Create default empty tasks for Writing
+                        setWritingTasks([
+                            {
+                                taskNumber: 1,
+                                taskType: "task1-academic",
+                                prompt: set.tasks?.[0]?.prompt || "",
+                                instructions: set.tasks?.[0]?.instructions || "",
+                                minWords: set.tasks?.[0]?.minWords || 150,
+                                imageUrl: set.tasks?.[0]?.images?.[0]?.url || "",
+                            },
+                            {
+                                taskNumber: 2,
+                                taskType: "task2",
+                                prompt: set.tasks?.[1]?.prompt || "",
+                                instructions: set.tasks?.[1]?.instructions || "",
+                                minWords: set.tasks?.[1]?.minWords || 250,
+                                imageUrl: set.tasks?.[1]?.images?.[0]?.url || "",
+                            }
+                        ]);
+                    }
+                } else if (set.writingTasks) {
                     setWritingTasks(set.writingTasks);
                 }
             }
@@ -544,30 +574,136 @@ export default function EditQuestionSetPage() {
                                             className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
                                         />
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Image URL
+
+                                    {/* Image Upload Section */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                                            📷 Task Image (Graph/Chart/Diagram)
+                                        </label>
+
+                                        {!task.imageUrl ? (
+                                            <label className={`
+                                                relative flex flex-col items-center justify-center 
+                                                w-full h-40 border-2 border-dashed rounded-xl 
+                                                cursor-pointer transition-all duration-200
+                                                ${imageUploading[index]
+                                                    ? "bg-green-50 border-green-300"
+                                                    : "bg-gray-50 border-gray-300 hover:bg-green-50 hover:border-green-400"
+                                                }
+                                            `}>
+                                                <input
+                                                    type="file"
+                                                    accept="image/jpeg,image/png,image/gif,image/webp"
+                                                    onChange={async (e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (!file) return;
+
+                                                        // Validate file type
+                                                        const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+                                                        if (!validTypes.includes(file.type)) {
+                                                            setError("Invalid file type. Please upload JPG, PNG, GIF, or WebP images.");
+                                                            return;
+                                                        }
+
+                                                        // Validate file size (10MB max)
+                                                        if (file.size > 10 * 1024 * 1024) {
+                                                            setError("File size too large. Maximum allowed is 10MB.");
+                                                            return;
+                                                        }
+
+                                                        setImageUploading(prev => ({ ...prev, [index]: true }));
+                                                        setImageProgress(prev => ({ ...prev, [index]: "Uploading image..." }));
+                                                        setError("");
+
+                                                        try {
+                                                            const result = await uploadAPI.uploadImage(file);
+                                                            if (result.success) {
+                                                                updateWritingTask(index, "imageUrl", result.data.url);
+                                                                setImageProgress(prev => ({ ...prev, [index]: "Upload complete!" }));
+                                                                setTimeout(() => {
+                                                                    setImageProgress(prev => ({ ...prev, [index]: "" }));
+                                                                }, 2000);
+                                                            }
+                                                        } catch (err) {
+                                                            setError(err.message || "Failed to upload image");
+                                                            setImageProgress(prev => ({ ...prev, [index]: "" }));
+                                                        } finally {
+                                                            setImageUploading(prev => ({ ...prev, [index]: false }));
+                                                        }
+                                                    }}
+                                                    disabled={imageUploading[index]}
+                                                    className="hidden"
+                                                />
+
+                                                {imageUploading[index] ? (
+                                                    <div className="flex flex-col items-center">
+                                                        <FaSpinner className="text-3xl text-green-600 animate-spin mb-2" />
+                                                        <span className="text-green-600 font-medium">{imageProgress[index]}</span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex flex-col items-center">
+                                                        <FaCloudUploadAlt className="text-4xl text-gray-400 mb-3" />
+                                                        <span className="text-gray-600 font-medium">Click to upload image</span>
+                                                        <span className="text-gray-400 text-sm mt-1">JPG, PNG, GIF, WebP (max 10MB)</span>
+                                                    </div>
+                                                )}
                                             </label>
-                                            <input
-                                                type="url"
-                                                value={task.imageUrl || ""}
-                                                onChange={(e) => updateWritingTask(index, "imageUrl", e.target.value)}
-                                                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
-                                            />
+                                        ) : (
+                                            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-20 h-20 rounded-lg overflow-hidden border border-green-200">
+                                                            <img
+                                                                src={task.imageUrl}
+                                                                alt="Task image"
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-green-700 font-medium">Image uploaded!</p>
+                                                            <p className="text-green-600 text-sm truncate max-w-xs">
+                                                                {task.imageUrl.split('/').pop()}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => updateWritingTask(index, "imageUrl", "")}
+                                                        className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                                                    >
+                                                        <FaTrash />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Or enter URL manually */}
+                                        <div className="flex items-center gap-4 mt-4">
+                                            <div className="h-px flex-1 bg-gray-200"></div>
+                                            <span className="text-gray-400 text-sm">or enter URL manually</span>
+                                            <div className="h-px flex-1 bg-gray-200"></div>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Minimum Words
-                                            </label>
-                                            <input
-                                                type="number"
-                                                value={task.minWords}
-                                                onChange={(e) => updateWritingTask(index, "minWords", Number(e.target.value))}
-                                                min={1}
-                                                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
-                                            />
-                                        </div>
+
+                                        <input
+                                            type="url"
+                                            value={task.imageUrl || ""}
+                                            onChange={(e) => updateWritingTask(index, "imageUrl", e.target.value)}
+                                            placeholder="https://example.com/image.jpg"
+                                            className="w-full mt-3 border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Minimum Words
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={task.minWords}
+                                            onChange={(e) => updateWritingTask(index, "minWords", Number(e.target.value))}
+                                            min={1}
+                                            className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -703,10 +839,46 @@ export default function EditQuestionSetPage() {
                     </div>
                 )}
 
-                {/* Error */}
+                {/* Error Modal */}
                 {error && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-600">
-                        {error}
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+                            <div className="flex items-start gap-4">
+                                <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Occurred</h3>
+                                    <p className="text-gray-600 text-sm whitespace-pre-wrap break-words">
+                                        {error.includes("Validation failed")
+                                            ? "Please check all required fields are filled correctly."
+                                            : error
+                                        }
+                                    </p>
+                                    {error.includes("Validation failed") && (
+                                        <details className="mt-3">
+                                            <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-600">
+                                                Technical Details
+                                            </summary>
+                                            <pre className="mt-2 text-xs text-red-500 bg-red-50 p-2 rounded overflow-auto max-h-40">
+                                                {error}
+                                            </pre>
+                                        </details>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="mt-6 flex justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => setError("")}
+                                    className="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
 

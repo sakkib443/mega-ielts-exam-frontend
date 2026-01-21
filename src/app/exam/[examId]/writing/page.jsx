@@ -105,16 +105,21 @@ export default function WritingExamPage() {
     }, [params.examId]);
 
     // Build tasks from question set
-    const tasks = (questionSet?.writingTasks || []).map((task, index) => ({
-        id: `task${index + 1}`,
-        taskNumber: task.taskNumber || index + 1,
-        title: `Task ${task.taskNumber || index + 1}`,
-        subtitle: task.taskType === "task1" ? "Academic Report" : "Essay",
-        timeRecommend: task.taskType === "task1" ? 20 : 40,
-        instruction: task.prompt || "",
-        imageUrl: task.imageUrl || null,
-        minWords: task.minWords || (task.taskType === "task1" ? 150 : 250)
-    }));
+    const tasks = (questionSet?.writingTasks || []).map((task, index) => {
+        // Determine if this is Task 1 (can be task1-academic, task1-gt, or taskNumber===1)
+        const isTask1 = task.taskNumber === 1 || task.taskType?.startsWith("task1");
+
+        return {
+            id: `task${index + 1}`,
+            taskNumber: task.taskNumber || index + 1,
+            title: `Task ${task.taskNumber || index + 1}`,
+            subtitle: isTask1 ? "Academic Report" : "Essay",
+            timeRecommend: isTask1 ? 20 : 40, // Task 1 = 20 mins, Task 2 = 40 mins
+            instruction: task.prompt || "",
+            imageUrl: task.imageUrl || null,
+            minWords: task.minWords || (isTask1 ? 150 : 250)
+        };
+    });
 
     // Fallback if no tasks from backend
     const displayTasks = tasks.length > 0 ? tasks : [
