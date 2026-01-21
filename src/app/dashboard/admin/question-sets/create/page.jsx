@@ -634,19 +634,28 @@ export default function CreateQuestionSetPage() {
                                         />
                                     </div>
 
-                                    {/* Passage for Reading */}
-                                    {formData.setType === "READING" && (
+                                    {/* Passage for Reading/Listening */}
+                                    {(formData.setType === "READING" || formData.setType === "LISTENING") && (
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Reading Passage
+                                                {formData.setType === "READING" ? "Reading Passage" : "Listening Passage / Note Context"}
                                             </label>
                                             <textarea
                                                 value={section.passage}
                                                 onChange={(e) => updateSection(sIndex, "passage", e.target.value)}
                                                 rows={6}
-                                                placeholder="Paste the reading passage here..."
+                                                placeholder={
+                                                    formData.setType === "READING"
+                                                        ? "Paste the reading passage here..."
+                                                        : "Enter text with blanks like {1}, {2} for Cambridge format..."
+                                                }
                                                 className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
                                             />
+                                            {formData.setType === "LISTENING" && (
+                                                <p className="mt-1 text-xs text-gray-500">
+                                                    Use <strong>{"{1}"}</strong>, <strong>{"{2}"}</strong> for blanks. Use <strong>-</strong> at start of line for bullets.
+                                                </p>
+                                            )}
                                         </div>
                                     )}
 

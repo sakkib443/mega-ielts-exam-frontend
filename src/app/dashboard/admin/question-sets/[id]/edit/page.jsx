@@ -749,6 +749,36 @@ export default function EditQuestionSetPage() {
                                         </div>
                                     )}
 
+                                    {formData.setType === "LISTENING" && (
+                                        <div className="grid grid-cols-1 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Section Instructions
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={section.instructions || ""}
+                                                    onChange={(e) => updateSection(sIndex, "instructions", e.target.value)}
+                                                    placeholder="e.g., Write ONE WORD AND/OR A NUMBER for each answer."
+                                                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Listening Passage / Context (Optional)
+                                                </label>
+                                                <p className="text-[10px] text-gray-400 mb-1 italic">Use {'{1}'}, {'{2}'} etc. to create inline blanks mapped to questions.</p>
+                                                <textarea
+                                                    value={section.passage || ""}
+                                                    onChange={(e) => updateSection(sIndex, "passage", e.target.value)}
+                                                    rows={6}
+                                                    placeholder="Regular activities&#10;Beach&#10;- making sure the beach does not have {1} on it"
+                                                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500 font-mono text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div className="border-t border-gray-100 pt-4">
                                         <div className="flex items-center justify-between mb-4">
                                             <h4 className="font-medium text-gray-700">

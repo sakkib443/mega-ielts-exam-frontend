@@ -28,6 +28,12 @@ export default function ListeningExamPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showInstructions, setShowInstructions] = useState(true);
 
+    // Security states
+    const [showSecurityWarning, setShowSecurityWarning] = useState(false);
+    const [securityWarningMessage, setSecurityWarningMessage] = useState("");
+    const [violationCount, setViolationCount] = useState(0);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
     // Data loading states
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
@@ -195,6 +201,68 @@ export default function ListeningExamPage() {
         const secs = Math.floor(seconds % 60);
         return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     };
+
+    // Security: Enter fullscreen mode
+    const enterFullscreen = () => {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => { });
+        } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen();
+            setIsFullscreen(true);
+        } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+            setIsFullscreen(true);
+        }
+    };
+
+    // Security: Handle violations
+    const handleSecurityViolation = (message) => {
+        setViolationCount(prev => prev + 1);
+        setSecurityWarningMessage(message);
+        setShowSecurityWarning(true);
+    };
+
+    // Security: Tab visibility change detection
+    useEffect(() => {
+        if (showInstructions || isLoading) return;
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                handleSecurityViolation("⚠️ Tab switching detected! Please stay on the exam page.");
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, [showInstructions, isLoading]);
+
+    // Security: Fullscreen exit detection
+    useEffect(() => {
+        if (showInstructions || isLoading) return;
+
+        const handleFullscreenChange = () => {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                setIsFullscreen(false);
+                handleSecurityViolation("⚠️ Fullscreen mode exited! Please return to fullscreen to continue the exam.");
+            }
+        };
+
+        document.addEventListener("fullscreenchange", handleFullscreenChange);
+        document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+
+        return () => {
+            document.removeEventListener("fullscreenchange", handleFullscreenChange);
+            document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+        };
+    }, [showInstructions, isLoading]);
+
+    // Security: Request fullscreen when exam starts
+    useEffect(() => {
+        if (!showInstructions && !isLoading && !isFullscreen) {
+            enterFullscreen();
+        }
+    }, [showInstructions, isLoading]);
 
     const togglePlay = () => {
         if (!audioRef.current) return;
@@ -406,6 +474,32 @@ export default function ListeningExamPage() {
 
     return (
         <div className="min-h-screen bg-white">
+            {/* Security Warning Modal */}
+            {showSecurityWarning && (
+                <div className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6 text-center">
+                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <h2 className="text-xl font-bold text-gray-900 mb-2">Security Warning!</h2>
+                        <p className="text-gray-600 mb-4">{securityWarningMessage}</p>
+                        <p className="text-sm text-red-600 font-medium mb-4">
+                            Violation Count: {violationCount}
+                        </p>
+                        <button
+                            onClick={() => {
+                                setShowSecurityWarning(false);
+                                enterFullscreen();
+                            }}
+                            className="w-full bg-cyan-600 text-white py-3 rounded-lg font-semibold hover:bg-cyan-700 transition-colors"
+                        >
+                            Return to Exam (Fullscreen)
+                        </button>
+                    </div>
+                </div>
+            )}
             <audio ref={audioRef} preload="auto" />
 
             {/* Header */}
@@ -519,83 +613,286 @@ export default function ListeningExamPage() {
                 </div>
             </div>
 
-            {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 py-6">
-                <div className="mb-3">
-                    <h3 className="text-base font-medium text-gray-700">
-                        Questions {globalStartIndex + 1}–{globalStartIndex + currentQuestions.length}
-                    </h3>
-                </div>
-
-                <div className="space-y-3 mb-6">
-                    {currentQuestions.map((currentQ, qIdx) => {
-                        const globalIndex = globalStartIndex + qIdx;
-                        const questionId = currentQ.questionNumber;
-
-                        return (
-                            <div key={questionId} id={`q-${questionId}`} className="bg-white border border-gray-200 rounded-lg p-4 hover:border-cyan-200 transition-colors shadow-sm">
-                                <div className="flex items-start gap-3 mb-3">
-                                    <span className="bg-cyan-600 text-white px-2.5 py-0.5 rounded text-sm font-bold shadow-sm">
-                                        {globalIndex + 1}
-                                    </span>
-                                    <p className="text-gray-800 font-medium leading-relaxed">{currentQ.questionText}</p>
-                                </div>
-
-                                {currentQ.questionType === "multiple-choice" || currentQ.questionType === "matching" ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-10">
-                                        {(currentQ.options || []).map((option, index) => (
-                                            <label
-                                                key={index}
-                                                onClick={() => handleAnswer(questionId, option)}
-                                                className={`flex items-center gap-3 p-2.5 border rounded-xl cursor-pointer transition-all duration-200 ${answers[questionId] === option
-                                                    ? "border-cyan-600 bg-cyan-50/50 ring-1 ring-cyan-600 shadow-sm"
-                                                    : "border-gray-100 hover:border-cyan-300 hover:bg-gray-50"
-                                                    }`}
-                                            >
-                                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${answers[questionId] === option ? "border-cyan-600 bg-cyan-600" : "border-gray-300"
-                                                    }`}>
-                                                    {answers[questionId] === option && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
-                                                </div>
-                                                <span className={`text-sm ${answers[questionId] === option ? "text-cyan-900 font-semibold" : "text-gray-700"}`}>{option}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="ml-10">
-                                        <input
-                                            type="text"
-                                            value={answers[questionId] || ""}
-                                            onChange={(e) => handleAnswer(questionId, e.target.value)}
-                                            placeholder="Type your answer here..."
-                                            className="w-full max-w-md border border-gray-200 rounded-xl px-4 py-2.5 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 focus:outline-none transition-all"
-                                        />
-                                        <p className="text-gray-400 text-[11px] mt-2 italic font-medium tracking-wide uppercase">ONE WORD AND/OR A NUMBER</p>
-                                    </div>
-                                )}
+            {/* Main Content - 100% Cambridge Style */}
+            <div className="max-w-7xl mx-auto px-4 py-8">
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                    {/* Header Info */}
+                    <div className="p-6 border-b border-gray-100 bg-gray-50/50">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-sm font-bold tracking-widest text-cyan-600 uppercase">
+                                PART {currentSection + 1}
+                            </h2>
+                            <div className="text-xs font-medium text-gray-400 bg-white px-2 py-1 rounded border border-gray-200">
+                                Questions {globalStartIndex + 1}–{globalStartIndex + currentQuestions.length}
                             </div>
-                        );
-                    })}
-                </div>
+                        </div>
 
+                        {/* Section Instructions */}
+                        {currentSec.instructions && (
+                            <div className="space-y-1">
+                                <p className="text-gray-800 font-medium italic">Complete the notes below.</p>
+                                <p className="text-gray-800 font-bold">
+                                    {currentSec.instructions}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="p-6">
+                        {/* Section Title */}
+                        <h1 className="text-xl font-bold text-gray-900 mb-5 border-b-2 border-gray-100 pb-1 inline-block">
+                            {currentSec.title}
+                        </h1>
+
+                        {/* Note/Passage Rendering */}
+                        {currentSec.passage ? (
+                            <div className="max-w-3xl">
+                                <div className="text-gray-800 leading-relaxed font-sans text-base">
+                                    {currentSec.passage.split('\n').map((line, lineIdx) => {
+                                        const trimmedLine = line.trim();
+                                        if (!trimmedLine && lineIdx > 0) return <div key={lineIdx} className="h-3" />;
+
+                                        // Detect headings (lines without bullets and not empty)
+                                        const isHeading = trimmedLine && !trimmedLine.startsWith('-') && !line.includes('{');
+                                        const isBullet = trimmedLine.startsWith('-');
+
+                                        return (
+                                            <div
+                                                key={lineIdx}
+                                                className={`
+                                                    ${isHeading ? 'font-bold text-gray-900 mt-4 mb-2 text-[17px]' : 'mb-1'}
+                                                    ${isBullet ? 'pl-6 relative' : ''}
+                                                `}
+                                            >
+                                                {isBullet && <span className="absolute left-1.5 top-0 text-gray-400">•</span>}
+                                                {line.split(/(\{{\d+}\}|\{\d+\})/g).map((part, index) => {
+                                                    const match = part.match(/\{?\{(\d+)\}\}?/);
+                                                    if (match) {
+                                                        const qNum = parseInt(match[1]);
+                                                        // Render question input
+                                                        return (
+                                                            <span key={index} className="inline-flex items-center align-middle mx-1 my-0.5">
+                                                                <span className="inline-block border border-gray-300 font-bold px-1.5 py-0 text-[13px] bg-gray-50 min-w-[28px] text-center text-gray-600 rounded">
+                                                                    {qNum}
+                                                                </span>
+                                                                <input
+                                                                    type="text"
+                                                                    value={answers[qNum] || ""}
+                                                                    onChange={(e) => handleAnswer(qNum, e.target.value)}
+                                                                    className="ml-1.5 border-b border-gray-300 px-2 py-0.5 w-36 text-gray-800 focus:outline-none focus:border-cyan-500 bg-transparent transition-all text-base font-medium placeholder:text-gray-300"
+                                                                    placeholder="........"
+                                                                />
+                                                            </span>
+                                                        );
+                                                    }
+                                                    // Render normal text (stripping the leading dash if it's a bullet)
+                                                    let displayPart = part;
+                                                    if (isBullet && index === 0) {
+                                                        displayPart = displayPart.replace(/^-/, '').trim();
+                                                    }
+                                                    return <span key={index}>{displayPart}</span>;
+                                                })}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ) : (
+                            /* Fallback for regular questions / Grouped Questions */
+                            <div className="space-y-6">
+                                {(() => {
+                                    const blocks = [];
+                                    let i = 0;
+                                    const qs = currentQuestions;
+
+                                    while (i < qs.length) {
+                                        const q = qs[i];
+                                        const cleanText = q.questionText.replace(/\s*\(Choice \d+\)\s*/g, '');
+                                        const group = [q];
+                                        let j = i + 1;
+
+                                        if (q.questionType === 'matching') {
+                                            // Group consecutive matching questions
+                                            while (j < qs.length && qs[j].questionType === 'matching') {
+                                                group.push(qs[j]);
+                                                j++;
+                                            }
+                                            blocks.push({
+                                                type: 'matching',
+                                                text: "Choose FOUR answers from the box and write the correct letter, A-F, next to questions.",
+                                                questions: group,
+                                                isGrouped: true
+                                            });
+                                        } else {
+                                            // Detect if next questions are part of the same "Choose TWO/THREE" block (Multi-select)
+                                            while (j < qs.length && qs[j].questionText.replace(/\s*\(Choice \d+\)\s*/g, '') === cleanText && qs[j].questionType !== 'matching') {
+                                                group.push(qs[j]);
+                                                j++;
+                                            }
+                                            blocks.push({
+                                                type: q.questionType,
+                                                text: cleanText,
+                                                questions: group,
+                                                isGrouped: group.length > 1
+                                            });
+                                        }
+                                        i = j;
+                                    }
+
+                                    return blocks.map((block, bIdx) => {
+                                        const isMulti = block.type === 'multiple-choice' && block.isGrouped;
+                                        const isMatching = block.type === 'matching';
+                                        const qNumbers = block.questions.map(q => q.questionNumber);
+                                        const firstQ = block.questions[0];
+
+                                        if (isMatching) {
+                                            return (
+                                                <div key={bIdx} className="bg-white border border-gray-100 rounded-xl p-6 mb-6">
+                                                    {/* Opinions Box */}
+                                                    <div className="border border-gray-200 rounded-lg overflow-hidden mb-6">
+                                                        <div className="bg-gray-50 px-4 py-1.5 border-b border-gray-200">
+                                                            <h4 className="font-bold text-gray-700 text-sm">Opinions</h4>
+                                                        </div>
+                                                        <div className="p-4 bg-white grid grid-cols-1 gap-2">
+                                                            {(firstQ.options || []).map((opt, idx) => (
+                                                                <div key={idx} className="flex gap-4 text-[15px]">
+                                                                    <span className="font-bold text-gray-900 w-4">{String.fromCharCode(65 + idx)}</span>
+                                                                    <span className="text-gray-600">{opt}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Matching Questions List */}
+                                                    <div className="space-y-3">
+                                                        {block.questions.map((q, idx) => (
+                                                            <div key={idx} className="flex items-center gap-4 group">
+                                                                <div className="bg-white border border-gray-400 text-gray-700 w-8 h-8 flex items-center justify-center rounded font-bold text-sm flex-shrink-0">
+                                                                    {q.questionNumber}
+                                                                </div>
+                                                                <p className="text-gray-700 font-medium text-[16px] flex-1">{q.questionText}</p>
+                                                                <div className="w-28">
+                                                                    <select
+                                                                        value={answers[q.questionNumber] || ""}
+                                                                        onChange={(e) => handleAnswer(q.questionNumber, e.target.value)}
+                                                                        className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-base font-semibold text-gray-800 focus:border-cyan-500 focus:outline-none appearance-none text-center"
+                                                                        style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.3rem center', backgroundSize: '1.2em' }}
+                                                                    >
+                                                                        <option value=""></option>
+                                                                        {(firstQ.options || []).map((_, oIdx) => (
+                                                                            <option key={oIdx} value={String.fromCharCode(65 + oIdx)}>
+                                                                                {String.fromCharCode(65 + oIdx)}
+                                                                            </option>
+                                                                        ))}
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            );
+                                        }
+
+                                        const handleMultiSelect = (option) => {
+                                            const currentSelected = qNumbers.map(n => answers[n]).filter(Boolean);
+                                            const isAlreadySelected = currentSelected.includes(option);
+
+                                            if (isAlreadySelected) {
+                                                // Deselect: Find which question had this option and clear it
+                                                const qToClear = qNumbers.find(n => answers[n] === option);
+                                                if (qToClear) handleAnswer(qToClear, "");
+                                            } else {
+                                                // Select: Find the first empty question ID in the group
+                                                if (currentSelected.length < qNumbers.length) {
+                                                    const emptyQ = qNumbers.find(n => !answers[n]);
+                                                    if (emptyQ) handleAnswer(emptyQ, option);
+                                                }
+                                            }
+                                        };
+
+                                        return (
+                                            <div key={bIdx} className="bg-white border border-gray-100 rounded-xl p-5 hover:bg-gray-50/50 transition-all">
+                                                <div className="flex items-start gap-3 mb-4">
+                                                    <span className="text-gray-700 font-bold text-lg pt-0.5">
+                                                        {qNumbers.join(' & ')}
+                                                    </span>
+                                                    <div className="flex-1">
+                                                        {isMulti && <p className="text-cyan-600 text-[11px] font-bold uppercase tracking-widest mb-1">Choose {block.questions.length} letters, A-E</p>}
+                                                        <p className="text-gray-800 font-semibold text-[17px] leading-snug">{block.text}</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 gap-3 ml-8 max-w-2xl">
+                                                    {(firstQ.options || []).map((option, idx) => {
+                                                        const label = String.fromCharCode(65 + idx);
+                                                        const isSelected = qNumbers.some(n => answers[n] === option || answers[n] === label);
+
+                                                        return (
+                                                            <div
+                                                                key={idx}
+                                                                onClick={() => isMulti ? handleMultiSelect(label) : handleAnswer(firstQ.questionNumber, label)}
+                                                                className="flex items-start gap-4 cursor-pointer group/item"
+                                                            >
+                                                                <div className={`
+                                                                    w-9 h-9 flex items-center justify-center rounded-lg font-bold text-[15px] border transition-all flex-shrink-0
+                                                                    ${isSelected ? "bg-cyan-600 border-cyan-600 text-white" : "bg-white border-gray-300 text-gray-500 group-hover/item:border-cyan-300"}
+                                                                `}>
+                                                                    {label}
+                                                                </div>
+
+                                                                <div className={`
+                                                                    mt-1.5 flex-1 text-[16px] leading-relaxed transition-colors
+                                                                    ${isSelected ? "text-cyan-700 font-bold" : "text-gray-600 font-medium group-hover/item:text-gray-900"}
+                                                                `}>
+                                                                    {option.replace(/^[A-E]\.\s*/, '')}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+
+                                                    {!isMulti && firstQ.questionType !== "multiple-choice" && firstQ.questionType !== "matching" && (
+                                                        <div className="max-w-md mt-1">
+                                                            <input
+                                                                type="text"
+                                                                value={answers[firstQ.questionNumber] || ""}
+                                                                onChange={(e) => handleAnswer(firstQ.questionNumber, e.target.value)}
+                                                                placeholder="Write your answer..."
+                                                                className="w-full border-b border-gray-300 bg-transparent px-2 py-1 text-base focus:border-cyan-500 focus:outline-none transition-all"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    });
+                                })()}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Navigation and Navigator wrapped in container */}
+            <div className="max-w-7xl mx-auto px-4 pb-12">
                 {/* Navigation */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-8">
                     <button
                         onClick={goPrev}
                         disabled={currentSection === 0}
-                        className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-bold transition-all ${currentSection === 0 ? "text-gray-300 cursor-not-allowed" : "text-gray-700 hover:bg-gray-100 border border-gray-200 shadow-sm"
+                        className={`flex items-center gap-2 px-5 py-2 rounded-lg font-bold transition-all ${currentSection === 0 ? "text-gray-300 cursor-not-allowed" : "text-gray-700 hover:bg-gray-100 border border-gray-200 shadow-sm"
                             }`}
                     >
                         <FaChevronLeft />
                         Previous Part
                     </button>
 
-                    <div className="text-sm font-semibold text-gray-500">
+                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
                         Part {currentSection + 1} of {sections.length}
                     </div>
 
                     <button
                         onClick={goNext}
-                        className={`flex items-center gap-2 bg-gradient-to-r ${currentSection === sections.length - 1 ? 'from-green-600 to-green-700 shadow-green-200' : 'from-cyan-600 to-cyan-700 shadow-cyan-200'} text-white px-8 py-2.5 rounded-lg font-bold hover:shadow-lg active:scale-95 transition-all shadow-md`}
+                        className={`flex items-center gap-2 bg-gradient-to-r ${currentSection === sections.length - 1 ? 'from-green-600 to-green-700 shadow-green-200' : 'from-cyan-600 to-cyan-700 shadow-cyan-200'} text-white px-6 py-2 rounded-lg font-bold hover:shadow-lg active:scale-95 transition-all shadow-md`}
                     >
                         {currentSection === sections.length - 1 ? (
                             <>Finish Test <FaCheck /></>
@@ -606,15 +903,15 @@ export default function ListeningExamPage() {
                 </div>
 
                 {/* Question Navigator */}
-                <div className="mt-8 border-t border-gray-200 pt-6">
+                <div className="mt-8 border-t border-gray-100 pt-6">
                     <div className="flex items-center gap-2 mb-4">
-                        <span className="text-gray-600 text-sm">Parts:</span>
+                        <span className="text-gray-400 text-[11px] font-bold uppercase tracking-wider">Parts:</span>
                         <div className="flex gap-1">
                             {sections.map((sec, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => { setCurrentSection(idx); setCurrentPage(0); }}
-                                    className={`w-8 h-8 rounded text-sm font-medium cursor-pointer ${currentSection === idx ? "bg-cyan-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                    className={`w-7 h-7 rounded text-[12px] font-bold cursor-pointer ${currentSection === idx ? "bg-cyan-600 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                                         }`}
                                 >
                                     {idx + 1}
@@ -623,7 +920,7 @@ export default function ListeningExamPage() {
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1.5">
                         {(currentSec.questions || []).map((q, idx) => {
                             const questionId = q.questionNumber;
                             const isAnswered = answers[questionId] && answers[questionId] !== "";
@@ -639,9 +936,9 @@ export default function ListeningExamPage() {
                                 <button
                                     key={questionId}
                                     onClick={scrollToIndex}
-                                    className={`w-8 h-8 rounded text-sm font-medium cursor-pointer transition-all ${isAnswered
-                                        ? "bg-green-600 text-white shadow-md border border-green-700"
-                                        : "bg-gray-100 text-gray-600 hover:bg-cyan-100 hover:text-cyan-700 border border-gray-200 shadow-sm"
+                                    className={`w-8 h-8 rounded text-[12px] font-bold cursor-pointer transition-all ${isAnswered
+                                        ? "bg-green-600 text-white shadow-sm border border-green-700"
+                                        : "bg-white text-gray-400 hover:border-cyan-300 border border-gray-200"
                                         }`}
                                 >
                                     {globalQNum}
@@ -650,7 +947,7 @@ export default function ListeningExamPage() {
                         })}
                     </div>
 
-                    <div className="flex items-center gap-4 mt-4 text-sm text-gray-500">
+                    <div className="flex items-center gap-4 mt-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
                         <span>Answered: {answeredCount}/{totalQuestions}</span>
                     </div>
                 </div>
@@ -658,49 +955,54 @@ export default function ListeningExamPage() {
 
             {/* Submit Modal */}
             {showSubmitModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-xl font-bold text-gray-800">Submit Listening Test?</h3>
-                            <button onClick={() => setShowSubmitModal(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer">
+                            <h3 className="text-lg font-bold text-gray-800">Submit Listening Test?</h3>
+                            <button onClick={() => setShowSubmitModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
                                 <FaTimes />
                             </button>
                         </div>
 
-                        <div className="bg-gray-50 rounded p-4 mb-4">
+                        <div className="bg-gray-50 rounded-xl p-4 mb-5 border border-gray-100">
                             <div className="flex justify-between mb-2">
-                                <span className="text-gray-600">Answered</span>
-                                <span className="font-semibold text-cyan-600">{answeredCount} / {totalQuestions}</span>
+                                <span className="text-sm font-bold text-gray-500 uppercase tracking-wider">Progress</span>
+                                <span className="font-bold text-cyan-600 text-sm">{answeredCount} / {totalQuestions}</span>
                             </div>
-                            <div className="w-full h-2 bg-gray-200 rounded overflow-hidden">
-                                <div className="h-full bg-cyan-600" style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}></div>
+                            <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-cyan-600 transition-all duration-700 ease-out"
+                                    style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
+                                ></div>
                             </div>
                         </div>
 
                         {totalQuestions - answeredCount > 0 && (
-                            <div className="bg-amber-50 border border-amber-200 rounded p-3 mb-4">
-                                <p className="text-amber-700 text-sm">{totalQuestions - answeredCount} questions unanswered!</p>
+                            <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-5 text-center">
+                                <p className="text-amber-700 text-xs font-bold uppercase tracking-wider">
+                                    {totalQuestions - answeredCount} questions unanswered
+                                </p>
                             </div>
                         )}
 
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setShowSubmitModal(false)}
-                                className="flex-1 py-2 border border-gray-300 rounded hover:bg-gray-50 cursor-pointer"
+                                className="flex-1 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 font-bold text-sm text-gray-600 transition-all"
                             >
                                 Review
                             </button>
                             <button
                                 onClick={handleSubmit}
                                 disabled={isSubmitting}
-                                className="flex-1 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-700 cursor-pointer disabled:opacity-70"
+                                className="flex-1 py-2.5 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 font-bold text-sm shadow-lg shadow-cyan-200 transition-all disabled:opacity-70"
                             >
-                                {isSubmitting ? "Submitting..." : "Submit"}
+                                {isSubmitting ? "Submitting..." : "Submit Test"}
                             </button>
                         </div>
                     </div>
                 </div>
             )}
-        </div>
+        </div >
     );
 }

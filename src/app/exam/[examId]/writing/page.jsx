@@ -24,6 +24,12 @@ export default function WritingExamPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showInstructions, setShowInstructions] = useState(true);
 
+    // Security states
+    const [showSecurityWarning, setShowSecurityWarning] = useState(false);
+    const [securityWarningMessage, setSecurityWarningMessage] = useState("");
+    const [violationCount, setViolationCount] = useState(0);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
     // Data loading states
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
@@ -173,6 +179,68 @@ export default function WritingExamPage() {
         const secs = seconds % 60;
         return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     };
+
+    // Security: Enter fullscreen mode
+    const enterFullscreen = () => {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => { });
+        } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen();
+            setIsFullscreen(true);
+        } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+            setIsFullscreen(true);
+        }
+    };
+
+    // Security: Handle violations
+    const handleSecurityViolation = (message) => {
+        setViolationCount(prev => prev + 1);
+        setSecurityWarningMessage(message);
+        setShowSecurityWarning(true);
+    };
+
+    // Security: Tab visibility change detection
+    useEffect(() => {
+        if (showInstructions || isLoading) return;
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                handleSecurityViolation("⚠️ Tab switching detected! Please stay on the exam page.");
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, [showInstructions, isLoading]);
+
+    // Security: Fullscreen exit detection
+    useEffect(() => {
+        if (showInstructions || isLoading) return;
+
+        const handleFullscreenChange = () => {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                setIsFullscreen(false);
+                handleSecurityViolation("⚠️ Fullscreen mode exited! Please return to fullscreen to continue the exam.");
+            }
+        };
+
+        document.addEventListener("fullscreenchange", handleFullscreenChange);
+        document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+
+        return () => {
+            document.removeEventListener("fullscreenchange", handleFullscreenChange);
+            document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+        };
+    }, [showInstructions, isLoading]);
+
+    // Security: Request fullscreen when exam starts
+    useEffect(() => {
+        if (!showInstructions && !isLoading && !isFullscreen) {
+            enterFullscreen();
+        }
+    }, [showInstructions, isLoading]);
 
     const handleTextChange = (value) => {
         setAnswers((prev) => ({ ...prev, [currentTaskData.id]: value }));
@@ -338,6 +406,32 @@ export default function WritingExamPage() {
 
     return (
         <div className="min-h-screen bg-white">
+            {/* Security Warning Modal */}
+            {showSecurityWarning && (
+                <div className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6 text-center">
+                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <h2 className="text-xl font-bold text-gray-900 mb-2">Security Warning!</h2>
+                        <p className="text-gray-600 mb-4">{securityWarningMessage}</p>
+                        <p className="text-sm text-red-600 font-medium mb-4">
+                            Violation Count: {violationCount}
+                        </p>
+                        <button
+                            onClick={() => {
+                                setShowSecurityWarning(false);
+                                enterFullscreen();
+                            }}
+                            className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                        >
+                            Return to Exam (Fullscreen)
+                        </button>
+                    </div>
+                </div>
+            )}
             {/* Header */}
             <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 py-2">

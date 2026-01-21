@@ -26,6 +26,12 @@ export default function ReadingExamPage() {
     const [showInstructions, setShowInstructions] = useState(true);
     const [fontSize, setFontSize] = useState(16);
 
+    // Security states
+    const [showSecurityWarning, setShowSecurityWarning] = useState(false);
+    const [securityWarningMessage, setSecurityWarningMessage] = useState("");
+    const [violationCount, setViolationCount] = useState(0);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
     // Data loading states
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
@@ -106,6 +112,7 @@ export default function ReadingExamPage() {
         title: section.title || `Passage ${index + 1}`,
         source: section.source || "",
         content: section.passage || "",
+        questionGroups: section.questionGroups || [],
         questions: (section.questions || []).map(q => ({
             id: q.questionNumber,
             questionNumber: q.questionNumber,
@@ -166,6 +173,68 @@ export default function ReadingExamPage() {
         const secs = seconds % 60;
         return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     };
+
+    // Security: Enter fullscreen mode
+    const enterFullscreen = () => {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => { });
+        } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen();
+            setIsFullscreen(true);
+        } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+            setIsFullscreen(true);
+        }
+    };
+
+    // Security: Handle violations
+    const handleSecurityViolation = (message) => {
+        setViolationCount(prev => prev + 1);
+        setSecurityWarningMessage(message);
+        setShowSecurityWarning(true);
+    };
+
+    // Security: Tab visibility change detection
+    useEffect(() => {
+        if (showInstructions || isLoading) return;
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                handleSecurityViolation("⚠️ Tab switching detected! Please stay on the exam page.");
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, [showInstructions, isLoading]);
+
+    // Security: Fullscreen exit detection
+    useEffect(() => {
+        if (showInstructions || isLoading) return;
+
+        const handleFullscreenChange = () => {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                setIsFullscreen(false);
+                handleSecurityViolation("⚠️ Fullscreen mode exited! Please return to fullscreen to continue the exam.");
+            }
+        };
+
+        document.addEventListener("fullscreenchange", handleFullscreenChange);
+        document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+
+        return () => {
+            document.removeEventListener("fullscreenchange", handleFullscreenChange);
+            document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+        };
+    }, [showInstructions, isLoading]);
+
+    // Security: Request fullscreen when exam starts
+    useEffect(() => {
+        if (!showInstructions && !isLoading && !isFullscreen) {
+            enterFullscreen();
+        }
+    }, [showInstructions, isLoading]);
 
     const handleAnswer = (qId, value) => {
         setAnswers((prev) => ({ ...prev, [qId]: value }));
@@ -386,9 +455,35 @@ export default function ReadingExamPage() {
 
     return (
         <div className="min-h-screen bg-white">
+            {/* Security Warning Modal */}
+            {showSecurityWarning && (
+                <div className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6 text-center">
+                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <h2 className="text-xl font-bold text-gray-900 mb-2">Security Warning!</h2>
+                        <p className="text-gray-600 mb-4">{securityWarningMessage}</p>
+                        <p className="text-sm text-red-600 font-medium mb-4">
+                            Violation Count: {violationCount}
+                        </p>
+                        <button
+                            onClick={() => {
+                                setShowSecurityWarning(false);
+                                enterFullscreen();
+                            }}
+                            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                        >
+                            Return to Exam (Fullscreen)
+                        </button>
+                    </div>
+                </div>
+            )}
             {/* Header */}
             <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 py-2">
+                <div className="w-full px-6 py-2">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <span className="text-blue-600 font-bold text-xl">IELTS</span>
@@ -422,7 +517,7 @@ export default function ReadingExamPage() {
             </header>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 py-4">
+            <div className="w-full px-6 py-4">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Passage Panel */}
                     <div className="bg-white border border-gray-200 rounded overflow-hidden">
@@ -446,60 +541,461 @@ export default function ReadingExamPage() {
                         </div>
 
                         {/* Question */}
-                        {/* Questions List */}
+                        {/* Questions List - Using questionGroups if available */}
                         <div className="space-y-6 max-h-[calc(100vh-250px)] overflow-y-auto pr-2">
-                            {currentQuestions.map((q, idx) => {
-                                const globalIdx = passages.slice(0, currentPassage).reduce((acc, p) => acc + p.questions.length, 0) + idx + 1;
+                            {currentPass.questionGroups && currentPass.questionGroups.length > 0 ? (
+                                // New format using questionGroups
+                                currentPass.questionGroups.map((group, gIdx) => (
+                                    <div key={gIdx} className="mb-8">
+                                        {/* Note Completion Format */}
+                                        {group.groupType === "note-completion" && (
+                                            <div className="space-y-3">
+                                                {/* Main Instruction */}
+                                                <p className="text-gray-800">{group.mainInstruction}</p>
 
-                                return (
-                                    <div key={q.id} id={`q-${q.questionNumber}`} className="bg-white border border-gray-200 shadow-sm rounded-lg p-5 hover:border-blue-200 transition-colors">
-                                        <div className="flex items-center gap-3 mb-4">
-                                            <span className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold">
-                                                Question {globalIdx}
-                                            </span>
-                                            <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
-                                                {getQuestionTypeLabel(q.type)}
-                                            </span>
-                                        </div>
+                                                {/* Sub Instruction */}
+                                                <p className="text-gray-800">
+                                                    Choose <span className="font-bold">ONE WORD ONLY</span> from the passage for each answer.
+                                                </p>
 
-                                        <p className="text-gray-800 mb-5 font-medium leading-relaxed">{q.text}</p>
+                                                {/* Main Heading */}
+                                                <h3 className="text-lg font-bold text-gray-900 mt-4 border-b pb-2">{group.mainHeading}</h3>
 
-                                        {(q.type === "multiple-choice" || q.type === "mcq" ||
-                                            q.type === "true-false-not-given" || q.type === "tfng" ||
-                                            q.type === "yes-no-not-given" || q.type === "matching") && q.options?.length > 0 ? (
-                                            <div className="grid grid-cols-1 gap-2.5">
-                                                {q.options.map((option, oIdx) => (
-                                                    <label
-                                                        key={oIdx}
-                                                        onClick={() => handleAnswer(q.questionNumber, option)}
-                                                        className={`flex items-center gap-3 p-3.5 border rounded-xl cursor-pointer transition-all duration-200 ${answers[q.questionNumber] === option
-                                                            ? "border-blue-600 bg-blue-50/50 ring-1 ring-blue-600 shadow-sm"
-                                                            : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
-                                                            }`}
-                                                    >
-                                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${answers[q.questionNumber] === option ? "border-blue-600 bg-blue-600" : "border-gray-300"
-                                                            }`}>
-                                                            {answers[q.questionNumber] === option && <div className="w-2 h-2 bg-white rounded-full"></div>}
-                                                        </div>
-                                                        <span className={`text-[15px] ${answers[q.questionNumber] === option ? "text-blue-900 font-semibold" : "text-gray-700"}`}>{option}</span>
-                                                    </label>
+                                                {/* Notes Sections */}
+                                                {group.notesSections?.map((section, sIdx) => (
+                                                    <div key={sIdx} className="mt-3">
+                                                        {/* Sub Heading */}
+                                                        <h4 className="font-bold text-gray-800 mb-2">{section.subHeading}</h4>
+
+                                                        {/* Bullets */}
+                                                        <ul className="space-y-2 pl-4">
+                                                            {section.bullets?.map((bullet, bIdx) => (
+                                                                <li key={bIdx} className="flex items-start gap-2 text-gray-700">
+                                                                    <span className="mt-0.5">•</span>
+                                                                    {bullet.type === "context" ? (
+                                                                        <span>{bullet.text}</span>
+                                                                    ) : (
+                                                                        <div className="flex items-center flex-wrap gap-1">
+                                                                            <span>{bullet.textBefore}</span>
+                                                                            <span className="inline-flex items-center gap-1">
+                                                                                <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{bullet.questionNumber}</span>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={answers[bullet.questionNumber] || ""}
+                                                                                    onChange={(e) => handleAnswer(bullet.questionNumber, e.target.value)}
+                                                                                    className="border-b border-gray-400 bg-white w-40 px-2 py-1 focus:border-blue-600 focus:outline-none"
+                                                                                />
+                                                                            </span>
+                                                                            {bullet.textAfter && <span>{bullet.textAfter}</span>}
+                                                                        </div>
+                                                                    )}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
                                                 ))}
                                             </div>
-                                        ) : (
-                                            <div className="mt-2 group">
-                                                <input
-                                                    type="text"
-                                                    value={answers[q.questionNumber] || ""}
-                                                    onChange={(e) => handleAnswer(q.questionNumber, e.target.value)}
-                                                    placeholder="Type your answer here..."
-                                                    className="w-full max-w-lg border border-gray-300 rounded-xl px-5 py-3 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all"
-                                                />
-                                                <p className="text-gray-400 text-xs mt-2.5 ml-1 italic">{q.instruction || "Write your answer"}</p>
+                                        )}
+
+                                        {/* TRUE/FALSE/NOT GIVEN Format */}
+                                        {group.groupType === "true-false-not-given" && (
+                                            <div className="space-y-3 mt-6 pt-4 border-t">
+                                                {/* Main Instruction */}
+                                                <p className="text-gray-800">{group.mainInstruction}</p>
+
+                                                {/* Options Explanation */}
+                                                <div className="text-sm text-gray-600 space-y-1">
+                                                    {group.optionsExplanation?.map((opt, oIdx) => (
+                                                        <p key={oIdx}>
+                                                            <span className="font-bold">{opt.label}</span> {opt.description}
+                                                        </p>
+                                                    ))}
+                                                </div>
+
+                                                {/* Statements */}
+                                                <div className="space-y-4 mt-3">
+                                                    {group.statements?.map((stmt) => (
+                                                        <div key={stmt.questionNumber} className="py-2">
+                                                            <div className="flex items-start gap-2 mb-2">
+                                                                <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{stmt.questionNumber}</span>
+                                                                <span className="text-gray-800">{stmt.text}</span>
+                                                            </div>
+                                                            <div className="ml-8 space-y-1">
+                                                                {["TRUE", "FALSE", "NOT GIVEN"].map((opt) => (
+                                                                    <label
+                                                                        key={opt}
+                                                                        onClick={() => handleAnswer(stmt.questionNumber, opt)}
+                                                                        className="flex items-center gap-2 cursor-pointer"
+                                                                    >
+                                                                        <span className="text-gray-500">•</span>
+                                                                        <div className={`w-4 h-4 border rounded flex items-center justify-center ${answers[stmt.questionNumber] === opt
+                                                                            ? "bg-blue-600 border-blue-600"
+                                                                            : "border-gray-400"
+                                                                            }`}>
+                                                                            {answers[stmt.questionNumber] === opt && (
+                                                                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                                                </svg>
+                                                                            )}
+                                                                        </div>
+                                                                        <span className={`${answers[stmt.questionNumber] === opt ? "font-bold text-blue-600" : "text-gray-700"}`}>{opt}</span>
+                                                                    </label>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* MATCHING INFORMATION Format */}
+                                        {group.groupType === "matching-information" && (
+                                            <div className="space-y-3">
+                                                {/* Main Instruction */}
+                                                <p className="text-gray-800">{group.mainInstruction}</p>
+
+                                                {/* Sub Instruction */}
+                                                <p className="text-gray-800">{group.subInstruction}</p>
+
+                                                {/* NB Note */}
+                                                {group.note && (
+                                                    <p className="text-gray-700 text-sm">
+                                                        <span className="font-bold">NB</span> <em>{group.note.replace('NB ', '')}</em>
+                                                    </p>
+                                                )}
+
+                                                {/* Matching Items */}
+                                                <div className="space-y-3 mt-4">
+                                                    {group.matchingItems?.map((item) => (
+                                                        <div key={item.questionNumber} className="flex items-center gap-3">
+                                                            <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5 flex-shrink-0">
+                                                                {item.questionNumber}
+                                                            </span>
+                                                            <span className="flex-1 text-gray-800">{item.text}</span>
+                                                            <select
+                                                                value={answers[item.questionNumber] || ""}
+                                                                onChange={(e) => handleAnswer(item.questionNumber, e.target.value)}
+                                                                className="border border-gray-300 rounded px-3 py-1.5 text-gray-700 focus:border-blue-500 focus:outline-none min-w-[80px]"
+                                                            >
+                                                                <option value="">--</option>
+                                                                {group.paragraphOptions?.map((opt) => (
+                                                                    <option key={opt} value={opt}>{opt}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* SUMMARY COMPLETION Format */}
+                                        {group.groupType === "summary-completion" && (
+                                            <div className="space-y-3 mt-6 pt-4 border-t">
+                                                {/* Main Instruction */}
+                                                <p className="text-gray-800 italic">{group.mainInstruction}</p>
+
+                                                {/* Sub Instruction */}
+                                                <p className="text-gray-800">
+                                                    Choose <span className="font-bold">ONE WORD ONLY</span> from the passage for each answer.
+                                                </p>
+
+                                                {/* Main Heading */}
+                                                <h3 className="text-lg font-bold text-gray-900 mt-4">{group.mainHeading}</h3>
+
+                                                {/* Summary Paragraph with inline blanks */}
+                                                <div className="text-gray-700 leading-relaxed">
+                                                    {group.summarySegments?.map((segment, sIdx) => (
+                                                        segment.type === "text" ? (
+                                                            <span key={sIdx}>{segment.content} </span>
+                                                        ) : (
+                                                            <span key={sIdx} className="inline-flex items-center gap-1 mx-1">
+                                                                <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{segment.questionNumber}</span>
+                                                                <input
+                                                                    type="text"
+                                                                    value={answers[segment.questionNumber] || ""}
+                                                                    onChange={(e) => handleAnswer(segment.questionNumber, e.target.value)}
+                                                                    className="border-b border-gray-400 bg-white w-32 px-2 py-1 focus:border-blue-600 focus:outline-none"
+                                                                />
+                                                            </span>
+                                                        )
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* CHOOSE TWO LETTERS Format */}
+                                        {group.groupType === "choose-two-letters" && (
+                                            <div className="space-y-4 mt-6 pt-4 border-t">
+                                                {/* Main Instruction */}
+                                                <p className="text-gray-800 italic">{group.mainInstruction}</p>
+
+                                                {/* Question Sets */}
+                                                {group.questionSets?.map((qSet, qsIdx) => (
+                                                    <div key={qsIdx} className="mt-4">
+                                                        {/* Question Numbers and Text */}
+                                                        <div className="flex items-start gap-2 mb-3">
+                                                            <div className="flex gap-1">
+                                                                {qSet.questionNumbers?.map((qNum) => (
+                                                                    <span key={qNum} className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">
+                                                                        {qNum}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                            <p className="text-gray-800">
+                                                                {qSet.questionText?.replace('TWO', '')}
+                                                                <span className="font-bold">TWO</span>
+                                                                {qSet.questionText?.split('TWO')[1]}
+                                                            </p>
+                                                        </div>
+
+                                                        {/* Options with Checkboxes */}
+                                                        <div className="space-y-2 ml-6">
+                                                            {qSet.options?.map((opt) => {
+                                                                const isSelected = qSet.questionNumbers?.some(qNum => answers[qNum] === opt.letter);
+                                                                return (
+                                                                    <label
+                                                                        key={opt.letter}
+                                                                        onClick={() => {
+                                                                            // Find which question number doesn't have this answer yet
+                                                                            const firstEmpty = qSet.questionNumbers?.find(qNum => !answers[qNum] || answers[qNum] === opt.letter);
+                                                                            if (firstEmpty) {
+                                                                                if (answers[firstEmpty] === opt.letter) {
+                                                                                    handleAnswer(firstEmpty, ""); // Deselect
+                                                                                } else {
+                                                                                    handleAnswer(firstEmpty, opt.letter);
+                                                                                }
+                                                                            }
+                                                                        }}
+                                                                        className="flex items-center gap-2 cursor-pointer"
+                                                                    >
+                                                                        <span className="font-bold text-gray-700">{opt.letter}</span>
+                                                                        <div className={`w-4 h-4 border rounded flex items-center justify-center ${isSelected ? "bg-blue-600 border-blue-600" : "border-gray-400"}`}>
+                                                                            {isSelected && (
+                                                                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                                                </svg>
+                                                                            )}
+                                                                        </div>
+                                                                        <span className="text-gray-700">{opt.text}</span>
+                                                                    </label>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* SUMMARY WITH OPTIONS (Phrase List) Format */}
+                                        {group.groupType === "summary-with-options" && (
+                                            <div className="space-y-3">
+                                                {/* Main Instruction */}
+                                                <p className="text-gray-800">{group.mainInstruction}</p>
+                                                <p className="text-gray-800">{group.subInstruction}</p>
+
+                                                {/* Phrase List - FIRST */}
+                                                <div className="grid grid-cols-2 gap-x-8 gap-y-2 mt-3">
+                                                    {group.phraseList?.map((phrase) => (
+                                                        <div key={phrase.letter} className="text-gray-700">
+                                                            <span className="font-bold">{phrase.letter}</span> {phrase.text}
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                {/* Main Heading */}
+                                                <h3 className="text-lg font-bold text-gray-900 mt-4">{group.mainHeading}</h3>
+
+                                                {/* Summary Paragraph with dropdowns */}
+                                                <div className="text-gray-700 leading-relaxed">
+                                                    {group.summarySegments?.map((segment, sIdx) => (
+                                                        segment.type === "text" ? (
+                                                            <span key={sIdx}>{segment.content} </span>
+                                                        ) : (
+                                                            <span key={sIdx} className="inline-flex items-center gap-1 mx-1">
+                                                                <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{segment.questionNumber}</span>
+                                                                <select
+                                                                    value={answers[segment.questionNumber] || ""}
+                                                                    onChange={(e) => handleAnswer(segment.questionNumber, e.target.value)}
+                                                                    className="border border-gray-300 rounded px-2 py-1 text-gray-700 focus:border-blue-500 focus:outline-none"
+                                                                >
+                                                                    <option value="">--</option>
+                                                                    {group.phraseList?.map((phrase) => (
+                                                                        <option key={phrase.letter} value={phrase.letter}>{phrase.letter}</option>
+                                                                    ))}
+                                                                </select>
+                                                            </span>
+                                                        )
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* YES/NO/NOT GIVEN Format */}
+                                        {group.groupType === "yes-no-not-given" && (
+                                            <div className="space-y-3 mt-6 pt-4 border-t">
+                                                {/* Main Instruction */}
+                                                <p className="text-gray-800">{group.mainInstruction}</p>
+                                                <p className="text-gray-800">{group.subInstruction}</p>
+
+                                                {/* Options Explanation */}
+                                                <div className="space-y-1 pl-4 text-sm">
+                                                    {group.optionsExplanation?.map((opt) => (
+                                                        <div key={opt.label} className="text-gray-700">
+                                                            <span className="font-bold">{opt.label}</span> {opt.description}
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                {/* Statements */}
+                                                <div className="space-y-4 mt-3">
+                                                    {group.statements?.map((stmt) => (
+                                                        <div key={stmt.questionNumber} className="py-2">
+                                                            <div className="flex items-start gap-2 mb-2">
+                                                                <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{stmt.questionNumber}</span>
+                                                                <span className="text-gray-800">{stmt.text}</span>
+                                                            </div>
+                                                            <div className="ml-8 space-y-1">
+                                                                {["YES", "NO", "NOT GIVEN"].map((opt) => (
+                                                                    <label
+                                                                        key={opt}
+                                                                        onClick={() => handleAnswer(stmt.questionNumber, opt)}
+                                                                        className="flex items-center gap-2 cursor-pointer"
+                                                                    >
+                                                                        <span className="text-gray-500">•</span>
+                                                                        <div className={`w-4 h-4 border rounded flex items-center justify-center ${answers[stmt.questionNumber] === opt
+                                                                            ? "bg-blue-600 border-blue-600"
+                                                                            : "border-gray-400"
+                                                                            }`}>
+                                                                            {answers[stmt.questionNumber] === opt && (
+                                                                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                                                </svg>
+                                                                            )}
+                                                                        </div>
+                                                                        <span className={`${answers[stmt.questionNumber] === opt ? "font-bold text-blue-600" : "text-gray-700"}`}>{opt}</span>
+                                                                    </label>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* MULTIPLE CHOICE FULL Format */}
+                                        {group.groupType === "multiple-choice-full" && (
+                                            <div className="space-y-3 mt-6 pt-4 border-t">
+                                                {/* Main Instruction */}
+                                                <p className="text-gray-800 italic">{group.mainInstruction}</p>
+                                                <p className="text-gray-800">{group.subInstruction}</p>
+
+                                                {/* Questions */}
+                                                <div className="space-y-6 mt-4">
+                                                    {group.mcQuestions?.map((mcQ) => (
+                                                        <div key={mcQ.questionNumber} className="py-2">
+                                                            <div className="flex items-start gap-2 mb-3">
+                                                                <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{mcQ.questionNumber}</span>
+                                                                <span className="text-gray-800 font-medium">{mcQ.questionText}</span>
+                                                            </div>
+                                                            <div className="ml-8 space-y-2">
+                                                                {mcQ.options?.map((opt) => (
+                                                                    <label
+                                                                        key={opt.letter}
+                                                                        onClick={() => handleAnswer(mcQ.questionNumber, opt.letter)}
+                                                                        className="flex items-start gap-2 cursor-pointer"
+                                                                    >
+                                                                        <span className="font-bold text-gray-700 mt-0.5">{opt.letter}</span>
+                                                                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${answers[mcQ.questionNumber] === opt.letter
+                                                                            ? "border-blue-600 bg-blue-600"
+                                                                            : "border-gray-400"
+                                                                            }`}>
+                                                                            {answers[mcQ.questionNumber] === opt.letter && (
+                                                                                <div className="w-2 h-2 bg-white rounded-full"></div>
+                                                                            )}
+                                                                        </div>
+                                                                        <span className={`${answers[mcQ.questionNumber] === opt.letter ? "text-blue-600" : "text-gray-700"}`}>
+                                                                            {opt.text}
+                                                                        </span>
+                                                                    </label>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
                                         )}
                                     </div>
-                                );
-                            })}
+                                ))
+                            ) : null}
+
+                            {/* Render remaining questions not covered by questionGroups */}
+                            {(() => {
+                                // Get all question numbers covered by questionGroups
+                                const coveredQuestions = new Set();
+                                currentPass.questionGroups?.forEach(group => {
+                                    for (let i = group.startQuestion; i <= group.endQuestion; i++) {
+                                        coveredQuestions.add(i);
+                                    }
+                                });
+
+                                // Filter questions not covered
+                                const remainingQuestions = currentQuestions.filter(q => !coveredQuestions.has(q.questionNumber));
+
+                                if (remainingQuestions.length === 0) return null;
+
+                                return remainingQuestions.map((q, idx) => {
+                                    const globalIdx = q.questionNumber;
+                                    return (
+                                        <div key={q.id} id={`q-${q.questionNumber}`} className="bg-white border border-gray-200 shadow-sm rounded-lg p-5 hover:border-blue-200 transition-colors mb-4">
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">
+                                                    {globalIdx}
+                                                </span>
+                                                <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
+                                                    {getQuestionTypeLabel(q.type)}
+                                                </span>
+                                            </div>
+                                            <p className="text-gray-800 mb-4">{q.text}</p>
+                                            {q.options?.length > 0 ? (
+                                                <div className="grid grid-cols-1 gap-2">
+                                                    {q.options.map((option, oIdx) => {
+                                                        // Extract letter from option like "A. Some text" -> "A"
+                                                        const letterMatch = option.toString().match(/^([A-Za-z])\./);
+                                                        const letter = letterMatch ? letterMatch[1].toUpperCase() : String.fromCharCode(65 + oIdx);
+                                                        const isSelected = answers[q.questionNumber] === letter || answers[q.questionNumber] === option;
+
+                                                        return (
+                                                            <label
+                                                                key={oIdx}
+                                                                onClick={() => handleAnswer(q.questionNumber, letter)}
+                                                                className={`flex items-center gap-3 p-3 border cursor-pointer transition-all ${isSelected
+                                                                    ? "border-blue-600 bg-blue-50"
+                                                                    : "border-gray-200 hover:border-blue-300"
+                                                                    }`}
+                                                            >
+                                                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${isSelected ? "border-blue-600 bg-blue-600" : "border-gray-300"}`}>
+                                                                    {isSelected && <div className="w-2 h-2 bg-white rounded-full"></div>}
+                                                                </div>
+                                                                <span className={`${isSelected ? "text-blue-900 font-semibold" : "text-gray-700"}`}>{option}</span>
+                                                            </label>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <div className="mt-2">
+                                                    <input
+                                                        type="text"
+                                                        value={answers[q.questionNumber] || ""}
+                                                        onChange={(e) => handleAnswer(q.questionNumber, e.target.value)}
+                                                        placeholder="Type your answer..."
+                                                        className="w-full max-w-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                });
+                            })()}
                         </div>
 
                         <div className="flex items-center justify-between border-t border-gray-200 pt-6 mt-4">
