@@ -55,7 +55,7 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
       className={`${poppins.variable} ${roboto.variable} ${lobster.variable} ${caveat.variable} ${worksans.variable} ${outfit.variable}`}
     >
-      <body className="antialiased">
+      <body className="antialiased" suppressHydrationWarning={true}>
         <ReduxProviderWrapper>
 
           {children}

@@ -120,16 +120,16 @@ export default function ListeningExamPage() {
     // Process all questions to ensure continuous numbering 1-40
     const allQuestions = sections.flatMap(s => s.questions || []).map((q, idx) => ({
         ...q,
-        // Use the questionNumber from data if it exists and looks valid (not restarting at 1)
-        // Otherwise use index + 1
-        displayNumber: q.questionNumber || (idx + 1)
+        displayNumber: idx + 1
     }));
 
+    const globalStartIndex = sections.slice(0, currentSection).reduce((acc, s) => acc + (s.questions?.length || 0), 0);
+
     // Group questions for display in current section
-    const currentQuestions = (currentSec.questions || []).map(q => {
-        const found = allQuestions.find(aq => aq._id === q._id || (aq.questionNumber === q.questionNumber && aq.questionText === q.questionText));
-        return found ? found : q;
-    });
+    const currentQuestions = (currentSec.questions || []).map((q, idx) => ({
+        ...q,
+        displayNumber: globalStartIndex + idx + 1
+    }));
 
     const totalQuestions = allQuestions.length;
     const totalMarks = allQuestions.reduce((sum, q) => sum + (q.marks || 1), 0);
@@ -220,6 +220,20 @@ export default function ListeningExamPage() {
         if (audioRef.current) audioRef.current.volume = newVolume;
     };
 
+    const jumpToTime = (timestamp) => {
+        if (!audioRef.current || !timestamp) return;
+        let seconds = 0;
+        if (typeof timestamp === 'string' && timestamp.includes(':')) {
+            const [m, s] = timestamp.split(':').map(Number);
+            seconds = (m || 0) * 60 + (s || 0);
+        } else {
+            seconds = parseFloat(timestamp);
+        }
+        audioRef.current.currentTime = seconds;
+        audioRef.current.play();
+        setIsPlaying(true);
+    };
+
     const handleAnswer = (qId, value) => {
         setAnswers((prev) => ({ ...prev, [qId]: value }));
     };
@@ -243,7 +257,7 @@ export default function ListeningExamPage() {
     const calculateScore = () => {
         let score = 0;
         allQuestions.forEach(q => {
-            const userAnswer = answers[q.questionNumber];
+            const userAnswer = answers[q.displayNumber];
             if (userAnswer) {
                 const normalizedUser = userAnswer.toString().trim().toLowerCase();
                 const normalizedCorrect = q.correctAnswer?.toString().trim().toLowerCase();
@@ -264,7 +278,7 @@ export default function ListeningExamPage() {
 
         // Prepare detailed answers for admin review
         const detailedAnswers = allQuestions.map(q => {
-            const userAnswer = answers[q.questionNumber] || "";
+            const userAnswer = answers[q.displayNumber] || "";
 
             // For MCQ/matching, extract the letter (A, B, C, D) from the selected option
             let studentAnswerForComparison = userAnswer.toString().trim();
@@ -277,7 +291,7 @@ export default function ListeningExamPage() {
             }
 
             return {
-                questionNumber: q.questionNumber,
+                questionNumber: q.displayNumber, // Use display number as the reference for admin
                 questionText: q.questionText || "", // Include question text
                 questionType: q.questionType || "fill-in-blank",
                 studentAnswer: studentAnswerForComparison, // Store extracted letter for MCQ
@@ -538,7 +552,7 @@ export default function ListeningExamPage() {
                                 PART {currentSection + 1}
                             </h2>
                             <div className="text-xs font-medium text-gray-400 bg-white px-2 py-1 rounded border border-gray-200">
-                                Questions {globalStartIndex + 1}–{globalStartIndex + currentQuestions.length}
+                                Questions {currentQuestions[0]?.displayNumber}–{currentQuestions[currentQuestions.length - 1]?.displayNumber}
                             </div>
                         </div>
 
@@ -596,8 +610,8 @@ export default function ListeningExamPage() {
                                                                 </span>
                                                                 <input
                                                                     type="text"
-                                                                    value={answers[qNum] || ""}
-                                                                    onChange={(e) => handleAnswer(qNum, e.target.value)}
+                                                                    value={answers[displayNum] || ""}
+                                                                    onChange={(e) => handleAnswer(displayNum, e.target.value)}
                                                                     className="ml-1.5 border-b border-gray-300 px-2 py-0.5 w-36 text-gray-800 focus:outline-none focus:border-cyan-500 bg-transparent transition-all text-base font-medium placeholder:text-gray-300"
                                                                     placeholder="........"
                                                                 />
@@ -626,25 +640,26 @@ export default function ListeningExamPage() {
 
                                     while (i < qs.length) {
                                         const q = qs[i];
-                                        // Remove trailing parenthetical instructions to group "Choose TWO" questions
                                         const cleanText = q.questionText.replace(/\s*\([^)]+\)\s*$/g, '').trim();
                                         const group = [q];
                                         let j = i + 1;
 
                                         if (q.questionType === 'matching') {
-                                            // Group consecutive matching questions
                                             while (j < qs.length && qs[j].questionType === 'matching') {
                                                 group.push(qs[j]);
                                                 j++;
                                             }
                                             blocks.push({
                                                 type: 'matching',
-                                                text: q.questionText || "Choose the correct letter, A-G, next to questions.",
+                                                instruction: q.instruction || q.mainInstruction || "What opinion do the students give about each of the following modules on their veterinary science course?",
+                                                subInstruction: q.subInstruction || "Choose FOUR answers from the box and write the correct letter, A-F, next to questions.",
+                                                boxHeading: "Opinions",
+                                                listHeading: q.listHeading || "Modules on Veterinary Science course",
+                                                audioTimestamp: q.audioTimestamp,
                                                 questions: group,
                                                 isGrouped: true
                                             });
                                         } else {
-                                            // Detect if next questions are part of the same block
                                             while (j < qs.length &&
                                                 qs[j].questionText.replace(/\s*\([^)]+\)\s*$/g, '').trim() === cleanText &&
                                                 qs[j].questionType === q.questionType &&
@@ -655,6 +670,8 @@ export default function ListeningExamPage() {
                                             blocks.push({
                                                 type: q.questionType,
                                                 text: cleanText,
+                                                instruction: q.instruction || "",
+                                                audioTimestamp: q.audioTimestamp,
                                                 questions: group,
                                                 isGrouped: group.length > 1
                                             });
@@ -669,25 +686,48 @@ export default function ListeningExamPage() {
                                         const firstQ = block.questions[0];
 
                                         if (isMatching) {
+                                            const startQ = block.questions[0].displayNumber;
+                                            const endQ = block.questions[block.questions.length - 1].displayNumber;
+
                                             return (
-                                                <div key={bIdx} className="bg-white border border-gray-100 rounded-xl p-6 mb-6">
+                                                <div key={bIdx} className="mb-10">
+                                                    {/* Group Header */}
+                                                    <div className="mb-6">
+                                                        <h3 className="text-gray-800 font-bold text-lg mb-2">Questions {startQ}-{endQ}</h3>
+                                                        {block.audioTimestamp && (
+                                                            <button
+                                                                onClick={() => jumpToTime(block.audioTimestamp)}
+                                                                className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded shadow-sm text-sm font-medium hover:bg-gray-50 transition-colors mb-4"
+                                                            >
+                                                                <FaHeadphones className="text-cyan-600" /> Listen From Here
+                                                            </button>
+                                                        )}
+                                                        <p className="text-gray-700 mb-2 leading-relaxed">{block.instruction}</p>
+                                                        <p className="text-gray-800 font-bold italic text-[15px] mb-4">{block.subInstruction}</p>
+                                                    </div>
+
                                                     {/* Opinions Box */}
-                                                    <div className="border border-gray-200 rounded-lg overflow-hidden mb-6">
-                                                        <div className="bg-gray-50 px-4 py-1.5 border-b border-gray-200">
-                                                            <h4 className="font-bold text-gray-700 text-sm">Opinions</h4>
+                                                    <div className="border border-gray-200 rounded-lg overflow-hidden mb-8 max-w-2xl bg-white shadow-sm">
+                                                        <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                                                            <h4 className="font-bold text-gray-800 text-sm">{block.boxHeading}</h4>
                                                         </div>
-                                                        <div className="p-4 bg-white grid grid-cols-1 gap-2">
+                                                        <div className="p-4 grid grid-cols-1 gap-3">
                                                             {(firstQ.options || []).map((opt, idx) => (
-                                                                <div key={idx} className="flex gap-4 text-[15px]">
-                                                                    <span className="font-bold text-gray-900 w-4">{String.fromCharCode(65 + idx)}</span>
+                                                                <div key={idx} className="flex gap-4 text-[15px] items-start">
+                                                                    <span className="font-bold text-gray-900 w-4 flex-shrink-0">{String.fromCharCode(65 + idx)}</span>
                                                                     <span className="text-gray-600">{opt}</span>
                                                                 </div>
                                                             ))}
                                                         </div>
                                                     </div>
 
+                                                    {/* List Heading */}
+                                                    {block.listHeading && (
+                                                        <h4 className="font-bold text-gray-900 mb-4">{block.listHeading}</h4>
+                                                    )}
+
                                                     {/* Matching Questions List */}
-                                                    <div className="space-y-3">
+                                                    <div className="space-y-4 max-w-2xl">
                                                         {block.questions.map((q, idx) => (
                                                             <div key={idx} className="flex items-center gap-4 group">
                                                                 <div className="bg-white border border-gray-400 text-gray-700 w-8 h-8 flex items-center justify-center rounded font-bold text-sm flex-shrink-0">
@@ -696,8 +736,8 @@ export default function ListeningExamPage() {
                                                                 <p className="text-gray-700 font-medium text-[16px] flex-1">{q.questionText}</p>
                                                                 <div className="w-28">
                                                                     <select
-                                                                        value={answers[q.questionNumber] || ""}
-                                                                        onChange={(e) => handleAnswer(q.questionNumber, e.target.value)}
+                                                                        value={answers[q.displayNumber] || ""}
+                                                                        onChange={(e) => handleAnswer(q.displayNumber, e.target.value)}
                                                                         className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-base font-semibold text-gray-800 focus:border-cyan-500 focus:outline-none appearance-none text-center"
                                                                         style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.3rem center', backgroundSize: '1.2em' }}
                                                                     >
@@ -734,7 +774,7 @@ export default function ListeningExamPage() {
                                         };
 
                                         return (
-                                            <div key={bIdx} className="bg-white border border-gray-100 rounded-xl p-5 hover:bg-gray-50/50 transition-all">
+                                            <div id={`q-${block.questions[0].displayNumber}`} key={bIdx} className="bg-white border border-gray-100 rounded-xl p-5 hover:bg-gray-50/50 transition-all">
                                                 <div className="flex items-start gap-3 mb-4">
                                                     <span className="text-gray-700 font-bold text-lg pt-0.5">
                                                         {qNumbers.length > 1 ? `${block.questions[0].displayNumber} & ${block.questions[block.questions.length - 1].displayNumber}` : block.questions[0].displayNumber}
@@ -753,7 +793,7 @@ export default function ListeningExamPage() {
                                                         return (
                                                             <div
                                                                 key={idx}
-                                                                onClick={() => isMulti ? handleMultiSelect(label) : handleAnswer(firstQ.questionNumber, label)}
+                                                                onClick={() => isMulti ? handleMultiSelect(label) : handleAnswer(firstQ.displayNumber, label)}
                                                                 className="flex items-start gap-4 cursor-pointer group/item"
                                                             >
                                                                 <div className={`
@@ -777,8 +817,8 @@ export default function ListeningExamPage() {
                                                         <div className="max-w-md mt-1">
                                                             <input
                                                                 type="text"
-                                                                value={answers[firstQ.questionNumber] || ""}
-                                                                onChange={(e) => handleAnswer(firstQ.questionNumber, e.target.value)}
+                                                                value={answers[firstQ.displayNumber] || ""}
+                                                                onChange={(e) => handleAnswer(firstQ.displayNumber, e.target.value)}
                                                                 placeholder="Write your answer..."
                                                                 className="w-full border-b border-gray-300 bg-transparent px-2 py-1 text-base focus:border-cyan-500 focus:outline-none transition-all"
                                                             />
@@ -845,11 +885,10 @@ export default function ListeningExamPage() {
 
                     <div className="flex flex-wrap gap-1.5">
                         {(currentSec.questions || []).map((q, idx) => {
-                            const questionId = q.questionNumber;
-                            const isAnswered = answers[questionId] && answers[questionId] !== "";
-                            const globalQNum = sections.slice(0, currentSection).reduce((acc, s) => acc + (s.questions?.length || 0), 0) + idx + 1;
+                            const globalQNum = globalStartIndex + idx + 1;
+                            const isAnswered = answers[globalQNum] && answers[globalQNum] !== "";
                             const scrollToIndex = () => {
-                                const element = document.getElementById(`q-${questionId}`);
+                                const element = document.getElementById(`q-${globalQNum}`);
                                 if (element) {
                                     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                 }
@@ -857,7 +896,7 @@ export default function ListeningExamPage() {
 
                             return (
                                 <button
-                                    key={questionId}
+                                    key={globalQNum}
                                     onClick={scrollToIndex}
                                     className={`w-8 h-8 rounded text-[12px] font-bold cursor-pointer transition-all ${isAnswered
                                         ? "bg-green-600 text-white shadow-sm border border-green-700"
