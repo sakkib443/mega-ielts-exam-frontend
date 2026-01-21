@@ -171,12 +171,6 @@ export default function ReadingExamPage() {
 
 
 
-    // Security: Request fullscreen when exam starts
-    useEffect(() => {
-        if (!showInstructions && !isLoading && !isFullscreen) {
-            enterFullscreen();
-        }
-    }, [showInstructions, isLoading]);
 
     const handleAnswer = (qId, value) => {
         setAnswers((prev) => ({ ...prev, [qId]: value }));

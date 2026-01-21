@@ -143,11 +143,6 @@ const initialState = {
     // Flags
     flaggedQuestions: [],
 
-    // Anti-cheat
-    tabSwitchCount: 0,
-    isFullscreen: false,
-    examWarning: null,
-
     // Status
     examStatus: "idle", // 'idle', 'in-progress', 'paused', 'submitted'
     isSubmitting: false,
@@ -222,21 +217,6 @@ const examSlice = createSlice({
             state.timerRunning = false;
         },
 
-        // Fullscreen & Anti-cheat
-        setFullscreen: (state, action) => {
-            state.isFullscreen = action.payload;
-        },
-
-        incrementTabSwitch: (state) => {
-            state.tabSwitchCount += 1;
-            if (state.tabSwitchCount >= 3) {
-                state.examWarning = "You have switched tabs multiple times. This may affect your exam.";
-            }
-        },
-
-        clearWarning: (state) => {
-            state.examWarning = null;
-        },
 
         // Exam Status
         setExamStatus: (state, action) => {
@@ -257,9 +237,6 @@ const examSlice = createSlice({
                 speaking: {},
             };
             state.flaggedQuestions = [];
-            state.tabSwitchCount = 0;
-            state.isFullscreen = false;
-            state.examWarning = null;
             state.examStatus = "idle";
             state.result = null;
         },
@@ -343,9 +320,6 @@ export const {
     decrementTimer,
     startTimer,
     pauseTimer,
-    setFullscreen,
-    incrementTabSwitch,
-    clearWarning,
     setExamStatus,
     resetExam,
     clearError,

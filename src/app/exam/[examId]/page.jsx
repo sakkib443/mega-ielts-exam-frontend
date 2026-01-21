@@ -97,39 +97,6 @@ export default function ExamSelectionPage() {
         loadSessionAndVerify();
     }, [sessionId]);
 
-    // Refresh completed modules from DATABASE when page becomes visible
-    useEffect(() => {
-        const handleVisibilityChange = async () => {
-            if (document.visibilityState === 'visible') {
-                const storedSession = localStorage.getItem("examSession");
-                if (storedSession) {
-                    try {
-                        const parsed = JSON.parse(storedSession);
-
-                        // Fetch fresh data from database
-                        const verifyResponse = await studentsAPI.verifyExamId(parsed.examId);
-                        if (verifyResponse.success && verifyResponse.data) {
-                            const dbCompletedModules = verifyResponse.data.completedModules || [];
-                            const dbScores = verifyResponse.data.scores || null;
-
-                            setCompletedModules(dbCompletedModules);
-                            if (dbScores) setModuleScores(dbScores);
-
-                            // Update localStorage
-                            parsed.completedModules = dbCompletedModules;
-                            parsed.scores = dbScores;
-                            localStorage.setItem("examSession", JSON.stringify(parsed));
-                        }
-                    } catch (e) {
-                        console.error("Error refreshing from database:", e);
-                    }
-                }
-            }
-        };
-
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }, []);
 
     if (isLoading) {
         return (
