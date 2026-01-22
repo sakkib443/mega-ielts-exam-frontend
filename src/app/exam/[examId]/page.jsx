@@ -196,38 +196,43 @@ export default function ExamSelectionPage() {
             <div className="max-w-5xl mx-auto px-4 py-10">
                 {/* Check if all modules are completed */}
                 {completedModules.length >= 3 ? (
-                    <div className="text-center py-16 px-4 bg-green-50 rounded-2xl border-2 border-green-100 shadow-sm">
-                        <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <FaCheckCircle className="text-5xl" />
+                    <div className="text-center py-16 px-4 bg-gradient-to-br from-green-50 to-cyan-50 rounded-2xl border-2 border-green-100 shadow-sm">
+                        <div className="w-28 h-28 bg-gradient-to-br from-green-400 to-green-600 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                            <FaCheckCircle className="text-6xl" />
                         </div>
-                        <h1 className="text-3xl font-bold text-gray-800 mb-3">
-                            Examination Completed!
+                        <h1 className="text-4xl font-bold text-gray-800 mb-3">
+                            🎉 Thank You!
                         </h1>
+                        <h2 className="text-2xl font-semibold text-green-600 mb-4">
+                            Examination Completed Successfully
+                        </h2>
                         <p className="text-gray-600 max-w-lg mx-auto mb-8 text-lg">
-                            Well done, {session?.studentName}! You have successfully completed all three modules of the IELTS Academic Test.
+                            Congratulations, <span className="font-semibold text-gray-800">{session?.studentName}</span>! You have successfully completed all three modules of the IELTS Academic Test.
                         </p>
 
-                        {/* Submission Status Box - No Scores Shown */}
-                        <div className="bg-white p-6 rounded-xl border border-green-200 shadow-sm inline-block min-w-[300px] mb-8">
-                            <div className="flex items-center justify-center gap-3 mb-3">
-                                <FaCheckCircle className="text-green-600 text-2xl" />
-                                <p className="text-gray-700 font-semibold text-lg">All Modules Submitted</p>
+                        {/* Submission Status Box */}
+                        <div className="bg-white p-8 rounded-xl border border-green-200 shadow-sm inline-block min-w-[350px] mb-8">
+                            <div className="flex items-center justify-center gap-3 mb-4">
+                                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                                    <FaCheckCircle className="text-green-600 text-2xl" />
+                                </div>
                             </div>
-                            <p className="text-gray-500 text-sm">
-                                Your responses are being reviewed by our examiners. Results will be available once the evaluation is complete.
+                            <p className="text-gray-800 font-bold text-xl mb-2">All Modules Submitted</p>
+                            <p className="text-gray-500 text-sm mb-4">
+                                Your responses are being reviewed by our examiners.
                             </p>
+                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-left">
+                                <p className="text-amber-700 text-sm">
+                                    <strong>📋 What's Next?</strong><br />
+                                    Results will be available once the evaluation is complete. Please contact your instructor for more information.
+                                </p>
+                            </div>
                         </div>
 
-                        <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-                            <button
-                                onClick={() => {
-                                    localStorage.removeItem("examSession");
-                                    router.push("/start-exam");
-                                }}
-                                className="w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 text-white px-8 py-3.5 rounded-xl font-bold hover:bg-green-700 hover:shadow-lg transition-all active:scale-95"
-                            >
-                                Exit Exam Session
-                            </button>
+                        {/* Student Info */}
+                        <div className="text-gray-400 text-sm">
+                            <p>Exam ID: <span className="font-mono font-semibold text-gray-600">{session?.examId}</span></p>
+                            <p className="mt-1">You may now close this window.</p>
                         </div>
                     </div>
                 ) : (

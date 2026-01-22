@@ -10,6 +10,7 @@ import {
     FaCheck,
     FaClock
 } from "react-icons/fa";
+import { studentsAPI } from "@/lib/api";
 
 export default function FullExamPage() {
     const params = useParams();
