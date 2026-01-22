@@ -12,7 +12,8 @@ import {
     FaPause,
     FaPlay,
     FaTimes,
-    FaSpinner
+    FaSpinner,
+    FaArrowRight
 } from "react-icons/fa";
 import { questionSetsAPI, studentsAPI } from "@/lib/api";
 import ExamSecurity from "@/components/ExamSecurity";
@@ -475,7 +476,7 @@ export default function ListeningExamPage() {
                 </div>
             </div>
 
-            {/* Audio Player - Simple */}
+            {/* Audio Player - No Seeking Allowed */}
             <div className="bg-gray-100 border-b border-gray-200 px-4 py-4">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex items-center gap-4">
@@ -487,55 +488,27 @@ export default function ListeningExamPage() {
                             {isPlaying ? <FaPause /> : <FaPlay className="ml-1" />}
                         </button>
 
-                        {/* Progress Bar - Draggable */}
+                        {/* Progress Bar - Read Only (No Seeking) */}
                         <div className="flex-1">
-                            <div className="relative">
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max={duration || 100}
-                                    value={currentTime}
-                                    onChange={(e) => {
-                                        const newTime = parseFloat(e.target.value);
-                                        setCurrentTime(newTime);
-                                        if (audioRef.current) {
-                                            audioRef.current.currentTime = newTime;
-                                        }
-                                    }}
-                                    className="w-full h-2 rounded-full cursor-pointer"
-                                    style={{
-                                        WebkitAppearance: 'none',
-                                        appearance: 'none',
-                                        background: `linear-gradient(to right, #0891b2 0%, #0891b2 ${(currentTime / (duration || 100)) * 100}%, #e5e7eb ${(currentTime / (duration || 100)) * 100}%, #e5e7eb 100%)`,
-                                        outline: 'none',
-                                    }}
+                            <div className="relative h-3 bg-gray-300 rounded-full overflow-hidden">
+                                {/* Filled Progress */}
+                                <div
+                                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-full transition-all duration-300"
+                                    style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
                                 />
-                                <style jsx>{`
-                                    input[type="range"]::-webkit-slider-thumb {
-                                        -webkit-appearance: none;
-                                        appearance: none;
-                                        width: 16px;
-                                        height: 16px;
-                                        background: #0891b2;
-                                        border-radius: 50%;
-                                        cursor: pointer;
-                                        border: 2px solid white;
-                                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                                    }
-                                    input[type="range"]::-moz-range-thumb {
-                                        width: 16px;
-                                        height: 16px;
-                                        background: #0891b2;
-                                        border-radius: 50%;
-                                        cursor: pointer;
-                                        border: 2px solid white;
-                                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                                    }
-                                `}</style>
-                            </div>
-                            <div className="flex justify-between text-xs text-gray-600 mt-1">
-                                <span className="font-mono">{formatTime(currentTime)}</span>
-                                <span className="font-mono">{formatTime(duration)}</span>
+                                {/* Moving Bullet Indicator */}
+                                <div
+                                    className="absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-cyan-600 rounded-full border-3 border-white shadow-lg transition-all duration-300"
+                                    style={{
+                                        left: `calc(${(currentTime / (duration || 1)) * 100}% - 10px)`,
+                                        boxShadow: '0 0 0 3px rgba(8, 145, 178, 0.3), 0 2px 6px rgba(0,0,0,0.3)'
+                                    }}
+                                >
+                                    {/* Pulsing animation when playing */}
+                                    {isPlaying && (
+                                        <span className="absolute inset-0 rounded-full bg-cyan-400 animate-ping opacity-50" />
+                                    )}
+                                </div>
                             </div>
                         </div>
 

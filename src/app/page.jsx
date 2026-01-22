@@ -17,7 +17,8 @@ import {
     FaLaptop,
     FaWifi,
     FaTimes,
-    FaExclamationCircle
+    FaExclamationCircle,
+    FaArrowRight
 } from "react-icons/fa";
 import { LuGraduationCap, LuShieldCheck } from "react-icons/lu";
 import { HiOutlineDocumentText } from "react-icons/hi";
