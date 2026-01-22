@@ -16,9 +16,15 @@ export default function FullExamPage() {
     const params = useParams();
     const router = useRouter();
 
+    const [isClient, setIsClient] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [currentModule, setCurrentModule] = useState(0);
     const [moduleResults, setModuleResults] = useState({});
     const [countdown, setCountdown] = useState(5);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const modules = [
         { id: "listening", name: "Listening", icon: <FaHeadphones />, duration: 40, questions: 40 },
@@ -26,91 +32,112 @@ export default function FullExamPage() {
         { id: "writing", name: "Writing", icon: <FaPen />, duration: 60, questions: 2 }
     ];
 
-    const calculateOverallBand = () => {
-        const listening = moduleResults.listening?.bandScore || 0;
-        const reading = moduleResults.reading?.bandScore || 0;
-        const writing = moduleResults.writing?.bandScore || 0;
-
-        if (listening && reading && writing) {
-            const overall = (listening + reading + writing) / 3;
-            return Math.round(overall * 2) / 2;
-        }
-        return 0;
-    };
-
     useEffect(() => {
-        // Load session to check completion
-        const storedSession = localStorage.getItem("examSession");
-        if (storedSession) {
-            const parsed = JSON.parse(storedSession);
+        if (!isClient) return;
 
-            // Check localStorage first for immediate feedback
-            if (parsed.completedModules && parsed.completedModules.length >= 3) {
-                router.push(`/exam/${params.examId}`);
-                return;
-            }
+        const loadAndCheck = async () => {
+            try {
+                // Load session to check completion
+                const storedSession = localStorage.getItem("examSession");
+                if (storedSession) {
+                    const parsed = JSON.parse(storedSession);
 
-            // Also verify with DATABASE for cross-tab consistency
-            studentsAPI.verifyExamId(parsed.examId).then(response => {
-                if (response.success && response.data) {
-                    const dbCompletedModules = response.data.completedModules || [];
-                    if (dbCompletedModules.length >= 3) {
-                        // Update localStorage and redirect
-                        parsed.completedModules = dbCompletedModules;
-                        localStorage.setItem("examSession", JSON.stringify(parsed));
+                    // Check localStorage first
+                    if (parsed && parsed.completedModules && Array.isArray(parsed.completedModules) && parsed.completedModules.length >= 3) {
                         router.push(`/exam/${params.examId}`);
+                        return;
+                    }
+
+                    // Also verify with DATABASE
+                    try {
+                        const response = await studentsAPI.verifyExamId(parsed.examId);
+                        if (response.success && response.data) {
+                            const dbCompletedModules = response.data.completedModules || [];
+                            if (dbCompletedModules.length >= 3) {
+                                parsed.completedModules = dbCompletedModules;
+                                localStorage.setItem("examSession", JSON.stringify(parsed));
+                                router.push(`/exam/${params.examId}`);
+                                return;
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Completion verify error:", err);
                     }
                 }
-            }).catch(err => console.error("Completion verify error:", err));
-        }
 
-        const checkResults = () => {
-            const results = {};
+                // Check local results for each module
+                const checkResults = () => {
+                    const results = {};
+                    try {
+                        const listening = localStorage.getItem(`exam_${params.examId}_listening`);
+                        if (listening) results.listening = JSON.parse(listening);
 
-            const listening = localStorage.getItem(`exam_${params.examId}_listening`);
-            if (listening) results.listening = JSON.parse(listening);
+                        const reading = localStorage.getItem(`exam_${params.examId}_reading`);
+                        if (reading) results.reading = JSON.parse(reading);
 
-            const reading = localStorage.getItem(`exam_${params.examId}_reading`);
-            if (reading) results.reading = JSON.parse(reading);
+                        const writing = localStorage.getItem(`exam_${params.examId}_writing`);
+                        if (writing) results.writing = JSON.parse(writing);
 
-            const writing = localStorage.getItem(`exam_${params.examId}_writing`);
-            if (writing) results.writing = JSON.parse(writing);
+                        setModuleResults(results);
 
-            setModuleResults(results);
+                        if (!results.listening) {
+                            setCurrentModule(0);
+                        } else if (!results.reading) {
+                            setCurrentModule(1);
+                        } else if (!results.writing) {
+                            setCurrentModule(2);
+                        } else {
+                            router.push(`/exam/${params.examId}/result?module=full`);
+                        }
+                    } catch (e) {
+                        console.error("Error parsing module results:", e);
+                    }
+                };
 
-            if (!results.listening) {
-                setCurrentModule(0);
-            } else if (!results.reading) {
-                setCurrentModule(1);
-            } else if (!results.writing) {
-                setCurrentModule(2);
-            } else {
-                // All modules completed - redirect to result page (no scores in URL)
-                router.push(`/exam/${params.examId}/result?module=full`);
+                checkResults();
+                setIsLoading(false);
+
+                const interval = setInterval(checkResults, 2000);
+                return () => clearInterval(interval);
+            } catch (error) {
+                console.error("Initialization error:", error);
+                setIsLoading(false);
             }
         };
 
-        checkResults();
-
-        const interval = setInterval(checkResults, 1000);
-        return () => clearInterval(interval);
-    }, [params.examId]);
+        loadAndCheck();
+    }, [isClient, params.examId, router]);
 
     useEffect(() => {
+        if (isLoading || !isClient) return;
+
         if (countdown > 0) {
             const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
             return () => clearTimeout(timer);
         } else if (countdown === 0) {
             startCurrentModule();
         }
-    }, [countdown]);
+    }, [countdown, isLoading, isClient]);
 
     const startCurrentModule = () => {
         const module = modules[currentModule];
-        router.push(`/exam/${params.examId}/${module.id}`);
+        if (module && params.examId) {
+            router.push(`/exam/${params.examId}/${module.id}`);
+        }
     };
 
-    const currentMod = modules[currentModule];
+    const currentMod = modules[currentModule] || modules[0];
+
+    if (!isClient || isLoading) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <div className="text-center">
+                    <FaClock className="animate-spin text-4xl text-cyan-600 mx-auto mb-4" />
+                    <p className="text-gray-600">Preparing exam session...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-white flex flex-col">
