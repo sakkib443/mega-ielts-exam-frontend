@@ -12,6 +12,9 @@ import { studentsAPI } from "@/lib/api";
  * - Reports violations to backend
  */
 export default function ExamSecurity({ examId, onViolationLimit = () => { } }) {
+    // SECURITY MUTED FOR DEVELOPMENT
+    return null;
+
     const [violations, setViolations] = useState(0);
     const [showWarning, setShowWarning] = useState(false);
     const [warningType, setWarningType] = useState("");

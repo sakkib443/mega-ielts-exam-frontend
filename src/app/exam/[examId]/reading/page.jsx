@@ -97,85 +97,7 @@ export default function ReadingExamPage() {
                     const sectionsData = data.sections || data.passages || (Array.isArray(data) ? data : []);
                     console.log("Sections to process:", sectionsData);
 
-                    // Assign global continuous question numbers
-                    let globalCounter = 0;
-                    if (sectionsData && sectionsData.length > 0) {
-                        sectionsData.forEach(section => {
-                            // Update direct questions
-                            if (section.questions) {
-                                section.questions.forEach(q => {
-                                    globalCounter++;
-                                    q.questionNumber = globalCounter;
-                                });
-                            }
-
-                            // Update question groups
-                            if (section.questionGroups) {
-                                section.questionGroups.forEach(group => {
-                                    // Fallback for missing questionType if groupType exists
-                                    if (!group.questionType && group.groupType) {
-                                        group.questionType = group.groupType;
-                                    }
-
-                                    // q.questions
-                                    if (group.questions) {
-                                        group.questions.forEach(q => {
-                                            globalCounter++;
-                                            q.questionNumber = globalCounter;
-                                        });
-                                    }
-
-                                    // notesSections
-                                    group.notesSections?.forEach(s => {
-                                        s.bullets?.forEach(b => {
-                                            if (b.type === "question" || (b.type !== "context" && b.correctAnswer)) {
-                                                globalCounter++;
-                                                b.questionNumber = globalCounter;
-                                            }
-                                        });
-                                    });
-
-                                    // statements
-                                    group.statements?.forEach(s => {
-                                        globalCounter++;
-                                        s.questionNumber = globalCounter;
-                                    });
-
-                                    // matchingItems
-                                    group.matchingItems?.forEach(i => {
-                                        globalCounter++;
-                                        i.questionNumber = globalCounter;
-                                    });
-
-                                    // summarySegments
-                                    group.summarySegments?.forEach(s => {
-                                        if (s.type === "blank") {
-                                            globalCounter++;
-                                            s.questionNumber = globalCounter;
-                                        }
-                                    });
-
-                                    // questionSets
-                                    group.questionSets?.forEach(qs => {
-                                        if (qs.questionNumbers) {
-                                            const newNums = [];
-                                            for (let i = 0; i < qs.questionNumbers.length; i++) {
-                                                globalCounter++;
-                                                newNums.push(globalCounter);
-                                            }
-                                            qs.questionNumbers = newNums;
-                                        }
-                                    });
-
-                                    // mcQuestions
-                                    group.mcQuestions?.forEach(q => {
-                                        globalCounter++;
-                                        q.questionNumber = globalCounter;
-                                    });
-                                });
-                            }
-                        });
-                    }
+                    // Remove auto-numbering to trust DB provided numbers
                     // Normalize data structure for frontend
                     data.sections = sectionsData;
                     console.log("Final Processed Data:", data);
@@ -196,71 +118,65 @@ export default function ReadingExamPage() {
 
     // Build passages from question set sections
     const passages = (questionSet?.sections || questionSet?.passages || []).map((section, index) => {
-        // Extract questions from section.questions array AND from questionGroups
-        const sectionQuestions = [];
+        // Create a map to store unique questions by their number
+        const questionMap = new Map();
 
-        // 1. Direct questions
+        // 1. Collect direct questions (these usually have correct answers and metadata)
         if (section.questions) {
             section.questions.forEach(q => {
-                sectionQuestions.push({
+                questionMap.set(q.questionNumber, {
                     id: q.questionNumber,
                     questionNumber: q.questionNumber,
                     type: q.questionType,
                     text: q.questionText,
                     options: q.options || [],
-                    marks: q.marks || 1
+                    marks: q.marks || 1,
+                    correctAnswer: q.correctAnswer
                 });
             });
         }
 
-        // 2. Questions inside questionGroups
+        // 2. Questions inside questionGroups (these are used for display)
         if (section.questionGroups) {
             section.questionGroups.forEach(group => {
                 const qType = group.questionType || group.groupType;
 
-                // Support various question storage structures
-                const processItems = (items) => {
-                    items?.forEach(item => {
-                        if (item.questionNumber) {
-                            sectionQuestions.push({
-                                id: item.questionNumber,
-                                questionNumber: item.questionNumber,
-                                type: qType,
-                                text: item.text || item.questionText || "",
-                                options: item.options || [],
-                                marks: item.marks || 1
-                            });
-                        }
-                    });
+                const processItem = (item) => {
+                    if (item && item.questionNumber) {
+                        const existing = questionMap.get(item.questionNumber) || {};
+                        questionMap.set(item.questionNumber, {
+                            ...existing,
+                            id: item.questionNumber,
+                            questionNumber: item.questionNumber,
+                            type: existing.type || qType,
+                            text: existing.text || item.text || item.questionText || "",
+                            options: existing.options?.length ? existing.options : (item.options || []),
+                            marks: existing.marks || item.marks || 1
+                        });
+                    }
                 };
 
-                processItems(group.questions);
-                processItems(group.mcQuestions);
-                processItems(group.statements);
-                processItems(group.matchingItems);
+                group.questions?.forEach(processItem);
+                group.mcQuestions?.forEach(processItem);
+                group.statements?.forEach(processItem);
+                group.matchingItems?.forEach(processItem);
 
                 group.notesSections?.forEach(s => {
                     s.bullets?.forEach(b => {
-                        if (b.questionNumber) {
-                            sectionQuestions.push({
-                                id: b.questionNumber,
-                                questionNumber: b.questionNumber,
-                                type: qType,
-                                text: b.textBefore || "",
-                                marks: b.marks || 1
-                            });
-                        }
+                        if (b.questionNumber) processItem(b);
                     });
                 });
 
                 group.summarySegments?.forEach(s => {
                     if (s.questionNumber) {
-                        sectionQuestions.push({
+                        const existing = questionMap.get(s.questionNumber) || {};
+                        questionMap.set(s.questionNumber, {
+                            ...existing,
                             id: s.questionNumber,
                             questionNumber: s.questionNumber,
-                            type: qType,
-                            text: `Blank ${s.questionNumber}`,
-                            marks: s.marks || 1
+                            type: existing.type || qType,
+                            text: existing.text || `Blank ${s.questionNumber}`,
+                            marks: existing.marks || 1
                         });
                     }
                 });
@@ -268,11 +184,13 @@ export default function ReadingExamPage() {
                 if (group.questionSets) {
                     group.questionSets.forEach(qs => {
                         qs.questionNumbers?.forEach(num => {
-                            sectionQuestions.push({
+                            const existing = questionMap.get(num) || {};
+                            questionMap.set(num, {
+                                ...existing,
                                 id: num,
                                 questionNumber: num,
-                                type: qType,
-                                text: `Multiple Question ${num}`,
+                                type: existing.type || qType,
+                                text: existing.text || `Multiple Question ${num}`,
                                 marks: 1
                             });
                         });
@@ -281,8 +199,8 @@ export default function ReadingExamPage() {
             });
         }
 
-        // Combine both sources and sort by question number
-        const allSectionQuestions = sectionQuestions.sort((a, b) => a.questionNumber - b.questionNumber);
+        // Convert Map back to array and sort
+        const allSectionQuestions = Array.from(questionMap.values()).sort((a, b) => a.questionNumber - b.questionNumber);
 
         return {
             id: section.sectionNumber || index + 1,

@@ -560,6 +560,18 @@ export default function ListeningExamPage() {
                             {currentSec.title}
                         </h1>
 
+                        {/* Section Image */}
+                        {currentSec.imageUrl && (
+                            <div className="mb-8 p-4 bg-white border border-gray-100 rounded-xl shadow-sm inline-block">
+                                <img
+                                    src={currentSec.imageUrl}
+                                    alt="Section Diagram"
+                                    className="max-w-full h-auto rounded-lg"
+                                    style={{ maxHeight: '500px' }}
+                                />
+                            </div>
+                        )}
+
                         {/* Note/Passage Rendering */}
                         {currentSec.passage ? (
                             <div className="max-w-3xl">
@@ -667,53 +679,49 @@ export default function ListeningExamPage() {
                                     }
 
                                     return blocks.map((block, bIdx) => {
-                                        const isMulti = block.type === 'multiple-choice' && block.isGrouped;
+                                        const isMulti = (block.type === 'multiple-choice' || block.type === 'multiple-choice-multi') && block.isGrouped;
                                         const isMatching = block.type === 'matching';
                                         const qNumbers = block.questions.map(q => q.displayNumber);
                                         const firstQ = block.questions[0];
 
                                         if (isMatching) {
+                                            // ... matching logic remains same as updated before ...
                                             const startQ = block.questions[0].displayNumber;
                                             const endQ = block.questions[block.questions.length - 1].displayNumber;
+                                            const isMapOrSimpleMatching = (firstQ.options || []).every(o => o.length <= 2);
 
                                             return (
-                                                <div key={bIdx} className="mb-10">
-                                                    {/* Group Header */}
+                                                <div key={bIdx} className="mb-10" id={`q-${startQ}`}>
                                                     <div className="mb-6">
-                                                        <h3 className="text-gray-800 font-bold text-lg mb-2">Questions {startQ}-{endQ}</h3>
-                                                        {block.audioTimestamp && (
-                                                            <button
-                                                                onClick={() => jumpToTime(block.audioTimestamp)}
-                                                                className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded shadow-sm text-sm font-medium hover:bg-gray-50 transition-colors mb-4"
-                                                            >
+                                                        <h3 className="text-gray-800 font-bold text-lg mb-2">Questions {startQ}–{endQ}</h3>
+                                                        {firstQ.audioTimestamp && (
+                                                            <button onClick={() => jumpToTime(firstQ.audioTimestamp)} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded shadow-sm text-sm font-medium hover:bg-gray-50 transition-colors mb-4">
                                                                 <FaHeadphones className="text-cyan-600" /> Listen From Here
                                                             </button>
                                                         )}
-                                                        <p className="text-gray-700 mb-2 leading-relaxed">{block.instruction}</p>
-                                                        <p className="text-gray-800 font-bold italic text-[15px] mb-4">{block.subInstruction}</p>
+                                                        <p className="text-gray-700 mb-2 leading-relaxed">{block.instruction || firstQ.mainInstruction}</p>
+                                                        {block.subInstruction && <p className="text-gray-800 font-bold italic text-[15px] mb-4">{block.subInstruction}</p>}
                                                     </div>
-
-                                                    {/* Opinions Box */}
-                                                    <div className="border border-gray-200 rounded-lg overflow-hidden mb-8 max-w-2xl bg-white shadow-sm">
-                                                        <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-                                                            <h4 className="font-bold text-gray-800 text-sm">{block.boxHeading}</h4>
+                                                    {firstQ.imageUrl && (
+                                                        <div className="mb-8 p-4 bg-white border border-gray-100 rounded-xl shadow-sm inline-block">
+                                                            <img src={firstQ.imageUrl} alt="Question Diagram" className="max-w-full h-auto rounded-lg" style={{ maxHeight: '600px' }} />
                                                         </div>
-                                                        <div className="p-4 grid grid-cols-1 gap-3">
-                                                            {(firstQ.options || []).map((opt, idx) => (
-                                                                <div key={idx} className="flex gap-4 text-[15px] items-start">
-                                                                    <span className="font-bold text-gray-900 w-4 flex-shrink-0">{String.fromCharCode(65 + idx)}</span>
-                                                                    <span className="text-gray-600">{opt}</span>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-
-                                                    {/* List Heading */}
-                                                    {block.listHeading && (
-                                                        <h4 className="font-bold text-gray-900 mb-4">{block.listHeading}</h4>
                                                     )}
-
-                                                    {/* Matching Questions List */}
+                                                    {!isMapOrSimpleMatching && (
+                                                        <div className="border border-gray-200 rounded-lg overflow-hidden mb-8 max-w-2xl bg-white shadow-sm">
+                                                            <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                                                                <h4 className="font-bold text-gray-800 text-sm">{block.boxHeading || "Options"}</h4>
+                                                            </div>
+                                                            <div className="p-4 grid grid-cols-1 gap-3">
+                                                                {(firstQ.options || []).map((opt, idx) => (
+                                                                    <div key={idx} className="flex gap-4 text-[15px] items-start">
+                                                                        <span className="font-bold text-gray-900 w-4 flex-shrink-0">{String.fromCharCode(65 + idx)}</span>
+                                                                        <span className="text-gray-600">{opt}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                     <div className="space-y-4 max-w-2xl">
                                                         {block.questions.map((q, idx) => (
                                                             <div key={idx} className="flex items-center gap-4 group">
@@ -722,17 +730,10 @@ export default function ListeningExamPage() {
                                                                 </div>
                                                                 <p className="text-gray-700 font-medium text-[16px] flex-1">{q.questionText}</p>
                                                                 <div className="w-28">
-                                                                    <select
-                                                                        value={answers[q.displayNumber] || ""}
-                                                                        onChange={(e) => handleAnswer(q.displayNumber, e.target.value)}
-                                                                        className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-base font-semibold text-gray-800 focus:border-cyan-500 focus:outline-none appearance-none text-center"
-                                                                        style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.3rem center', backgroundSize: '1.2em' }}
-                                                                    >
+                                                                    <select value={answers[q.displayNumber] || ""} onChange={(e) => handleAnswer(q.displayNumber, e.target.value)} className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-base font-semibold text-gray-800 focus:border-cyan-500 focus:outline-none appearance-none text-center" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.3rem center', backgroundSize: '1.2em' }}>
                                                                         <option value=""></option>
                                                                         {(firstQ.options || []).map((_, oIdx) => (
-                                                                            <option key={oIdx} value={String.fromCharCode(65 + oIdx)}>
-                                                                                {String.fromCharCode(65 + oIdx)}
-                                                                            </option>
+                                                                            <option key={oIdx} value={String.fromCharCode(65 + oIdx)}>{String.fromCharCode(65 + oIdx)}</option>
                                                                         ))}
                                                                     </select>
                                                                 </div>
@@ -743,56 +744,72 @@ export default function ListeningExamPage() {
                                             );
                                         }
 
-                                        const handleMultiSelect = (option) => {
+                                        const handleMultiSelect = (optionLabel) => {
                                             const currentSelected = qNumbers.map(n => answers[n]).filter(Boolean);
-                                            const isAlreadySelected = currentSelected.includes(option);
+                                            const isAlreadySelected = currentSelected.includes(optionLabel);
 
                                             if (isAlreadySelected) {
-                                                // Deselect: Find which question had this option and clear it
-                                                const qToClear = qNumbers.find(n => answers[n] === option);
+                                                const qToClear = qNumbers.find(n => answers[n] === optionLabel);
                                                 if (qToClear) handleAnswer(qToClear, "");
                                             } else {
-                                                // Select: Find the first empty question ID in the group
                                                 if (currentSelected.length < qNumbers.length) {
                                                     const emptyQ = qNumbers.find(n => !answers[n]);
-                                                    if (emptyQ) handleAnswer(emptyQ, option);
+                                                    if (emptyQ) handleAnswer(emptyQ, optionLabel);
                                                 }
                                             }
                                         };
 
                                         return (
-                                            <div id={`q-${block.questions[0].displayNumber}`} key={bIdx} className="bg-white border border-gray-100 rounded-xl p-5 hover:bg-gray-50/50 transition-all">
-                                                <div className="flex items-start gap-3 mb-4">
-                                                    <span className="text-gray-700 font-bold text-lg pt-0.5">
-                                                        {qNumbers.length > 1 ? `${block.questions[0].displayNumber} & ${block.questions[block.questions.length - 1].displayNumber}` : block.questions[0].displayNumber}
-                                                    </span>
+                                            <div id={`q-${firstQ.displayNumber}`} key={bIdx} className="bg-white border border-gray-100 rounded-xl p-6 hover:bg-gray-50/50 transition-all mb-8 shadow-sm">
+                                                {/* Block Header Information */}
+                                                <div className="mb-4">
+                                                    {isMulti && (
+                                                        <p className="text-gray-800 font-bold mb-3">{firstQ.mainInstruction || `Questions ${qNumbers[0]}–${qNumbers[qNumbers.length - 1]}`}</p>
+                                                    )}
+                                                    {firstQ.audioTimestamp && (
+                                                        <button onClick={() => jumpToTime(firstQ.audioTimestamp)} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded shadow-sm text-sm font-medium hover:bg-gray-50 transition-colors mb-4">
+                                                            <FaHeadphones className="text-cyan-600" /> Listen From Here
+                                                        </button>
+                                                    )}
+                                                    {isMulti && (
+                                                        <p className="text-gray-800 font-bold italic text-[15px] mb-4">Choose {qNumbers.length} letters, A-E.</p>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex items-start gap-3 mb-6">
+                                                    <div className="flex gap-1 flex-shrink-0">
+                                                        {qNumbers.map(num => (
+                                                            <span key={num} className="border-2 border-gray-800 text-gray-800 font-bold w-9 h-9 flex items-center justify-center rounded text-sm">
+                                                                {num}
+                                                            </span>
+                                                        ))}
+                                                    </div>
                                                     <div className="flex-1">
-                                                        {isMulti && <p className="text-cyan-600 text-[11px] font-bold uppercase tracking-widest mb-1">Choose {block.questions.length} letters, A-E</p>}
-                                                        <p className="text-gray-800 font-semibold text-[17px] leading-snug">{block.text}</p>
+                                                        <p className="text-gray-800 font-semibold text-[17px] leading-snug pt-1">{block.text}</p>
                                                     </div>
                                                 </div>
 
-                                                <div className="grid grid-cols-1 gap-3 ml-8 max-w-2xl">
+                                                <div className="grid grid-cols-1 gap-3 ml-12 max-w-2xl">
                                                     {(firstQ.options || []).map((option, idx) => {
                                                         const label = String.fromCharCode(65 + idx);
-                                                        const isSelected = qNumbers.some(n => answers[n] === option || answers[n] === label);
+                                                        const isSelected = qNumbers.some(n => answers[n] === label);
 
                                                         return (
                                                             <div
                                                                 key={idx}
                                                                 onClick={() => isMulti ? handleMultiSelect(label) : handleAnswer(firstQ.displayNumber, label)}
-                                                                className="flex items-start gap-4 cursor-pointer group/item"
+                                                                className="flex items-center gap-4 cursor-pointer group/item py-1"
                                                             >
+                                                                <span className="font-bold text-gray-900 w-4 flex-shrink-0">{label}</span>
                                                                 <div className={`
-                                                                    w-9 h-9 flex items-center justify-center rounded-lg font-bold text-[15px] border transition-all flex-shrink-0
-                                                                    ${isSelected ? "bg-cyan-600 border-cyan-600 text-white" : "bg-white border-gray-300 text-gray-500 group-hover/item:border-cyan-300"}
+                                                                    w-6 h-6 flex items-center justify-center rounded border transition-all flex-shrink-0
+                                                                    ${isSelected ? "bg-cyan-600 border-cyan-600 text-white" : "bg-white border-gray-400 group-hover/item:border-cyan-500"}
                                                                 `}>
-                                                                    {label}
+                                                                    {isSelected && <FaCheck size={12} />}
                                                                 </div>
-
                                                                 <div className={`
-                                                                    mt-1.5 flex-1 text-[16px] leading-relaxed transition-colors
-                                                                    ${isSelected ? "text-cyan-700 font-bold" : "text-gray-600 font-medium group-hover/item:text-gray-900"}
+                                                                    flex-1 text-[16px] transition-colors
+                                                                    ${isSelected ? "text-cyan-700 font-bold" : "text-gray-700 font-medium group-hover/item:text-black"}
                                                                 `}>
                                                                     {option.replace(/^[A-E]\.\s*/, '')}
                                                                 </div>
