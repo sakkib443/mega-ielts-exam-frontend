@@ -343,7 +343,7 @@ export default function EditStudentPage() {
                             >
                                 <option value="">Not Assigned</option>
                                 {listeningSets.map((set) => (
-                                    <option key={set._id} value={set.setNumber}>
+                                    <option key={set._id || set.setId} value={set.setNumber}>
                                         Set #{set.setNumber} - {set.title}
                                     </option>
                                 ))}
@@ -362,7 +362,7 @@ export default function EditStudentPage() {
                             >
                                 <option value="">Not Assigned</option>
                                 {readingSets.map((set) => (
-                                    <option key={set._id} value={set.setNumber}>
+                                    <option key={set._id || set.setId} value={set.setNumber}>
                                         Set #{set.setNumber} - {set.title}
                                     </option>
                                 ))}
@@ -381,7 +381,7 @@ export default function EditStudentPage() {
                             >
                                 <option value="">Not Assigned</option>
                                 {writingSets.map((set) => (
-                                    <option key={set._id} value={set.setNumber}>
+                                    <option key={set._id || set.setId} value={set.setNumber}>
                                         Set #{set.setNumber} - {set.title}
                                     </option>
                                 ))}
