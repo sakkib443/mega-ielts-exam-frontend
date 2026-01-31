@@ -132,15 +132,26 @@ const ModuleScoreCard = ({
 const ViewAnswersModal = ({ show, onClose, module, answers, loading, scores }) => {
     if (!show) return null;
 
-    // Calculate stats for Listening/Reading
-    const getStats = () => {
-        if (!answers || !Array.isArray(answers)) return { correct: 0, incorrect: 0, total: 0 };
-        const correct = answers.filter(a => a.isCorrect).length;
-        const incorrect = answers.filter(a => !a.isCorrect).length;
-        return { correct, incorrect, total: answers.length };
+    // Calculate stats and unique answers for Listening/Reading
+    const getProcessedAnswers = () => {
+        if (!answers || !Array.isArray(answers)) return { processed: [], stats: { correct: 0, incorrect: 0, total: 0 } };
+
+        // Filter out any duplicates and ensure consistency
+        const uniqueMap = new Map();
+        answers.forEach(ans => {
+            if (ans && ans.questionNumber && !uniqueMap.has(ans.questionNumber)) {
+                uniqueMap.set(ans.questionNumber, ans);
+            }
+        });
+
+        const processed = Array.from(uniqueMap.values()).sort((a, b) => (a.questionNumber || 0) - (b.questionNumber || 0));
+        const correct = processed.filter(a => a.isCorrect).length;
+        const incorrect = processed.filter(a => !a.isCorrect).length;
+
+        return { processed, stats: { correct, incorrect, total: processed.length } };
     };
 
-    const stats = getStats();
+    const { processed: processedAnswers, stats } = getProcessedAnswers();
 
     // Count words for writing
     const countWords = (text) => {
@@ -217,43 +228,117 @@ const ViewAnswersModal = ({ show, onClose, module, answers, loading, scores }) =
                             <p className="text-slate-500 text-sm">Loading answers...</p>
                         </div>
                     ) : module?.toLowerCase() === 'writing' ? (
-                        /* Writing Module - Show Task 1 and Task 2 essays */
-                        <div className="space-y-6">
+                        /* Writing Module - Show Task 1 and Task 2 essays with Questions */
+                        <div className="space-y-8">
                             {/* Task 1 */}
-                            <div className="bg-violet-50 rounded-2xl p-5 border border-violet-100">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center gap-2">
-                                        <span className="w-8 h-8 rounded-lg bg-violet-600 text-white flex items-center justify-center text-sm font-bold">1</span>
+                            <div className="space-y-4">
+                                <div className="bg-violet-50 rounded-2xl p-6 border border-violet-100 shadow-sm">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <span className="w-10 h-10 rounded-xl bg-violet-600 text-white flex items-center justify-center text-lg font-bold shadow-lg shadow-violet-200">1</span>
                                         <div>
-                                            <h4 className="font-bold text-slate-800">Task 1 Response</h4>
-                                            <span className="text-xs text-slate-500">Describe a graph, table, chart or diagram</span>
+                                            <h4 className="font-bold text-slate-900 text-lg uppercase tracking-tight">Writing Task 1 - Question</h4>
+                                            <span className="text-xs text-slate-500 font-medium">Academic/GT Task 1 Prompt</span>
                                         </div>
                                     </div>
-                                    <div className="bg-white px-3 py-1.5 rounded-lg border border-violet-200">
-                                        <span className="text-violet-700 font-bold text-sm">{countWords(answers?.task1)} words</span>
+
+                                    {/* Question Content */}
+                                    <div className="bg-white p-6 rounded-xl border border-slate-100 mb-4 prose prose-slate max-w-none">
+                                        <div className="font-semibold text-slate-800 mb-3 text-lg leading-relaxed">
+                                            {answers?.questions?.task1?.prompt || "Standard Task 1 Prompt"}
+                                        </div>
+                                        <div className="text-slate-600 text-[15px] italic border-l-4 border-violet-200 pl-4 py-1">
+                                            {answers?.questions?.task1?.instructions || "Summarize the information by selecting and reporting the main features..."}
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="bg-white p-5 rounded-xl border border-slate-200 text-slate-700 whitespace-pre-wrap font-serif leading-relaxed text-[15px] min-h-[120px] max-h-[300px] overflow-y-auto">
-                                    {answers?.task1 || <span className="text-slate-400 italic">No submission for Task 1</span>}
+
+                                    {/* Question Images */}
+                                    {answers?.questions?.task1?.images?.length > 0 && (
+                                        <div className="space-y-4 mb-4">
+                                            {answers?.questions?.task1.images.map((img, idx) => (
+                                                <div key={idx} className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+                                                    <img
+                                                        src={img.url}
+                                                        alt={img.description || `Task 1 Image ${idx + 1}`}
+                                                        className="w-full h-auto object-contain rounded-lg"
+                                                        style={{ maxHeight: '600px' }}
+                                                    />
+                                                    {img.description && <p className="text-center text-xs text-slate-500 mt-2 font-medium">{img.description}</p>}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Student Answer */}
+                                    <div className="mt-8">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h5 className="text-sm font-bold text-slate-700 uppercase tracking-widest flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-violet-500"></div>
+                                                Student's Response
+                                            </h5>
+                                            <span className="bg-white px-3 py-1 rounded-full border border-violet-200 text-violet-700 font-bold text-sm shadow-sm">
+                                                {countWords(answers?.task1)} words
+                                            </span>
+                                        </div>
+                                        <div className="bg-white p-6 rounded-xl border-2 border-slate-100 text-slate-800 whitespace-pre-wrap font-serif leading-relaxed text-[17px] min-h-[200px] shadow-inner">
+                                            {answers?.task1 || <span className="text-slate-400 italic">No submission for Task 1</span>}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Task 2 */}
-                            <div className="bg-violet-50 rounded-2xl p-5 border border-violet-100">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center gap-2">
-                                        <span className="w-8 h-8 rounded-lg bg-violet-600 text-white flex items-center justify-center text-sm font-bold">2</span>
+                            <div className="space-y-4">
+                                <div className="bg-indigo-50 rounded-2xl p-6 border border-indigo-100 shadow-sm">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <span className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-lg font-bold shadow-lg shadow-indigo-200">2</span>
                                         <div>
-                                            <h4 className="font-bold text-slate-800">Task 2 Response</h4>
-                                            <span className="text-xs text-slate-500">Essay writing on a topic</span>
+                                            <h4 className="font-bold text-slate-900 text-lg uppercase tracking-tight">Writing Task 2 - Question</h4>
+                                            <span className="text-xs text-slate-500 font-medium">Essay Writing Prompt</span>
                                         </div>
                                     </div>
-                                    <div className="bg-white px-3 py-1.5 rounded-lg border border-violet-200">
-                                        <span className="text-violet-700 font-bold text-sm">{countWords(answers?.task2)} words</span>
+
+                                    {/* Question Content */}
+                                    <div className="bg-white p-6 rounded-xl border border-slate-100 mb-4 prose prose-slate max-w-none">
+                                        <div className="font-semibold text-slate-800 mb-3 text-lg leading-relaxed">
+                                            {answers?.questions?.task2?.prompt || "Standard Task 2 Prompt"}
+                                        </div>
+                                        <div className="text-slate-600 text-[15px] italic border-l-4 border-indigo-200 pl-4 py-1">
+                                            {answers?.questions?.task2?.instructions || "Give reasons for your answer and include any relevant examples from your own knowledge or experience..."}
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="bg-white p-5 rounded-xl border border-slate-200 text-slate-700 whitespace-pre-wrap font-serif leading-relaxed text-[15px] min-h-[120px] max-h-[400px] overflow-y-auto">
-                                    {answers?.task2 || <span className="text-slate-400 italic">No submission for Task 2</span>}
+
+                                    {/* Task 2 Images (Rarely used in Task 2 but supported) */}
+                                    {answers?.questions?.task2?.images?.length > 0 && (
+                                        <div className="space-y-4 mb-4">
+                                            {answers?.questions?.task2.images.map((img, idx) => (
+                                                <div key={idx} className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+                                                    <img
+                                                        src={img.url}
+                                                        alt={img.description || `Task 2 Image ${idx + 1}`}
+                                                        className="w-full h-auto object-contain rounded-lg"
+                                                        style={{ maxHeight: '600px' }}
+                                                    />
+                                                    {img.description && <p className="text-center text-xs text-slate-500 mt-2 font-medium">{img.description}</p>}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Student Answer */}
+                                    <div className="mt-8">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h5 className="text-sm font-bold text-slate-700 uppercase tracking-widest flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                                                Student's Response
+                                            </h5>
+                                            <span className="bg-white px-3 py-1 rounded-full border border-indigo-200 text-indigo-700 font-bold text-sm shadow-sm">
+                                                {countWords(answers?.task2)} words
+                                            </span>
+                                        </div>
+                                        <div className="bg-white p-6 rounded-xl border-2 border-slate-100 text-slate-800 whitespace-pre-wrap font-serif leading-relaxed text-[17px] min-h-[300px] shadow-inner">
+                                            {answers?.task2 || <span className="text-slate-400 italic">No submission for Task 2</span>}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -261,9 +346,9 @@ const ViewAnswersModal = ({ show, onClose, module, answers, loading, scores }) =
                         /* Listening/Reading Module - Show Q&A table */
                         <div className="space-y-3">
                             {/* Answer Rows */}
-                            {answers?.length > 0 ? answers.map((ans, i) => (
+                            {processedAnswers?.length > 0 ? processedAnswers.map((ans, i) => (
                                 <div
-                                    key={i}
+                                    key={ans.questionNumber || i}
                                     className={`p-4 rounded-xl border-2 transition-all hover:shadow-sm ${ans.isCorrect
                                         ? 'bg-emerald-50 border-emerald-200 hover:border-emerald-300'
                                         : 'bg-rose-50 border-rose-200 hover:border-rose-300'
@@ -273,10 +358,10 @@ const ViewAnswersModal = ({ show, onClose, module, answers, loading, scores }) =
                                     <div className="flex items-start gap-3 mb-3">
                                         <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0 ${ans.isCorrect ? 'bg-emerald-500' : 'bg-rose-500'
                                             }`}>
-                                            {i + 1}
+                                            {ans.questionNumber || i + 1}
                                         </span>
                                         <p className="text-slate-700 text-sm flex-1 font-medium">
-                                            {ans.questionText || `Question ${i + 1}`}
+                                            {ans.questionText || `Question ${ans.questionNumber || i + 1}`}
                                         </p>
                                         <div className="flex-shrink-0">
                                             {ans.isCorrect ? (

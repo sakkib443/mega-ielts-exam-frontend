@@ -121,18 +121,30 @@ export default function ReadingExamPage() {
         // Create a map to store unique questions by their number
         const questionMap = new Map();
 
+        // Calculate the question range for this section based on its groups to avoid duplicates from other sections
+        const sectionRange = (section.questionGroups || []).reduce((acc, g) => ({
+            min: Math.min(acc.min, g.startQuestion || Infinity),
+            max: Math.max(acc.max, g.endQuestion || -Infinity)
+        }), { min: Infinity, max: -Infinity });
+
         // 1. Collect direct questions (these usually have correct answers and metadata)
         if (section.questions) {
             section.questions.forEach(q => {
-                questionMap.set(q.questionNumber, {
-                    id: q.questionNumber,
-                    questionNumber: q.questionNumber,
-                    type: q.questionType,
-                    text: q.questionText,
-                    options: q.options || [],
-                    marks: q.marks || 1,
-                    correctAnswer: q.correctAnswer
-                });
+                const isInRange = sectionRange.min <= sectionRange.max ?
+                    (q.questionNumber >= sectionRange.min && q.questionNumber <= sectionRange.max) :
+                    true;
+
+                if (isInRange) {
+                    questionMap.set(q.questionNumber, {
+                        id: q.questionNumber,
+                        questionNumber: q.questionNumber,
+                        type: q.questionType,
+                        text: q.questionText,
+                        options: q.options || [],
+                        marks: q.marks || 1,
+                        correctAnswer: q.correctAnswer
+                    });
+                }
             });
         }
 

@@ -735,34 +735,33 @@ export default function EditQuestionSetPage() {
                                 </div>
 
                                 <div className="p-6 space-y-4">
-                                    {formData.setType === "READING" && (
+                                    <div className="grid grid-cols-1 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Reading Passage
+                                                Section Instructions
                                             </label>
-                                            <textarea
-                                                value={section.passage || ""}
-                                                onChange={(e) => updateSection(sIndex, "passage", e.target.value)}
-                                                rows={6}
+                                            <input
+                                                type="text"
+                                                value={section.instructions || ""}
+                                                onChange={(e) => updateSection(sIndex, "instructions", e.target.value)}
+                                                placeholder="e.g., Write ONE WORD AND/OR A NUMBER for each answer."
                                                 className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
                                             />
                                         </div>
-                                    )}
 
-                                    {formData.setType === "LISTENING" && (
-                                        <div className="grid grid-cols-1 gap-4">
+                                        {formData.setType === "READING" ? (
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Section Instructions
+                                                    Reading Passage
                                                 </label>
-                                                <input
-                                                    type="text"
-                                                    value={section.instructions || ""}
-                                                    onChange={(e) => updateSection(sIndex, "instructions", e.target.value)}
-                                                    placeholder="e.g., Write ONE WORD AND/OR A NUMBER for each answer."
-                                                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
+                                                <textarea
+                                                    value={section.passage || ""}
+                                                    onChange={(e) => updateSection(sIndex, "passage", e.target.value)}
+                                                    rows={10}
+                                                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500 font-serif text-lg leading-relaxed"
                                                 />
                                             </div>
+                                        ) : (
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                                     Listening Passage / Context (Optional)
@@ -776,8 +775,8 @@ export default function EditQuestionSetPage() {
                                                     className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500 font-mono text-sm"
                                                 />
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
 
                                     <div className="border-t border-gray-100 pt-4">
                                         <div className="flex items-center justify-between mb-4">
