@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { MdOutlineRemoveRedEye, MdOutlineVisibilityOff } from "react-icons/md";
 import { FiMail, FiLock, FiAlertCircle } from "react-icons/fi";
@@ -151,22 +150,44 @@ const Login = () => {
         </div>
 
         <div className="bg-white border border-gray-200 rounded-md overflow-hidden grid grid-cols-1 lg:grid-cols-2">
-          {/* Left Image */}
-          <div className="hidden lg:flex items-center justify-center bg-cyan-600 p-10">
-            <div className="text-center text-white">
-              <div className="bg-white/10 rounded-md p-6 mb-6">
-                <Image
-                  src="/images/Login Image.png"
-                  alt="Login"
-                  width={280}
-                  height={240}
-                  className="object-contain mx-auto"
-                />
+          {/* Left Side - Illustration */}
+          <div className="hidden lg:flex flex-col items-center justify-center bg-gradient-to-br from-cyan-600 via-cyan-700 to-teal-700 p-10 relative overflow-hidden">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white rounded-full"></div>
+              <div className="absolute bottom-20 right-10 w-24 h-24 border-2 border-white rounded-full"></div>
+              <div className="absolute top-1/2 left-1/4 w-16 h-16 border-2 border-white rounded-full"></div>
+            </div>
+
+            <div className="relative z-10 text-center text-white">
+              {/* Icon Illustration */}
+              <div className="mb-8">
+                <div className="w-32 h-32 mx-auto bg-white/20 rounded-3xl flex items-center justify-center backdrop-blur-sm border border-white/30 shadow-2xl">
+                  <div className="text-6xl">📚</div>
+                </div>
               </div>
-              <h2 className="text-xl font-semibold mb-2">Welcome Back</h2>
-              <p className="text-cyan-100 text-sm">
-                Login to access your IELTS exam portal
+
+              {/* Text */}
+              <h2 className="text-2xl font-bold mb-3">Welcome Back!</h2>
+              <p className="text-cyan-100 text-sm max-w-xs mx-auto leading-relaxed">
+                Login to access your IELTS exam portal and continue your learning journey
               </p>
+
+              {/* Features */}
+              <div className="mt-8 space-y-3 text-left">
+                <div className="flex items-center gap-3 text-sm text-cyan-100">
+                  <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">✓</div>
+                  <span>Practice Tests</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-cyan-100">
+                  <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">✓</div>
+                  <span>Instant Results</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-cyan-100">
+                  <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">✓</div>
+                  <span>Track Progress</span>
+                </div>
+              </div>
             </div>
           </div>
 

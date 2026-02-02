@@ -276,9 +276,17 @@ export default function HomePage() {
                         className="flex items-center justify-between max-w-7xl mx-auto"
                     >
                         <Logo />
-                        <div className="flex items-center gap-2 text-slate-500 text-sm font-medium">
-                            <LuShieldCheck className="text-emerald-500" />
-                            <span>Secure Platform</span>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2 text-slate-500 text-sm font-medium">
+                                <LuShieldCheck className="text-emerald-500" />
+                                <span className="hidden sm:inline">Secure Platform</span>
+                            </div>
+                            <button
+                                onClick={() => router.push("/login")}
+                                className="px-5 py-2.5 bg-gradient-to-r from-[#41bfb8] to-[#2d9a94] text-white rounded-xl font-semibold text-sm hover:shadow-lg hover:shadow-[#41bfb8]/30 transition-all cursor-pointer transform hover:-translate-y-0.5"
+                            >
+                                Login
+                            </button>
                         </div>
                     </motion.div>
                 </header>
