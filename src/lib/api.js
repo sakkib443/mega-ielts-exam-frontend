@@ -1,4 +1,5 @@
 // API Service for IELTS Backend
+// Production URL: https://mega-ielts-exam-backend.vercel.app/api
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 // Get auth token from localStorage
