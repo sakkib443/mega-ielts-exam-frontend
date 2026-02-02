@@ -15,6 +15,7 @@ import {
 } from "react-icons/fa";
 import { questionSetsAPI, studentsAPI } from "@/lib/api";
 import ExamSecurity from "@/components/ExamSecurity";
+import TextHighlighter from "@/components/TextHighlighter";
 
 export default function ReadingExamPage() {
     const params = useParams();
@@ -555,9 +556,11 @@ export default function ReadingExamPage() {
                             )}
                         </div>
                         <div className="p-4 overflow-y-auto max-h-[calc(100vh-200px)]" style={{ fontSize: `${fontSize}px` }}>
-                            {currentPass.content.split('\n\n').map((para, index) => (
-                                <p key={index} className="text-gray-700 leading-relaxed mb-4">{para}</p>
-                            ))}
+                            <TextHighlighter passageId={`reading_passage_${currentPassage}`}>
+                                {currentPass.content.split('\n\n').map((para, index) => (
+                                    <p key={index} className="text-gray-700 leading-relaxed mb-4">{para}</p>
+                                ))}
+                            </TextHighlighter>
                         </div>
                     </div>
 

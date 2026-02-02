@@ -202,13 +202,18 @@ export default function HomePage() {
             );
 
             if (startResponse.success && startResponse.data) {
+                // Clear any old session first
+                localStorage.removeItem("examSession");
+
                 // Store session info in localStorage
                 localStorage.setItem("examSession", JSON.stringify({
                     sessionId: startResponse.data.sessionId,
                     examId: startResponse.data.examId,
                     studentName: startResponse.data.studentName,
                     assignedSets: startResponse.data.assignedSets,
-                    startedAt: startResponse.data.startedAt
+                    startedAt: startResponse.data.startedAt,
+                    completedModules: startResponse.data.completedModules || [],
+                    scores: startResponse.data.scores || null
                 }));
 
                 // Navigate to exam page

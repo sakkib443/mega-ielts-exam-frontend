@@ -44,10 +44,24 @@ export default function ExamSelectionPage() {
                 const parsed = JSON.parse(storedSession);
 
                 // Verify session ID matches
-                if (parsed.sessionId !== sessionId) {
+                // The URL can contain either:
+                // 1. sessionId (e.g., SESSION-EXAMID-TIMESTAMP) - from start-exam page
+                // 2. examId (e.g., BACIELTS2500001) - from dashboard
+                const isValidSession =
+                    parsed.sessionId === sessionId ||
+                    parsed.examId === sessionId ||
+                    (parsed.sessionId && parsed.sessionId.includes(sessionId)) ||
+                    (sessionId && sessionId.includes(parsed.examId));
+
+                if (!isValidSession) {
                     setError("Invalid session. Please start again.");
                     setIsLoading(false);
                     return;
+                }
+
+                // Normalize the session object
+                if (!parsed.studentName && parsed.name) {
+                    parsed.studentName = parsed.name;
                 }
 
                 setSession(parsed);

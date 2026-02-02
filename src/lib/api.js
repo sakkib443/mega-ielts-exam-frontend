@@ -1,16 +1,27 @@
 // API Service for IELTS Backend
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://mega-ielts-exam-backend.vercel.app/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 // Get auth token from localStorage
 const getAuthToken = () => {
     if (typeof window === "undefined") return null;
+
+    // First check for standard token (used by all users)
+    const token = localStorage.getItem("token");
+    if (token) return token;
+
+    // Fallback to adminAuth for backward compatibility
     const auth = localStorage.getItem("adminAuth");
     if (auth) {
-        const parsed = JSON.parse(auth);
-        return parsed.token;
+        try {
+            const parsed = JSON.parse(auth);
+            return parsed.token;
+        } catch (e) {
+            return null;
+        }
     }
     return null;
 };
+
 
 // API request helper
 const apiRequest = async (endpoint, options = {}) => {

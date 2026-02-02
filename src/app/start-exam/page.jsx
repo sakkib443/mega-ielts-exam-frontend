@@ -94,6 +94,9 @@ function ExamEntryContent() {
             );
 
             if (response.success && response.data) {
+                // Clear any old session first
+                localStorage.removeItem("examSession");
+
                 // Store session info with assigned question sets
                 localStorage.setItem("examSession", JSON.stringify({
                     sessionId: response.data.sessionId,

@@ -7,12 +7,9 @@ import {
     FaPen,
     FaCheckCircle,
     FaArrowRight,
-    FaLock,
-    FaExclamationCircle,
+    FaClock,
     FaInfoCircle,
-    FaClock
 } from "react-icons/fa";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { studentsAPI } from "@/lib/api";
 
@@ -45,111 +42,182 @@ export default function StudentExams() {
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[50vh]">
-                <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-slate-400 font-medium tracking-tight">Loading exam modules...</p>
+                <div className="w-6 h-6 border-2 border-cyan-600 border-t-transparent rounded-full animate-spin mb-3"></div>
+                <p className="text-gray-500 text-sm">Loading modules...</p>
             </div>
         );
     }
 
-    const { examId, completedModules = [], examStatus } = studentData;
+    const { examId, completedModules = [], paymentStatus, examDate } = studentData;
 
     const modules = [
         {
             id: "listening",
-            title: "Listening Module",
-            description: "Assess your ability to understand spoken English in various contexts.",
+            title: "Listening",
+            description: "Test your ability to understand spoken English.",
             icon: FaHeadphones,
-            color: "blue",
-            duration: "30-40 Minutes",
-            questions: 40
+            duration: "30-40 min",
+            questions: 40,
         },
         {
             id: "reading",
-            title: "Reading Module",
-            description: "Test your reading skills through a wide range of texts and questions.",
+            title: "Reading",
+            description: "Assess your reading comprehension skills.",
             icon: FaBook,
-            color: "emerald",
-            duration: "60 Minutes",
-            questions: 40
+            duration: "60 min",
+            questions: 40,
         },
         {
             id: "writing",
-            title: "Writing Module",
-            description: "Evaluate your English writing proficiency through two specific tasks.",
+            title: "Writing",
+            description: "Evaluate your English writing proficiency.",
             icon: FaPen,
-            color: "violet",
-            duration: "60 Minutes",
-            questions: 2
-        }
+            duration: "60 min",
+            questions: 2,
+        },
     ];
 
+    // Check if today is exam day
+    const isExamDay = () => {
+        if (!examDate) return false;
+        const today = new Date();
+        const exam = new Date(examDate);
+        return (
+            today.getFullYear() === exam.getFullYear() &&
+            today.getMonth() === exam.getMonth() &&
+            today.getDate() === exam.getDate()
+        );
+    };
+
+    const formatExamDate = (date) => {
+        if (!date) return "Not set";
+        return new Date(date).toLocaleDateString("en-GB", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+        });
+    };
+
+    const canStartExam = paymentStatus === "paid" && isExamDay();
+
+    const handleStartModule = (moduleId) => {
+        if (!isExamDay()) {
+            alert(`Your exam is scheduled for ${formatExamDate(examDate)}. Please come back on that day.`);
+            return;
+        }
+        localStorage.setItem(
+            "examSession",
+            JSON.stringify({
+                examId: studentData.examId,
+                sessionId: studentData.examId,
+                studentName: studentData.nameEnglish,
+                name: studentData.nameEnglish,
+                email: studentData.email,
+            })
+        );
+        router.push(`/exam/${examId}/${moduleId}`);
+    };
+
     return (
-        <div className="max-w-6xl mx-auto space-y-10">
-            {/* Page Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="max-w-5xl mx-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h2 className="text-3xl font-black text-slate-800">My Exam Modules</h2>
-                    <p className="text-slate-500 font-medium mt-1">Complete all three modules to finish your IELTS assessment.</p>
+                    <h1 className="text-xl font-semibold text-gray-800">Exam Modules</h1>
+                    <p className="text-gray-500 text-sm mt-1">Complete all modules to finish your assessment</p>
                 </div>
-                <div className="bg-white px-6 py-3 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                <div className="bg-white border border-gray-200 rounded-md px-4 py-2.5 flex items-center gap-3">
                     <div className="text-right">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Overall Progress</p>
-                        <p className="text-sm font-black text-indigo-600">{completedModules.length}/3 Completed</p>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wide">Progress</p>
+                        <p className="text-sm font-semibold text-cyan-600">{completedModules.length}/3</p>
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center">
-                        <FaCheckCircle className="text-indigo-500 text-xl" />
+                    <div className="w-9 h-9 bg-cyan-100 rounded-md flex items-center justify-center">
+                        <FaCheckCircle className="text-cyan-600" size={14} />
                     </div>
                 </div>
             </div>
 
-            {/* Exam Modules Grid */}
-            <div className="grid md:grid-cols-3 gap-8">
+            {/* Payment/Date Warning */}
+            {paymentStatus !== "paid" ? (
+                <div className="bg-amber-50 border border-amber-200 rounded-md p-4 mb-6 flex items-center gap-3">
+                    <FaInfoCircle className="text-amber-600" />
+                    <p className="text-amber-800 text-sm">
+                        Your payment is pending. Please complete payment to start the exam.
+                    </p>
+                </div>
+            ) : !isExamDay() ? (
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6 flex items-center gap-3">
+                    <FaInfoCircle className="text-blue-600" />
+                    <p className="text-blue-800 text-sm">
+                        Your exam is scheduled for <strong>{formatExamDate(examDate)}</strong>. Please come back on that day.
+                    </p>
+                </div>
+            ) : null}
+
+            {/* Module Cards */}
+            <div className="grid md:grid-cols-3 gap-4">
                 {modules.map((mod) => {
-                    const isCompleted = completedModules.includes(mod.id) || completedModules.includes(mod.id.toUpperCase());
+                    const isCompleted =
+                        completedModules.includes(mod.id) ||
+                        completedModules.includes(mod.id.toUpperCase());
 
                     return (
                         <div
                             key={mod.id}
-                            className={`group bg-white rounded-[2rem] p-8 border border-slate-100 shadow-xl shadow-slate-200/50 transition-all flex flex-col ${isCompleted ? 'opacity-90' : 'hover:border-indigo-200 hover:shadow-indigo-100'
+                            className={`bg-white border rounded-md p-5 flex flex-col ${isCompleted ? "border-green-200 bg-green-50/30" : "border-gray-200"
                                 }`}
                         >
-                            <div className={`w-16 h-16 rounded-2xl bg-${mod.color}-50 text-${mod.color}-600 flex items-center justify-center mb-8 border border-${mod.color}-100 transition-transform group-hover:-rotate-6 shadow-sm`}>
-                                <mod.icon className="text-2xl" />
+                            <div className="flex items-center gap-3 mb-4">
+                                <div
+                                    className={`w-10 h-10 rounded-md flex items-center justify-center ${isCompleted
+                                        ? "bg-green-100 text-green-600"
+                                        : "bg-cyan-100 text-cyan-600"
+                                        }`}
+                                >
+                                    <mod.icon size={16} />
+                                </div>
+                                <div>
+                                    <h3 className="font-medium text-gray-800">{mod.title}</h3>
+                                    {isCompleted && (
+                                        <span className="text-[10px] text-green-600 font-medium uppercase">
+                                            Completed
+                                        </span>
+                                    )}
+                                </div>
                             </div>
 
-                            <h3 className="text-2xl font-black text-slate-800 mb-3">{mod.title}</h3>
-                            <p className="text-slate-500 text-sm mb-8 leading-relaxed font-medium flex-1">
-                                {mod.description}
-                            </p>
+                            <p className="text-gray-500 text-sm mb-4 flex-1">{mod.description}</p>
 
-                            <div className="space-y-4 mb-8">
-                                <div className="flex items-center justify-between py-2 border-b border-slate-50">
-                                    <span className="text-slate-400 text-xs font-bold uppercase tracking-widest flex items-center gap-2"><FaClock className="text-[10px]" /> Duration</span>
-                                    <span className="text-slate-700 text-sm font-black">{mod.duration}</span>
+                            <div className="space-y-2 mb-4">
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="text-gray-400 flex items-center gap-1.5">
+                                        <FaClock size={10} /> Duration
+                                    </span>
+                                    <span className="text-gray-700 font-medium">{mod.duration}</span>
                                 </div>
-                                <div className="flex items-center justify-between py-2 border-b border-slate-50">
-                                    <span className="text-slate-400 text-xs font-bold uppercase tracking-widest flex items-center gap-2"><FaInfoCircle className="text-[10px]" /> Questions</span>
-                                    <span className="text-slate-700 text-sm font-black">{mod.questions} Items</span>
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="text-gray-400 flex items-center gap-1.5">
+                                        <FaInfoCircle size={10} /> Questions
+                                    </span>
+                                    <span className="text-gray-700 font-medium">{mod.questions}</span>
                                 </div>
                             </div>
 
                             {isCompleted ? (
-                                <div className="bg-emerald-50 text-emerald-600 h-14 rounded-2xl flex items-center justify-center gap-2 font-black shadow-inner">
-                                    <FaCheckCircle /> Completed
+                                <div className="bg-green-100 text-green-700 py-2.5 rounded-md text-center text-sm font-medium flex items-center justify-center gap-2">
+                                    <FaCheckCircle size={12} /> Done
                                 </div>
                             ) : (
                                 <button
-                                    onClick={() => {
-                                        localStorage.setItem("examSession", JSON.stringify({
-                                            examId: studentData.examId,
-                                            name: studentData.nameEnglish,
-                                            email: studentData.email
-                                        }));
-                                        router.push(`/exam/${examId}/${mod.id}`);
-                                    }}
-                                    className={`bg-indigo-600 text-white h-14 rounded-2xl flex items-center justify-center gap-3 font-black shadow-lg shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition-all`}
+                                    onClick={() => handleStartModule(mod.id)}
+                                    disabled={!canStartExam}
+                                    className={`py-2.5 rounded-md text-center text-sm font-medium flex items-center justify-center gap-2 transition-colors ${canStartExam
+                                        ? "bg-cyan-600 text-white hover:bg-cyan-700"
+                                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                        }`}
                                 >
-                                    Start Now <FaArrowRight />
+                                    Start <FaArrowRight size={10} />
                                 </button>
                             )}
                         </div>
@@ -157,20 +225,14 @@ export default function StudentExams() {
                 })}
             </div>
 
-            {/* Support Box */}
-            <div className="bg-slate-800 rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl shadow-indigo-100">
-                <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
-                    <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center flex-shrink-0 animate-bounce">
-                        <FaLock className="text-3xl text-indigo-300" />
-                    </div>
-                    <div>
-                        <h4 className="text-2xl font-black mb-2">Important Exam Rules</h4>
-                        <p className="text-indigo-100/60 max-w-2xl font-medium leading-relaxed">
-                            Once you start a module, do not refresh the page or exit the browser. Any violation tracking might lead to exam termination. Ensure a stable internet connection before starting.
-                        </p>
-                    </div>
-                </div>
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+            {/* Info Box */}
+            <div className="mt-6 bg-gray-100 border border-gray-200 rounded-md p-5">
+                <h4 className="font-medium text-gray-800 mb-2">Important Guidelines</h4>
+                <ul className="text-gray-600 text-sm space-y-1.5">
+                    <li>• Do not refresh the page or exit the browser during the exam.</li>
+                    <li>• Ensure a stable internet connection before starting.</li>
+                    <li>• Each module must be completed in one session.</li>
+                </ul>
             </div>
         </div>
     );
