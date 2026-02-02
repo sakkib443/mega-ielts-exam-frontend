@@ -21,20 +21,31 @@ const Login = () => {
   const [error, setError] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [isChecking, setIsChecking] = useState(true);
 
   // Check if already logged in
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const user = localStorage.getItem("user");
-    if (token && user) {
-      const userData = JSON.parse(user);
-      if (userData.role === "admin") {
-        router.push("/dashboard/admin");
-      } else {
-        router.push("/dashboard/student");
+    try {
+      const token = localStorage.getItem("token");
+      const user = localStorage.getItem("user");
+      if (token && user) {
+        const userData = JSON.parse(user);
+        if (userData.role === "admin") {
+          router.replace("/dashboard/admin/dashboard");
+          return;
+        } else {
+          router.replace("/dashboard/student");
+          return;
+        }
       }
+    } catch (e) {
+      // Clear corrupted data
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("adminAuth");
     }
-  }, [router]);
+    setIsChecking(false);
+  }, []);
 
   // Load remembered email
   useEffect(() => {
@@ -82,12 +93,16 @@ const Login = () => {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
 
+        // Store adminAuth for admin users
         if (response.data.user.role === "admin") {
           localStorage.setItem(
             "adminAuth",
             JSON.stringify({
+              email: response.data.user.email,
+              name: response.data.user.name,
+              role: response.data.user.role,
               token: response.data.token,
-              user: response.data.user,
+              isAdmin: true,
             })
           );
         }
@@ -98,9 +113,11 @@ const Login = () => {
           localStorage.removeItem("rememberedEmail");
         }
 
+        // Redirect based on role
         if (response.data.user.role === "admin") {
-          router.push("/dashboard/admin");
+          router.push("/dashboard/admin/dashboard");
         } else {
+          // Both 'user' and 'student' roles go to student dashboard
           router.push("/dashboard/student");
         }
       }
@@ -110,6 +127,18 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  // Show loading while checking auth
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-cyan-600 mx-auto mb-3"></div>
+          <p className="text-gray-500 text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-10 px-4">
@@ -171,8 +200,8 @@ const Login = () => {
                     onChange={handleInputChange}
                     placeholder="you@example.com"
                     className={`w-full pl-10 pr-4 py-2.5 border rounded-md text-sm bg-gray-50 focus:bg-white outline-none transition-colors ${validationErrors.email
-                        ? "border-red-300 focus:border-red-400"
-                        : "border-gray-200 focus:border-cyan-500"
+                      ? "border-red-300 focus:border-red-400"
+                      : "border-gray-200 focus:border-cyan-500"
                       }`}
                   />
                 </div>
@@ -195,8 +224,8 @@ const Login = () => {
                     onChange={handleInputChange}
                     placeholder="Enter password"
                     className={`w-full pl-10 pr-10 py-2.5 border rounded-md text-sm bg-gray-50 focus:bg-white outline-none transition-colors ${validationErrors.password
-                        ? "border-red-300 focus:border-red-400"
-                        : "border-gray-200 focus:border-cyan-500"
+                      ? "border-red-300 focus:border-red-400"
+                      : "border-gray-200 focus:border-cyan-500"
                       }`}
                   />
                   <button

@@ -66,10 +66,12 @@ function StudentLayoutContent({ children }) {
 
         try {
             const parsedUser = JSON.parse(user);
-            if (parsedUser.role !== "user") {
-                router.push("/login");
+            // Admin should go to admin dashboard
+            if (parsedUser.role === "admin") {
+                router.push("/dashboard/admin/dashboard");
                 return;
             }
+            // Accept 'user' and 'student' roles for student dashboard
             setStudentInfo(parsedUser);
         } catch (error) {
             console.error("Failed to parse user session", error);

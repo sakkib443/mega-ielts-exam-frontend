@@ -86,21 +86,30 @@ function AdminLayoutContent({ children }) {
             return;
         }
 
-        const auth = localStorage.getItem("adminAuth");
-        if (!auth) {
-            router.push("/dashboard/admin");
-            return;
-        }
+        try {
+            const token = localStorage.getItem("token");
+            const userStr = localStorage.getItem("user");
 
-        const parsed = JSON.parse(auth);
-        if (parsed.role !== "admin") {
-            router.push("/dashboard/admin");
-            return;
-        }
+            if (!token || !userStr) {
+                router.replace("/login");
+                return;
+            }
 
-        setAdminInfo(parsed);
-        setIsLoading(false);
-    }, [router, isLoginPage]);
+            const user = JSON.parse(userStr);
+            if (user.role !== "admin") {
+                router.replace("/dashboard/student");
+                return;
+            }
+
+            setAdminInfo(user);
+            setIsLoading(false);
+        } catch (e) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            localStorage.removeItem("adminAuth");
+            router.replace("/login");
+        }
+    }, [isLoginPage]);
 
     useEffect(() => {
         if (pathname.includes("/question-sets")) {
@@ -110,7 +119,9 @@ function AdminLayoutContent({ children }) {
 
     const handleLogout = () => {
         localStorage.removeItem("adminAuth");
-        router.push("/dashboard/admin");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        router.push("/login");
     };
 
     const isActive = (href) => {
