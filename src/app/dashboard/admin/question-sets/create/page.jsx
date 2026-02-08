@@ -15,8 +15,82 @@ import {
     FaQuestionCircle,
     FaCloudUploadAlt,
     FaCheck,
+    FaBold,
+    FaListUl,
+    FaPlusSquare,
 } from "react-icons/fa";
 import { questionSetsAPI, uploadAPI } from "@/lib/api";
+
+// Smart Editor Component
+function SmartEditor({ value, onChange, placeholder, rows = 3, label }) {
+    const textareaRef = React.useRef(null);
+
+    const insertText = (before, after = "") => {
+        const textarea = textareaRef.current;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        const selected = text.substring(start, end);
+        const newText = text.substring(0, start) + before + selected + after + text.substring(end);
+
+        onChange({ target: { value: newText } });
+
+        // Restore focus and selection
+        setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start + before.length, end + before.length);
+        }, 0);
+    };
+
+    const addGap = () => {
+        const matches = value.match(/\{(\d+)\}/g) || [];
+        const nextNum = matches.length + 1;
+        insertText(`{${nextNum}}`);
+    };
+
+    const fillExample = () => {
+        const example = `**Bankside Agency**\n- Address: 497 Eastside\n- Name of agent: Becky {1}\n- Best to call in the {2}`;
+        onChange({ target: { value: example } });
+    };
+
+    return (
+        <div className="space-y-2 w-full group">
+            <div className="flex items-center justify-between">
+                {label && <label className="block text-sm font-bold text-gray-800">{label}</label>}
+                <button
+                    type="button"
+                    onClick={fillExample}
+                    className="text-[10px] text-gray-400 hover:text-cyan-600 transition-colors uppercase font-bold tracking-widest"
+                >
+                    Click for Example
+                </button>
+            </div>
+            <div className="border border-gray-300 rounded-xl overflow-hidden focus-within:border-cyan-500 focus-within:ring-4 focus-within:ring-cyan-50/50 transition-all bg-white shadow-sm">
+                <div className="bg-gray-100 border-b border-gray-200 px-3 py-2 flex flex-wrap items-center gap-2">
+                    <button type="button" onClick={() => insertText("**", "**")} className="flex items-center gap-1.5 px-2 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 text-gray-700 transition-all shadow-sm">
+                        <FaBold size={11} /><span className="text-[10px] font-bold">Bold</span>
+                    </button>
+                    <button type="button" onClick={() => insertText("- ", "")} className="flex items-center gap-1.5 px-2 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 text-gray-700 transition-all shadow-sm">
+                        <FaListUl size={11} /><span className="text-[10px] font-bold">List</span>
+                    </button>
+                    <div className="w-px h-5 bg-gray-300 mx-1" />
+                    <button type="button" onClick={addGap} className="flex items-center gap-2 px-3 py-1 bg-cyan-600 border border-cyan-700 rounded hover:bg-cyan-700 text-white transition-all shadow-md active:scale-95">
+                        <FaPlusSquare size={12} /><span className="text-[11px] font-bold uppercase tracking-tight">Insert Blank Box</span>
+                    </button>
+                    <span className="ml-auto text-[9px] text-gray-400 font-medium italic hidden sm:block">Real-time preview on right side →</span>
+                </div>
+                <textarea
+                    ref={textareaRef}
+                    value={value}
+                    onChange={onChange}
+                    rows={rows}
+                    placeholder={placeholder}
+                    className="w-full px-4 py-3 text-[15px] outline-none resize-y min-h-[120px] leading-relaxed text-gray-800 placeholder:text-gray-300"
+                />
+            </div>
+        </div>
+    );
+}
 
 // Question Types for IELTS
 const QUESTION_TYPES = [
@@ -33,17 +107,19 @@ const QUESTION_TYPES = [
     { value: "fill-in-blank", label: "Fill in the Blank" },
 ];
 
-// Default empty question
-const createEmptyQuestion = (number) => ({
-    questionNumber: number,
-    questionType: "multiple-choice",
-    questionText: "",
-    options: ["", "", "", ""],
-    correctAnswer: "",
-    marks: 1,
+// Default empty question helper
+const createEmptyQuestion = (number, blockType = "question") => ({
+    blockType,
+    questionNumber: blockType === "question" ? number : undefined,
+    questionType: blockType === "question" ? "multiple-choice" : undefined,
+    questionText: blockType === "question" ? "" : undefined,
+    content: blockType === "instruction" ? "" : undefined,
+    options: blockType === "question" ? ["", "", "", ""] : undefined,
+    correctAnswer: blockType === "question" ? "" : undefined,
+    marks: blockType === "question" ? 1 : undefined,
 });
 
-// Default empty section
+// Default empty section helper
 const createEmptySection = (number) => ({
     sectionNumber: number,
     title: `Section ${number}`,
@@ -53,7 +129,7 @@ const createEmptySection = (number) => ({
     questions: [createEmptyQuestion(1)],
 });
 
-// Default writing task
+// Default writing task helper
 const createEmptyWritingTask = (number) => ({
     taskNumber: number,
     taskType: number === 1 ? "task1" : "task2",
@@ -68,8 +144,10 @@ export default function CreateQuestionSetPage() {
     const searchParams = useSearchParams();
     const typeFromUrl = searchParams.get("type") || "LISTENING";
 
+    // State
     const [loading, setSaving] = useState(false);
     const [error, setError] = useState("");
+    const [showPreview, setShowPreview] = useState(false);
 
     // Audio upload states
     const [audioUploading, setAudioUploading] = useState(false);
@@ -81,7 +159,7 @@ export default function CreateQuestionSetPage() {
         setType: typeFromUrl,
         title: "",
         description: "",
-        duration: typeFromUrl === "LISTENING" ? 40 : typeFromUrl === "READING" ? 60 : 60,
+        duration: typeFromUrl === "LISTENING" ? 40 : 60,
         difficulty: "medium",
         mainAudioUrl: "",
         audioDuration: 0,
@@ -103,14 +181,12 @@ export default function CreateQuestionSetPage() {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Validate file type
         const validTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg"];
         if (!validTypes.includes(file.type)) {
             setError("Invalid file type. Please upload MP3, WAV, or OGG audio files.");
             return;
         }
 
-        // Validate file size (50MB max)
         if (file.size > 50 * 1024 * 1024) {
             setError("File size too large. Maximum allowed is 50MB.");
             return;
@@ -157,7 +233,6 @@ export default function CreateQuestionSetPage() {
         }));
     };
 
-    // Section handlers
     const addSection = () => {
         setSections((prev) => [...prev, createEmptySection(prev.length + 1)]);
     };
@@ -176,15 +251,27 @@ export default function CreateQuestionSetPage() {
         );
     };
 
-    // Question handlers
     const addQuestion = (sectionIndex) => {
         setSections((prev) =>
             prev.map((section, i) => {
                 if (i === sectionIndex) {
-                    const newQNum = section.questions.length + 1;
                     return {
                         ...section,
-                        questions: [...section.questions, createEmptyQuestion(newQNum)],
+                        questions: [...section.questions, createEmptyQuestion(section.questions.length + 1)],
+                    };
+                }
+                return section;
+            })
+        );
+    };
+
+    const addInstruction = (sectionIndex) => {
+        setSections((prev) =>
+            prev.map((section, i) => {
+                if (i === sectionIndex) {
+                    return {
+                        ...section,
+                        questions: [...section.questions, createEmptyQuestion(0, "instruction")],
                     };
                 }
                 return section;
@@ -243,7 +330,6 @@ export default function CreateQuestionSetPage() {
         );
     };
 
-    // Writing task handlers
     const updateWritingTask = (index, field, value) => {
         setWritingTasks((prev) =>
             prev.map((task, i) => (i === index ? { ...task, [field]: value } : task))
@@ -298,520 +384,408 @@ export default function CreateQuestionSetPage() {
 
     const getTypeColor = () => {
         switch (formData.setType) {
-            case "LISTENING":
-                return "purple";
-            case "READING":
-                return "blue";
-            case "WRITING":
-                return "green";
-            default:
-                return "gray";
+            case "LISTENING": return "purple";
+            case "READING": return "blue";
+            case "WRITING": return "green";
+            default: return "gray";
         }
     };
 
     return (
-        <div className="max-w-5xl mx-auto">
+        <div className={`${showPreview ? "max-w-[1600px]" : "max-w-5xl"} mx-auto transition-all duration-500`}>
             {/* Header */}
             <div className="flex items-center gap-4 mb-6">
-                <Link
-                    href="/dashboard/admin/question-sets"
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
+                <Link href="/dashboard/admin/question-sets" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <FaArrowLeft className="text-gray-600" />
                 </Link>
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                        {getTypeIcon()}
-                        Create {formData.setType} Set
+                        {getTypeIcon()} Create {formData.setType} Set
                     </h1>
-                    <p className="text-gray-500">Add questions and configure the set</p>
+                    <p className="text-gray-500 text-sm">Add questions and configure the set</p>
+                </div>
+                <button
+                    type="button"
+                    onClick={() => setShowPreview(!showPreview)}
+                    className={`ml-auto px-4 py-2 rounded-lg font-medium transition-all ${showPreview ? "bg-cyan-600 text-white shadow-lg shadow-cyan-200" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"}`}
+                >
+                    {showPreview ? "Hide Preview" : "Show Live Preview"}
+                </button>
+            </div>
+
+            {formData.setType !== "WRITING" && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 shadow-sm flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                        <FaQuestionCircle className="text-amber-600 text-xl" />
+                    </div>
+                    <div>
+                        <h4 className="text-amber-800 font-bold text-sm mb-1">সফটওয়্যারটি যারা ব্যবহার করবে তাদের জন্য গাইড:</h4>
+                        <p className="text-amber-700 text-xs leading-relaxed max-w-2xl">
+                            মাঝখানে গ্যাপ বা আন্ডারলাইন তৈরি করার জন্য নিচের টুলবার থেকে <strong>"Insert Blank Box"</strong> বাটনে ক্লিক করলেই হবে।
+                            লিস্ট বা পয়েন্ট করার জন্য <strong>"List"</strong> বাটনে ক্লিক করুন।
+                            ডান পাশের <strong>Preview</strong> সেকশনে দেখলেই তারা বুঝতে পারবে কিভাবে কোশ্চেনটি তৈরি হচ্ছে।
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            <div className={`flex flex-col ${showPreview ? "lg:flex-row" : ""} gap-8 items-start`}>
+                <div className={`${showPreview ? "lg:w-1/2" : "w-full"} transition-all duration-500`}>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Basic Info */}
+                        <div className="bg-white rounded-xl border border-gray-200 p-6">
+                            <h3 className="font-semibold text-gray-800 mb-4">Basic Information</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Set Type *</label>
+                                    <select name="setType" value={formData.setType} onChange={handleTypeChange} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-cyan-500">
+                                        <option value="LISTENING">Listening</option>
+                                        <option value="READING">Reading</option>
+                                        <option value="WRITING">Writing</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                                    <input type="text" name="title" value={formData.title} onChange={handleInputChange} required className="w-full border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-cyan-500" />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                    <textarea name="description" value={formData.description} onChange={handleInputChange} rows={2} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-cyan-500" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Duration (min) *</label>
+                                    <input type="number" name="duration" value={formData.duration} onChange={handleInputChange} required min={1} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-cyan-500" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty *</label>
+                                    <select name="difficulty" value={formData.difficulty} onChange={handleInputChange} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-cyan-500">
+                                        <option value="easy">Easy</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="hard">Hard</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {formData.setType === "LISTENING" && (
+                                <div className="mt-4 pt-4 border-t border-gray-100">
+                                    <label className="block text-sm font-medium text-gray-700 mb-3"><FaHeadphones className="inline mr-2 text-purple-600" /> Audio File *</label>
+                                    {!formData.mainAudioUrl ? (
+                                        <label className={`relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer ${audioUploading ? "bg-purple-50 border-purple-300" : "bg-gray-50 border-gray-300 hover:border-purple-400"}`}>
+                                            <input type="file" onChange={handleAudioUpload} disabled={audioUploading} className="hidden" />
+                                            {audioUploading ? <FaSpinner className="animate-spin text-purple-600" /> : <div className="text-center"><FaCloudUploadAlt className="text-2xl mx-auto mb-1 text-gray-400" /><span className="text-xs">Click to upload audio</span></div>}
+                                        </label>
+                                    ) : (
+                                        <div className="bg-green-50 p-3 rounded-lg flex items-center justify-between">
+                                            <div className="flex items-center gap-2"><FaCheck className="text-green-600" /><span className="text-sm text-green-700">Audio ready</span></div>
+                                            <button type="button" onClick={() => setFormData(p => ({ ...p, mainAudioUrl: "" }))} className="text-red-500"><FaTrash /></button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* writing tasks or sections */}
+                        {isWriting ? (
+                            <div className="space-y-6">
+                                {writingTasks.map((task, index) => (
+                                    <div key={index} className="bg-white rounded-xl border border-gray-200 p-6">
+                                        <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                            <FaPen className="text-green-600" />
+                                            Task {task.taskNumber} ({task.taskType === "task1" ? "150+ words" : "250+ words"})
+                                        </h3>
+                                        <div className="space-y-4">
+                                            <SmartEditor
+                                                label="Task Prompt *"
+                                                value={task.prompt}
+                                                onChange={(e) => updateWritingTask(index, "prompt", e.target.value)}
+                                                rows={4}
+                                                placeholder="Write the task prompt here..."
+                                            />
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <input type="text" value={task.imageUrl} onChange={(e) => updateWritingTask(index, "imageUrl", e.target.value)} placeholder="Image URL (for Task 1)" className="w-full border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-cyan-500" />
+                                                <input type="number" value={task.minWords} onChange={(e) => updateWritingTask(index, "minWords", Number(e.target.value))} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-cyan-500" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                {sections.map((section, sIdx) => (
+                                    <div key={sIdx} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                                        <div className={`bg-${getTypeColor()}-50 p-4 border-b flex justify-between`}>
+                                            <input value={section.title} onChange={e => updateSection(sIdx, "title", e.target.value)} className="font-semibold bg-transparent outline-none" />
+                                            {sections.length > 1 && <button type="button" onClick={() => removeSection(sIdx)} className="text-red-500"><FaTrash /></button>}
+                                        </div>
+                                        <div className="p-6 space-y-6">
+                                            <SmartEditor
+                                                label="Instructions"
+                                                value={section.instructions}
+                                                onChange={e => updateSection(sIdx, "instructions", e.target.value)}
+                                                rows={2}
+                                                placeholder="Instructions for this section..."
+                                            />
+
+                                            {(formData.setType === "READING" || formData.setType === "LISTENING") && (
+                                                <SmartEditor
+                                                    label={formData.setType === "READING" ? "Reading Passage" : "Listening Passage / Note Context"}
+                                                    value={section.passage}
+                                                    onChange={e => updateSection(sIdx, "passage", e.target.value)}
+                                                    rows={6}
+                                                    placeholder={formData.setType === "READING" ? "Paste passage..." : "Use {1}, {2} etc. for gaps..."}
+                                                />
+                                            )}
+
+                                            <div className="border-t border-gray-100 pt-6">
+                                                <div className="flex justify-between mb-4">
+                                                    <h4 className="font-medium">Questions & Blocks</h4>
+                                                    <div className="flex gap-2">
+                                                        <button type="button" onClick={() => addInstruction(sIdx)} className="text-xs text-amber-600 border border-amber-200 px-2 py-1 rounded">Add Message</button>
+                                                        <button type="button" onClick={() => addQuestion(sIdx)} className="text-xs text-cyan-600 border border-cyan-200 px-2 py-1 rounded">Add Question</button>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-3">
+                                                    {section.questions.map((q, qIdx) => (
+                                                        <div key={qIdx} className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                                            <div className="flex justify-between mb-2">
+                                                                <span className="text-xs font-bold">{q.blockType === "instruction" ? "Instruction" : `Q${q.questionNumber || qIdx + 1}`}</span>
+                                                                <button type="button" onClick={() => removeQuestion(sIdx, qIdx)} className="text-red-400"><FaTrash className="text-xs" /></button>
+                                                            </div>
+                                                            {q.blockType === "instruction" ? (
+                                                                <textarea value={q.content} onChange={e => updateQuestion(sIdx, qIdx, "content", e.target.value)} className="w-full text-sm border p-2 rounded outline-none" />
+                                                            ) : (
+                                                                <div className="space-y-2">
+                                                                    <div className="flex gap-2">
+                                                                        <select value={q.questionType} onChange={e => updateQuestion(sIdx, qIdx, "questionType", e.target.value)} className="text-xs border rounded p-1">
+                                                                            {QUESTION_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                                                                        </select>
+                                                                        <input value={q.correctAnswer} onChange={e => updateQuestion(sIdx, qIdx, "correctAnswer", e.target.value)} placeholder="Answer" className="flex-1 text-xs border rounded p-1" />
+                                                                    </div>
+                                                                    <input value={q.questionText} onChange={e => updateQuestion(sIdx, qIdx, "questionText", e.target.value)} placeholder="Question..." className="w-full text-xs border rounded p-1" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                                <button type="button" onClick={addSection} className="w-full border-2 border-dashed p-4 rounded-xl text-gray-400 hover:bg-gray-50">+ Add Section</button>
+                            </div>
+                        )}
+
+                        <div className="flex justify-end gap-3 sticky bottom-4 bg-white p-4 rounded-xl border shadow-lg">
+                            <Link href="/dashboard/admin/question-sets" className="px-4 py-2 border rounded-lg text-sm text-gray-600">Cancel</Link>
+                            <button type="submit" disabled={loading} className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-600 text-white rounded-lg text-sm font-medium flex items-center gap-2">
+                                {loading && <FaSpinner className="animate-spin" />} Create Set
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                {showPreview && (
+                    <div className="lg:w-1/2 sticky top-6 max-h-[calc(100vh-48px)] overflow-y-auto no-scrollbar pb-20 transition-all duration-500">
+                        <LivePreview sections={sections} formData={formData} writingTasks={writingTasks} />
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function LivePreview({ sections, formData, writingTasks }) {
+    const isWriting = formData.setType === "WRITING";
+
+    const renderPassageText = (text) => {
+        if (!text) return null;
+
+        const lines = text.split("\n");
+
+        return lines.map((line, lineIdx) => {
+            let isBullet = false;
+            let displayContent = line;
+
+            if (line.trim().startsWith("- ")) {
+                isBullet = true;
+                displayContent = line.trim().substring(2);
+            }
+
+            const processLineContent = (txt) => {
+                // Split by blanks first {1}, {2}
+                const parts = txt.split(/(\{\d+\})/g);
+                return parts.map((part, i) => {
+                    const match = part.match(/^\{(\d+)\}$/);
+                    if (match) {
+                        const qNum = parseInt(match[1]);
+                        // Find if there is a corresponding question defined in any section
+                        const allQuestions = sections.flatMap(s => s.questions);
+                        const questionDef = allQuestions.find(q => q.questionNumber === qNum);
+
+                        return (
+                            <span key={i} className="inline-flex items-center mx-1 translate-y-1">
+                                <span className="w-7 h-7 border-2 border-black flex items-center justify-center text-[12px] font-black bg-white text-black shrink-0">
+                                    {qNum}
+                                </span>
+                                <input
+                                    type="text"
+                                    placeholder={questionDef ? "(Type answer here)" : "(Question not added below)"}
+                                    className={`w-40 border-b-2 border-gray-400 bg-transparent outline-none px-2 text-sm font-medium focus:border-cyan-600 transition-colors ${!questionDef ? "bg-red-50 border-red-200" : ""}`}
+                                />
+                            </span>
+                        );
+                    }
+
+                    // Handle bold text **bold**
+                    const boldParts = part.split(/(\*\*[^*]+\*\*)/g);
+                    return boldParts.map((bp, j) => {
+                        const boldMatch = bp.match(/^\*\*(.*)\*\*$/);
+                        if (boldMatch) {
+                            return <strong key={`${i}-${j}`} className="font-bold text-gray-900">{boldMatch[1]}</strong>;
+                        }
+                        return bp;
+                    });
+                });
+            };
+
+            if (isBullet) {
+                return (
+                    <div key={lineIdx} className="flex items-start gap-4 my-2.5 ml-6">
+                        <div className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-2.5 flex-shrink-0" />
+                        <div className="text-[15px] text-gray-800 flex-1 leading-relaxed">
+                            {processLineContent(displayContent)}
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div key={lineIdx} className="my-2 text-[15px] text-gray-800 leading-relaxed">
+                    {processLineContent(displayContent)}
+                </div>
+            );
+        });
+    };
+
+    return (
+        <div className="bg-white border-2 border-gray-300 min-h-full flex flex-col shadow-sm">
+            {/* Real IELTS Top Bar */}
+            <div className="border-b border-gray-200 p-2 flex items-center justify-between bg-[#f8f9fa]">
+                <div className="font-bold text-sm text-gray-700 ml-2">Questions 1-40</div>
+                <div className="flex items-center gap-4">
+                    <button className="bg-white border border-gray-300 px-3 py-1 text-xs font-bold rounded shadow-sm flex items-center gap-2 hover:bg-gray-50 italic">
+                        <FaHeadphones className="text-gray-600" /> Listen From Here
+                    </button>
+                    <div className="text-xs font-bold bg-gray-100 border border-gray-300 px-2 py-1 rounded">
+                        {formData.duration}:00
+                    </div>
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Basic Information */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h3 className="font-semibold text-gray-800 mb-4">Basic Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Set Type *
-                            </label>
-                            <select
-                                name="setType"
-                                value={formData.setType}
-                                onChange={handleTypeChange}
-                                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
-                            >
-                                <option value="LISTENING">Listening</option>
-                                <option value="READING">Reading</option>
-                                <option value="WRITING">Writing</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Title *
-                            </label>
-                            <input
-                                type="text"
-                                name="title"
-                                value={formData.title}
-                                onChange={handleInputChange}
-                                required
-                                placeholder="e.g., IELTS Practice Test 1"
-                                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
-                            />
-                        </div>
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Description
-                            </label>
-                            <textarea
-                                name="description"
-                                value={formData.description}
-                                onChange={handleInputChange}
-                                rows={2}
-                                placeholder="Brief description of this set..."
-                                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Duration (minutes) *
-                            </label>
-                            <input
-                                type="number"
-                                name="duration"
-                                value={formData.duration}
-                                onChange={handleInputChange}
-                                required
-                                min={1}
-                                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Difficulty *
-                            </label>
-                            <select
-                                name="difficulty"
-                                value={formData.difficulty}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
-                            >
-                                <option value="easy">Easy</option>
-                                <option value="medium">Medium</option>
-                                <option value="hard">Hard</option>
-                            </select>
-                        </div>
+            <div className="p-10 flex-1 font-sans text-[#1a1a1a]">
+                <div className="mb-10 max-w-3xl border-b border-gray-100 pb-6">
+                    <h2 className="text-2xl font-bold mb-3">{formData.title || "Untitled Test"}</h2>
+                    <p className="text-gray-600 text-sm italic">{formData.description}</p>
+                </div>
+                {formData.setType === "LISTENING" && formData.mainAudioUrl && (
+                    <div className="mb-10 p-4 border border-gray-200 bg-gray-50 rounded shadow-inner">
+                        <audio src={formData.mainAudioUrl} controls className="w-full h-10" />
                     </div>
+                )}
+                <div className="space-y-10">
+                    {isWriting ? writingTasks.map((t, i) => (
+                        <div key={i} className="space-y-3">
+                            <h3 className="font-bold text-gray-800">Task {t.taskNumber}</h3>
+                            <div className="text-sm text-gray-600 bg-gray-50 p-4 rounded-lg italic whitespace-pre-wrap">{t.prompt}</div>
+                            {t.imageUrl && <img src={t.imageUrl} className="rounded-lg max-h-40 mx-auto" />}
+                        </div>
+                    )) : sections.map((s, si) => {
+                        const allQuestions = s.questions.filter(q => q.blockType === "question");
+                        const startQ = allQuestions.length > 0 ? Math.min(...allQuestions.map(q => q.questionNumber)) : null;
+                        const endQ = allQuestions.length > 0 ? Math.max(...allQuestions.map(q => q.questionNumber)) : null;
 
-                    {/* Audio Upload for Listening */}
-                    {formData.setType === "LISTENING" && (
-                        <div className="mt-4 pt-4 border-t border-gray-100">
-                            <label className="block text-sm font-medium text-gray-700 mb-3">
-                                <FaHeadphones className="inline mr-2 text-purple-600" />
-                                Main Audio File *
-                            </label>
+                        return (
+                            <div key={si} className="space-y-6">
+                                {/* Section Header with range and Listen button */}
+                                <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-4">
+                                    <div className="text-sm font-bold text-gray-700">
+                                        {startQ && endQ ? `Questions ${startQ}-${endQ}` : `Section ${si + 1}`}
+                                    </div>
+                                    <button className="flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded bg-white hover:bg-gray-50 text-[11px] font-bold shadow-sm transition-all italic">
+                                        <FaHeadphones size={13} className="text-gray-500" /> Listen From Here
+                                    </button>
+                                </div>
 
-                            {/* Upload Area */}
-                            <div className="space-y-4">
-                                {!formData.mainAudioUrl ? (
-                                    <label className={`
-                                        relative flex flex-col items-center justify-center 
-                                        w-full h-40 border-2 border-dashed rounded-xl 
-                                        cursor-pointer transition-all duration-200
-                                        ${audioUploading
-                                            ? "bg-purple-50 border-purple-300"
-                                            : "bg-gray-50 border-gray-300 hover:bg-purple-50 hover:border-purple-400"
-                                        }
-                                    `}>
-                                        <input
-                                            type="file"
-                                            accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg"
-                                            onChange={handleAudioUpload}
-                                            disabled={audioUploading}
-                                            className="hidden"
-                                        />
+                                <div className="mb-6">
+                                    <h3 className="font-bold text-lg text-[#1a1c1e] mb-1">{s.title}</h3>
+                                    {s.instructions && (
+                                        <p className="text-[15px] text-gray-800 italic mb-4">{s.instructions}</p>
+                                    )}
+                                </div>
 
-                                        {audioUploading ? (
-                                            <div className="flex flex-col items-center">
-                                                <FaSpinner className="text-3xl text-purple-600 animate-spin mb-2" />
-                                                <span className="text-purple-600 font-medium">{uploadProgress}</span>
-                                            </div>
-                                        ) : (
-                                            <div className="flex flex-col items-center">
-                                                <FaCloudUploadAlt className="text-4xl text-gray-400 mb-3" />
-                                                <span className="text-gray-600 font-medium">Click to upload audio file</span>
-                                                <span className="text-gray-400 text-sm mt-1">MP3, WAV, OGG (max 50MB)</span>
-                                            </div>
-                                        )}
-                                    </label>
-                                ) : (
-                                    <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                                    <FaCheck className="text-green-600" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-green-700 font-medium">Audio uploaded successfully!</p>
-                                                    <p className="text-green-600 text-sm">
-                                                        {audioFile?.name || "Audio file"}
-                                                        {formData.audioDuration > 0 && ` • ${Math.floor(formData.audioDuration / 60)}:${String(formData.audioDuration % 60).padStart(2, '0')}`}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setFormData(prev => ({ ...prev, mainAudioUrl: "", audioDuration: 0 }));
-                                                    setAudioFile(null);
-                                                }}
-                                                className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
-                                            >
-                                                <FaTrash />
-                                            </button>
-                                        </div>
-
-                                        {/* Audio Preview */}
-                                        <div className="mt-4">
-                                            <audio
-                                                controls
-                                                src={formData.mainAudioUrl}
-                                                className="w-full"
-                                            />
-                                        </div>
+                                {s.passage && (
+                                    <div className="text-[16px] border border-gray-300 p-8 bg-white whitespace-pre-wrap leading-[1.8] text-gray-800 shadow-sm relative overflow-hidden mb-8">
+                                        {renderPassageText(s.passage)}
                                     </div>
                                 )}
 
-                                {/* Or enter URL manually */}
-                                <div className="flex items-center gap-4">
-                                    <div className="h-px flex-1 bg-gray-200"></div>
-                                    <span className="text-gray-400 text-sm">or enter URL manually</span>
-                                    <div className="h-px flex-1 bg-gray-200"></div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Audio URL
-                                        </label>
-                                        <input
-                                            type="url"
-                                            name="mainAudioUrl"
-                                            value={formData.mainAudioUrl}
-                                            onChange={handleInputChange}
-                                            placeholder="https://..."
-                                            className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Audio Duration (seconds)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="audioDuration"
-                                            value={formData.audioDuration}
-                                            onChange={handleInputChange}
-                                            min={0}
-                                            className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Writing Tasks */}
-                {isWriting && (
-                    <div className="space-y-6">
-                        {writingTasks.map((task, index) => (
-                            <div key={index} className="bg-white rounded-xl border border-gray-200 p-6">
-                                <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                    <FaPen className="text-green-600" />
-                                    Task {task.taskNumber} ({task.taskType === "task1" ? "150+ words" : "250+ words"})
-                                </h3>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Task Prompt *
-                                        </label>
-                                        <textarea
-                                            value={task.prompt}
-                                            onChange={(e) => updateWritingTask(index, "prompt", e.target.value)}
-                                            rows={4}
-                                            required
-                                            placeholder="Write the task prompt here..."
-                                            className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Image URL (for Task 1)
-                                            </label>
-                                            <input
-                                                type="url"
-                                                value={task.imageUrl}
-                                                onChange={(e) => updateWritingTask(index, "imageUrl", e.target.value)}
-                                                placeholder="https://..."
-                                                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Minimum Words
-                                            </label>
-                                            <input
-                                                type="number"
-                                                value={task.minWords}
-                                                onChange={(e) => updateWritingTask(index, "minWords", Number(e.target.value))}
-                                                min={1}
-                                                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Sample Answer (Optional)
-                                        </label>
-                                        <textarea
-                                            value={task.sampleAnswer}
-                                            onChange={(e) => updateWritingTask(index, "sampleAnswer", e.target.value)}
-                                            rows={4}
-                                            placeholder="Sample answer for reference..."
-                                            className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* Sections for Listening/Reading */}
-                {!isWriting && (
-                    <div className="space-y-6">
-                        {sections.map((section, sIndex) => (
-                            <div key={sIndex} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                                {/* Section Header */}
-                                <div className={`bg-${getTypeColor()}-50 p-4 border-b border-gray-200 flex items-center justify-between`}>
-                                    <div className="flex items-center gap-3">
-                                        {getTypeIcon()}
-                                        <input
-                                            type="text"
-                                            value={section.title}
-                                            onChange={(e) => updateSection(sIndex, "title", e.target.value)}
-                                            className="font-semibold text-gray-800 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-cyan-500 focus:outline-none px-1"
-                                        />
-                                    </div>
-                                    {sections.length > 1 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => removeSection(sIndex)}
-                                            className="text-red-500 hover:bg-red-50 p-2 rounded-lg"
-                                        >
-                                            <FaTrash />
-                                        </button>
-                                    )}
-                                </div>
-
-                                <div className="p-6 space-y-4">
-                                    {/* Section Instructions */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Instructions
-                                        </label>
-                                        <textarea
-                                            value={section.instructions}
-                                            onChange={(e) => updateSection(sIndex, "instructions", e.target.value)}
-                                            rows={2}
-                                            placeholder="Instructions for this section..."
-                                            className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
-                                        />
-                                    </div>
-
-                                    {/* Passage for Reading/Listening */}
-                                    {(formData.setType === "READING" || formData.setType === "LISTENING") && (
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                {formData.setType === "READING" ? "Reading Passage" : "Listening Passage / Note Context"}
-                                            </label>
-                                            <textarea
-                                                value={section.passage}
-                                                onChange={(e) => updateSection(sIndex, "passage", e.target.value)}
-                                                rows={6}
-                                                placeholder={
-                                                    formData.setType === "READING"
-                                                        ? "Paste the reading passage here..."
-                                                        : "Enter text with blanks like {1}, {2} to create interactive questions..."
-                                                }
-                                                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
-                                            />
-                                            {formData.setType === "LISTENING" && (
-                                                <p className="mt-1 text-xs text-gray-500">
-                                                    Use <strong>{"{1}"}</strong>, <strong>{"{2}"}</strong> for blanks. Use <strong>-</strong> at start of line for bullets.
-                                                </p>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* Questions */}
-                                    <div className="border-t border-gray-100 pt-4">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h4 className="font-medium text-gray-700">
-                                                Questions ({section.questions.length})
-                                            </h4>
-                                            <button
-                                                type="button"
-                                                onClick={() => addQuestion(sIndex)}
-                                                className="text-cyan-600 hover:bg-cyan-50 px-3 py-1 rounded-lg text-sm flex items-center gap-1"
-                                            >
-                                                <FaPlus /> Add Question
-                                            </button>
-                                        </div>
-
-                                        <div className="space-y-4">
-                                            {section.questions.map((question, qIndex) => (
-                                                <div
-                                                    key={qIndex}
-                                                    className="bg-gray-50 rounded-lg p-4 border border-gray-100"
-                                                >
-                                                    <div className="flex items-start justify-between mb-3">
-                                                        <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded text-sm font-medium">
-                                                            Q{qIndex + 1}
+                                <div className="space-y-8 mt-4">
+                                    {s.questions
+                                        .filter(q => q.blockType === "question" && !(s.passage || "").includes(`{${q.questionNumber}}`))
+                                        .map((q, qi) => (
+                                            <div key={qi} className="group animate-in fade-in slide-in-from-left-4 duration-500">
+                                                <div className="flex flex-col gap-5">
+                                                    <div className="flex gap-4 items-start">
+                                                        <span className="w-8 h-8 border border-black flex-shrink-0 flex items-center justify-center font-bold bg-white text-sm shadow-[1.5px_1.5px_0px_rgba(0,0,0,1)] group-hover:bg-black group-hover:text-white transition-all">
+                                                            {q.questionNumber}
                                                         </span>
-                                                        {section.questions.length > 1 && (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => removeQuestion(sIndex, qIndex)}
-                                                                className="text-red-500 hover:bg-red-50 p-1 rounded"
-                                                            >
-                                                                <FaTrash className="text-sm" />
-                                                            </button>
-                                                        )}
-                                                    </div>
-
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                                                        <div>
-                                                            <label className="block text-xs font-medium text-gray-500 mb-1">
-                                                                Question Type
-                                                            </label>
-                                                            <select
-                                                                value={question.questionType}
-                                                                onChange={(e) =>
-                                                                    updateQuestion(sIndex, qIndex, "questionType", e.target.value)
-                                                                }
-                                                                className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-cyan-500"
-                                                            >
-                                                                {QUESTION_TYPES.map((type) => (
-                                                                    <option key={type.value} value={type.value}>
-                                                                        {type.label}
-                                                                    </option>
-                                                                ))}
-                                                            </select>
-                                                        </div>
-                                                        <div>
-                                                            <label className="block text-xs font-medium text-gray-500 mb-1">
-                                                                Correct Answer
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                value={question.correctAnswer}
-                                                                onChange={(e) =>
-                                                                    updateQuestion(sIndex, qIndex, "correctAnswer", e.target.value)
-                                                                }
-                                                                placeholder="A, B, C, D or text"
-                                                                className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-cyan-500"
-                                                            />
+                                                        <div className="text-[#1a1c1e] font-bold pt-0.5 text-[15px] leading-snug">
+                                                            {q.questionText || "(No question text provided)"}
                                                         </div>
                                                     </div>
 
-                                                    <div className="mb-3">
-                                                        <label className="block text-xs font-medium text-gray-500 mb-1">
-                                                            Question Text
-                                                        </label>
-                                                        <input
-                                                            type="text"
-                                                            value={question.questionText}
-                                                            onChange={(e) =>
-                                                                updateQuestion(sIndex, qIndex, "questionText", e.target.value)
-                                                            }
-                                                            placeholder="Enter the question..."
-                                                            className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-cyan-500"
-                                                        />
-                                                    </div>
-
-                                                    {/* Options for MCQ */}
-                                                    {question.questionType === "multiple-choice" && (
-                                                        <div>
-                                                            <label className="block text-xs font-medium text-gray-500 mb-1">
-                                                                Options
-                                                            </label>
-                                                            <div className="grid grid-cols-2 gap-2">
-                                                                {question.options.map((opt, optIndex) => (
-                                                                    <input
-                                                                        key={optIndex}
-                                                                        type="text"
-                                                                        value={opt}
-                                                                        onChange={(e) =>
-                                                                            updateQuestionOption(sIndex, qIndex, optIndex, e.target.value)
-                                                                        }
-                                                                        placeholder={`Option ${String.fromCharCode(65 + optIndex)}`}
-                                                                        className="border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-cyan-500"
-                                                                    />
-                                                                ))}
-                                                            </div>
+                                                    {q.questionType === "multiple-choice" ? (
+                                                        <div className="grid grid-cols-1 gap-2.5 ml-12">
+                                                            {q.options?.map((o, oi) => (
+                                                                <div key={oi} className="flex gap-3 items-center group/opt cursor-pointer">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="relative flex items-center justify-center">
+                                                                            <span className="w-6 h-6 border-2 border-gray-300 rounded-full flex-shrink-0 group-hover/opt:border-cyan-600 transition-colors bg-white"></span>
+                                                                            <span className="absolute text-[11px] font-bold text-gray-500 group-hover/opt:text-cyan-700 uppercase">{String.fromCharCode(65 + oi)}</span>
+                                                                        </div>
+                                                                        <input
+                                                                            type="radio"
+                                                                            name={`q-${q.questionNumber}`}
+                                                                            className="hidden"
+                                                                        />
+                                                                        <span className="text-[15px] text-gray-800 font-medium">{o && o.startsWith(`${String.fromCharCode(65 + oi)} `) ? o.substring(2) : o}</span>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="ml-12 border border-gray-400 w-72 h-9 bg-white shadow-inner flex items-center px-3 text-gray-400 text-xs italic">
+                                                            (Answer will be entered here)
                                                         </div>
                                                     )}
                                                 </div>
-                                            ))}
-                                        </div>
-                                    </div>
+                                            </div>
+                                        ))}
                                 </div>
                             </div>
-                        ))}
-
-                        {/* Add Section Button */}
-                        <button
-                            type="button"
-                            onClick={addSection}
-                            className="w-full bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-6 text-gray-500 hover:bg-gray-100 hover:border-gray-400 transition-colors flex items-center justify-center gap-2"
-                        >
-                            <FaPlus />
-                            Add Section
-                        </button>
-                    </div>
-                )}
-
-                {/* Error Message */}
-                {error && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-600">
-                        {error}
-                    </div>
-                )}
-
-                {/* Submit Buttons */}
-                <div className="flex justify-end gap-4 sticky bottom-4 bg-white p-4 rounded-xl border border-gray-200 shadow-lg">
-                    <Link
-                        href="/dashboard/admin/question-sets"
-                        className="px-6 py-2.5 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50"
-                    >
-                        Cancel
-                    </Link>
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-teal-600 text-white rounded-lg hover:from-cyan-600 hover:to-teal-700 disabled:opacity-50 flex items-center gap-2"
-                    >
-                        {loading ? <FaSpinner className="animate-spin" /> : <FaSave />}
-                        Create Question Set
-                    </button>
+                        );
+                    })}
                 </div>
-            </form>
+            </div>
+
+            {/* Real Stats Bar */}
+            <div className="bg-[#e9ecef] p-3 border-t border-gray-300 flex items-center justify-between text-xs font-bold text-gray-700">
+                <div className="flex gap-4">
+                    <span>Total Questions: {sections.reduce((acc, s) => acc + s.questions.length, 0)}</span>
+                    <span className="text-cyan-700">Answered: 0</span>
+                </div>
+                <div className="uppercase tracking-widest text-[10px] opacity-30">IELTS OFFICIAL EXAM SYSTEM</div>
+            </div>
         </div>
     );
 }
