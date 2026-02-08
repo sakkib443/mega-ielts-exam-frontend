@@ -22,26 +22,10 @@ export default function TextHighlighter({ children, passageId = "default" }) {
     const [hoverPopupPosition, setHoverPopupPosition] = useState({ x: 0, y: 0 });
     const [hoveredHighlightData, setHoveredHighlightData] = useState(null);
 
-    // Load highlights from localStorage on mount or when passageId changes
+    // Reset highlights when passageId changes (navigating to different passage)
     useEffect(() => {
-        const saved = localStorage.getItem(`highlights_${passageId}`);
-        if (saved) {
-            try {
-                const parsed = JSON.parse(saved);
-                setHighlights(Array.isArray(parsed) ? parsed : []);
-            } catch (e) {
-                console.error("Failed to parse highlights:", e);
-                setHighlights([]);
-            }
-        } else {
-            setHighlights([]);
-        }
+        setHighlights([]);
     }, [passageId]);
-
-    // Save highlights to localStorage whenever they change
-    useEffect(() => {
-        localStorage.setItem(`highlights_${passageId}`, JSON.stringify(highlights));
-    }, [highlights, passageId]);
 
     // Handle text selection
     const handleMouseUp = useCallback((e) => {
