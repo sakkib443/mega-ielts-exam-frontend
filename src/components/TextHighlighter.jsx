@@ -48,26 +48,43 @@ export default function TextHighlighter({ children, passageId = "default" }) {
         if (e.target.closest('.highlight-toolbar') || e.target.closest('.hover-popup')) return;
 
         const selection = window.getSelection();
-        const text = selection?.toString().trim();
+        if (!selection || selection.rangeCount === 0) {
+            setShowToolbar(false);
+            setShowNoteInput(false);
+            return;
+        }
+
+        // Get the raw text content (strips any HTML tags like <mark>)
+        const text = selection.toString().trim();
 
         if (text && text.length > 0) {
+            // Create a temporary range to get proper bounding rect
             const range = selection.getRangeAt(0);
-            const rect = range.getBoundingClientRect();
+
+            // Clone the range to avoid modifying the original selection
+            const clonedRange = range.cloneRange();
+
+            // Get bounding rect from the cloned range
+            const rect = clonedRange.getBoundingClientRect();
             const containerRect = containerRef.current?.getBoundingClientRect();
 
-            if (containerRect) {
+            if (containerRect && rect.width > 0 && rect.height > 0) {
                 setToolbarPosition({
                     x: rect.left - containerRect.left + rect.width / 2,
                     y: rect.bottom - containerRect.top + 8,
                 });
                 setSelectedText(text);
                 setShowToolbar(true);
+            } else {
+                setShowToolbar(false);
+                setShowNoteInput(false);
             }
         } else {
             setShowToolbar(false);
             setShowNoteInput(false);
         }
     }, []);
+
 
     // Hide toolbar when clicking outside
     const handleMouseDown = useCallback((e) => {
@@ -129,26 +146,98 @@ export default function TextHighlighter({ children, passageId = "default" }) {
         handleHighlight(true);
     }, [handleHighlight]);
 
-    // Apply highlights to a single text string
-    const applyHighlightsToText = useCallback((text) => {
+    // Apply highlights to a single text string - returns React elements instead of HTML
+    const applyHighlightsToText = useCallback((text, baseKey = 0) => {
         if (!text || typeof text !== 'string' || highlights.length === 0) return null;
 
-        let result = text;
-        let hasHighlight = false;
+        // Build an array of highlight ranges first
+        const ranges = [];
 
+        // Sort highlights by text length (longest first) to prioritize longer matches
         const sortedHighlights = [...highlights].sort((a, b) => b.text.length - a.text.length);
 
+        // Track which character positions are already highlighted
+        const highlightedPositions = new Set();
+
         sortedHighlights.forEach((highlight) => {
-            if (result.includes(highlight.text)) {
-                hasHighlight = true;
-                const escapedText = highlight.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const regex = new RegExp(`(${escapedText})`, 'g');
-                result = result.replace(regex, `<mark data-id="${highlight.id}" data-note="${encodeURIComponent(highlight.note || '')}" class="text-highlight">$1</mark>`);
+            // Find all occurrences of this highlight text
+            let searchIndex = 0;
+            while (searchIndex < text.length) {
+                const foundIndex = text.indexOf(highlight.text, searchIndex);
+                if (foundIndex === -1) break;
+
+                const endIndex = foundIndex + highlight.text.length;
+
+                // Check if any part of this range is already highlighted
+                let alreadyHighlighted = false;
+                for (let i = foundIndex; i < endIndex; i++) {
+                    if (highlightedPositions.has(i)) {
+                        alreadyHighlighted = true;
+                        break;
+                    }
+                }
+
+                if (!alreadyHighlighted) {
+                    // Mark positions as highlighted
+                    for (let i = foundIndex; i < endIndex; i++) {
+                        highlightedPositions.add(i);
+                    }
+                    ranges.push({
+                        start: foundIndex,
+                        end: endIndex,
+                        highlight: highlight
+                    });
+                }
+
+                searchIndex = foundIndex + 1;
             }
         });
 
-        return hasHighlight ? result : null;
+        if (ranges.length === 0) return null;
+
+        // Sort ranges by start position
+        ranges.sort((a, b) => a.start - b.start);
+
+        // Build React elements array
+        const elements = [];
+        let lastEnd = 0;
+
+        ranges.forEach((range, idx) => {
+            // Add non-highlighted text before this range
+            if (range.start > lastEnd) {
+                elements.push(text.substring(lastEnd, range.start));
+            }
+            // Add highlighted text as a span element
+            const highlightedText = text.substring(range.start, range.end);
+            elements.push(
+                <span
+                    key={`hl-${baseKey}-${idx}`}
+                    data-id={range.highlight.id}
+                    data-note={encodeURIComponent(range.highlight.note || '')}
+                    className="text-highlight"
+                >
+                    {highlightedText}
+                </span>
+            );
+            lastEnd = range.end;
+        });
+
+        // Add any remaining text after the last highlight
+        if (lastEnd < text.length) {
+            elements.push(text.substring(lastEnd));
+        }
+
+        return elements;
     }, [highlights]);
+
+
+    // Helper function to escape HTML entities
+    const escapeHtml = (str) => {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    };
+
 
     // Handle hover on highlights to show remove button
     const handleContentMouseOver = useCallback((e) => {
@@ -191,16 +280,18 @@ export default function TextHighlighter({ children, passageId = "default" }) {
         }
     }, []);
 
-    // Render children with highlights applied
+    // Render children with highlights applied - uses React elements instead of dangerouslySetInnerHTML
     const renderChildrenWithHighlights = useMemo(() => {
         if (!children || highlights.length === 0) return children;
+
+        let keyCounter = 0;
 
         const processNode = (node, key = 0) => {
             // Handle string nodes
             if (typeof node === 'string') {
-                const processed = applyHighlightsToText(node);
+                const processed = applyHighlightsToText(node, keyCounter++);
                 if (processed) {
-                    return <span key={key} dangerouslySetInnerHTML={{ __html: processed }} />;
+                    return <React.Fragment key={key}>{processed}</React.Fragment>;
                 }
                 return node;
             }
@@ -211,14 +302,9 @@ export default function TextHighlighter({ children, passageId = "default" }) {
 
                 // If children is a simple string, process it
                 if (typeof nodeChildren === 'string') {
-                    const processed = applyHighlightsToText(nodeChildren);
+                    const processed = applyHighlightsToText(nodeChildren, keyCounter++);
                     if (processed) {
-                        // Clone element WITHOUT children, add dangerouslySetInnerHTML
-                        const { children: _, ...restProps } = node.props;
-                        return React.createElement(
-                            node.type,
-                            { ...restProps, key, dangerouslySetInnerHTML: { __html: processed } }
-                        );
+                        return React.cloneElement(node, { key }, processed);
                     }
                     return node;
                 }
@@ -248,6 +334,7 @@ export default function TextHighlighter({ children, passageId = "default" }) {
 
         return processNode(children);
     }, [children, highlights, applyHighlightsToText]);
+
 
     return (
         <div
