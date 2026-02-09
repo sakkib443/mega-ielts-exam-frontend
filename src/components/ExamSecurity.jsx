@@ -5,16 +5,18 @@ import { FaExclamationTriangle, FaTimes, FaShieldAlt, FaEyeSlash } from "react-i
 import { studentsAPI } from "@/lib/api";
 
 /**
- * Exam Security Component
+ * Exam Security Component - HIGHLY SECURE
  * - Detects and reports tab switching
  * - Detects fullscreen exit
+ * - Blocks copy, cut, paste
+ * - Blocks right-click
+ * - Blocks keyboard shortcuts (Ctrl+C, Ctrl+V, F12, etc.)
+ * - Blocks text selection
+ * - Blocks print screen
  * - Shows warning overlay
  * - Reports violations to backend
  */
 export default function ExamSecurity({ examId, onViolationLimit = () => { } }) {
-    // SECURITY MUTED FOR DEVELOPMENT
-    return null;
-
     const [violations, setViolations] = useState(0);
     const [showWarning, setShowWarning] = useState(false);
     const [warningType, setWarningType] = useState("");
@@ -72,6 +74,7 @@ export default function ExamSecurity({ examId, onViolationLimit = () => { } }) {
         e.preventDefault();
         setWarningType("right-click");
         setShowWarning(true);
+        return false;
     }, []);
 
     // Detect copy/cut/paste
@@ -79,23 +82,59 @@ export default function ExamSecurity({ examId, onViolationLimit = () => { } }) {
         e.preventDefault();
         setWarningType("copy-paste");
         setShowWarning(true);
+        return false;
     }, []);
 
-    // Detect keyboard shortcuts (Ctrl+C, Ctrl+V, Ctrl+Tab, Alt+Tab, etc.)
+    // Block text selection (except in TextHighlighter and inputs)
+    const handleSelectStart = useCallback((e) => {
+        // Allow selection in input/textarea
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+            return true;
+        }
+        // Allow selection in TextHighlighter container for highlight feature
+        if (e.target.closest('.text-highlighter-container')) {
+            return true;
+        }
+        e.preventDefault();
+        return false;
+    }, []);
+
+    // Detect keyboard shortcuts
     const handleKeyDown = useCallback((e) => {
-        // Block Ctrl+C, Ctrl+V, Ctrl+X
-        if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x')) {
+        // Block Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+A
+        if (e.ctrlKey && ['c', 'v', 'x', 'a', 'u', 's', 'p'].includes(e.key.toLowerCase())) {
             e.preventDefault();
             setWarningType("keyboard-shortcut");
             setShowWarning(true);
+            return false;
+        }
+        // Block Ctrl+Shift+I (Dev Tools)
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i') {
+            e.preventDefault();
+            setViolations(prev => prev + 1);
+            setWarningType("dev-tools");
+            setShowWarning(true);
+            reportViolation("dev-tools");
+            return false;
+        }
+        // Block Ctrl+Shift+J (Console)
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'j') {
+            e.preventDefault();
+            setViolations(prev => prev + 1);
+            setWarningType("dev-tools");
+            setShowWarning(true);
+            reportViolation("dev-tools");
+            return false;
         }
         // Block Ctrl+Tab
         if (e.ctrlKey && e.key === 'Tab') {
             e.preventDefault();
+            return false;
         }
         // Block Alt+Tab (limited browser support)
         if (e.altKey && e.key === 'Tab') {
             e.preventDefault();
+            return false;
         }
         // Block F12 (Dev Tools)
         if (e.key === 'F12') {
@@ -104,8 +143,42 @@ export default function ExamSecurity({ examId, onViolationLimit = () => { } }) {
             setWarningType("dev-tools");
             setShowWarning(true);
             reportViolation("dev-tools");
+            return false;
+        }
+        // Block Print Screen
+        if (e.key === 'PrintScreen') {
+            e.preventDefault();
+            setWarningType("screenshot");
+            setShowWarning(true);
+            return false;
+        }
+        // Block Ctrl+P (Print)
+        if (e.ctrlKey && e.key.toLowerCase() === 'p') {
+            e.preventDefault();
+            setWarningType("print");
+            setShowWarning(true);
+            return false;
         }
     }, [reportViolation]);
+
+    // Detect blur (window loses focus)
+    const handleBlur = useCallback(() => {
+        // Slight delay to distinguish from normal interactions
+        setTimeout(() => {
+            if (!document.hasFocus()) {
+                setViolations(prev => {
+                    const newCount = prev + 1;
+                    if (newCount >= MAX_VIOLATIONS) {
+                        onViolationLimit();
+                    }
+                    return newCount;
+                });
+                setWarningType("window-blur");
+                setShowWarning(true);
+                reportViolation("window-blur");
+            }
+        }, 100);
+    }, [reportViolation, onViolationLimit]);
 
     // Request fullscreen on mount
     const requestFullscreen = useCallback(() => {
@@ -115,6 +188,38 @@ export default function ExamSecurity({ examId, onViolationLimit = () => { } }) {
                 console.log("Fullscreen request failed:", err);
             });
         }
+    }, []);
+
+    // Disable text selection via CSS (except in TextHighlighter)
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.id = 'exam-security-style';
+        style.textContent = `
+            .exam-secure-container {
+                -webkit-user-select: none !important;
+                -moz-user-select: none !important;
+                -ms-user-select: none !important;
+                user-select: none !important;
+                -webkit-touch-callout: none !important;
+            }
+            .exam-secure-container input,
+            .exam-secure-container textarea,
+            .exam-secure-container .text-highlighter-container,
+            .exam-secure-container .text-highlighter-container * {
+                -webkit-user-select: text !important;
+                -moz-user-select: text !important;
+                -ms-user-select: text !important;
+                user-select: text !important;
+            }
+        `;
+        document.head.appendChild(style);
+        document.body.classList.add('exam-secure-container');
+
+        return () => {
+            const styleEl = document.getElementById('exam-security-style');
+            if (styleEl) styleEl.remove();
+            document.body.classList.remove('exam-secure-container');
+        };
     }, []);
 
     // Setup event listeners
@@ -127,6 +232,8 @@ export default function ExamSecurity({ examId, onViolationLimit = () => { } }) {
         document.addEventListener("cut", handleCopyPaste);
         document.addEventListener("paste", handleCopyPaste);
         document.addEventListener("keydown", handleKeyDown);
+        document.addEventListener("selectstart", handleSelectStart);
+        window.addEventListener("blur", handleBlur);
 
         // Request fullscreen after a short delay
         const timer = setTimeout(() => {
@@ -142,9 +249,11 @@ export default function ExamSecurity({ examId, onViolationLimit = () => { } }) {
             document.removeEventListener("cut", handleCopyPaste);
             document.removeEventListener("paste", handleCopyPaste);
             document.removeEventListener("keydown", handleKeyDown);
+            document.removeEventListener("selectstart", handleSelectStart);
+            window.removeEventListener("blur", handleBlur);
             clearTimeout(timer);
         };
-    }, [handleVisibilityChange, handleFullscreenChange, handleContextMenu, handleCopyPaste, handleKeyDown, requestFullscreen]);
+    }, [handleVisibilityChange, handleFullscreenChange, handleContextMenu, handleCopyPaste, handleKeyDown, handleSelectStart, handleBlur, requestFullscreen]);
 
     // Warning messages
     const getWarningMessage = () => {
@@ -153,6 +262,12 @@ export default function ExamSecurity({ examId, onViolationLimit = () => { } }) {
                 return {
                     title: "⚠️ Tab Switch Detected!",
                     message: "You left the exam window. This has been recorded as a violation.",
+                    icon: <FaEyeSlash className="text-4xl" />
+                };
+            case "window-blur":
+                return {
+                    title: "⚠️ Window Focus Lost!",
+                    message: "You switched to another window. This has been recorded.",
                     icon: <FaEyeSlash className="text-4xl" />
                 };
             case "fullscreen-exit":
@@ -184,6 +299,18 @@ export default function ExamSecurity({ examId, onViolationLimit = () => { } }) {
                     title: "⚠️ Developer Tools Detected!",
                     message: "Opening developer tools is a serious violation.",
                     icon: <FaExclamationTriangle className="text-4xl" />
+                };
+            case "screenshot":
+                return {
+                    title: "🚫 Screenshot Blocked",
+                    message: "Taking screenshots is not allowed during the exam.",
+                    icon: <FaShieldAlt className="text-4xl" />
+                };
+            case "print":
+                return {
+                    title: "🚫 Print Blocked",
+                    message: "Printing is not allowed during the exam.",
+                    icon: <FaShieldAlt className="text-4xl" />
                 };
             default:
                 return {
