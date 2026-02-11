@@ -15,8 +15,15 @@ import { studentsAPI } from "@/lib/api";
  * - Blocks print screen
  * - Shows warning overlay
  * - Reports violations to backend
+ * 
+ * ⚠️ DEV_MODE: Set to true to disable security during development.
+ *    Set to false for production/deployment.
  */
+const DEV_MODE = true; // 🔧 Toggle this: true = security OFF, false = security ON
+
 export default function ExamSecurity({ examId, onViolationLimit = () => { } }) {
+    // Skip all security in dev mode
+    if (DEV_MODE) return null;
     const [violations, setViolations] = useState(0);
     const [showWarning, setShowWarning] = useState(false);
     const [warningType, setWarningType] = useState("");

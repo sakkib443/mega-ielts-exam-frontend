@@ -14,6 +14,7 @@ export default function TextHighlighter({ children, passageId = "default" }) {
     const [showToolbar, setShowToolbar] = useState(false);
     const [toolbarPosition, setToolbarPosition] = useState({ x: 0, y: 0 });
     const [selectedText, setSelectedText] = useState("");
+    const [selectionOffset, setSelectionOffset] = useState(-1);
     const [showNoteInput, setShowNoteInput] = useState(false);
     const [noteText, setNoteText] = useState("");
 
@@ -22,9 +23,24 @@ export default function TextHighlighter({ children, passageId = "default" }) {
     const [hoverPopupPosition, setHoverPopupPosition] = useState({ x: 0, y: 0 });
     const [hoveredHighlightData, setHoveredHighlightData] = useState(null);
 
-    // Reset highlights when passageId changes (navigating to different passage)
+    // Store highlights per passage so they persist when navigating between passages
+    const highlightsPerPassage = useRef({});
+    const prevPassageId = useRef(passageId);
+
     useEffect(() => {
-        setHighlights([]);
+        // Save current highlights for the previous passage before switching
+        if (prevPassageId.current !== passageId) {
+            highlightsPerPassage.current[prevPassageId.current] = highlights;
+            prevPassageId.current = passageId;
+        }
+
+        // Restore saved highlights for this passage (or empty if first visit)
+        const saved = highlightsPerPassage.current[passageId] || [];
+        setHighlights(saved);
+
+        // Reset toolbar state
+        setShowToolbar(false);
+        setShowNoteInput(false);
     }, [passageId]);
 
     // Handle text selection
@@ -39,7 +55,9 @@ export default function TextHighlighter({ children, passageId = "default" }) {
         }
 
         // Get the raw text content (strips any HTML tags like <mark>)
-        const text = selection.toString().trim();
+        const rawText = selection.toString();
+        const text = rawText.trim();
+        const leadingSpaces = rawText.length - rawText.trimStart().length;
 
         if (text && text.length > 0) {
             // Create a temporary range to get proper bounding rect
@@ -58,6 +76,39 @@ export default function TextHighlighter({ children, passageId = "default" }) {
                     y: rect.bottom - containerRect.top + 8,
                 });
                 setSelectedText(text);
+
+                // Calculate global character offset of selection within the container
+                // We use a TreeWalker to count only actual text, skipping note-icon elements
+                try {
+                    const container = containerRef.current;
+                    const walker = document.createTreeWalker(
+                        container,
+                        NodeFilter.SHOW_TEXT,
+                        {
+                            acceptNode: (node) => {
+                                // Skip text inside note-icon elements
+                                if (node.parentElement?.closest('.note-icon')) {
+                                    return NodeFilter.FILTER_REJECT;
+                                }
+                                return NodeFilter.FILTER_ACCEPT;
+                            }
+                        }
+                    );
+
+                    let offset = 0;
+                    let currentNode;
+                    while ((currentNode = walker.nextNode())) {
+                        if (currentNode === range.startContainer) {
+                            offset += range.startOffset + leadingSpaces;
+                            break;
+                        }
+                        offset += currentNode.textContent.length;
+                    }
+                    setSelectionOffset(offset);
+                } catch {
+                    setSelectionOffset(-1);
+                }
+
                 setShowToolbar(true);
             } else {
                 setShowToolbar(false);
@@ -85,11 +136,12 @@ export default function TextHighlighter({ children, passageId = "default" }) {
 
     // Add highlight
     const handleHighlight = useCallback((withNote = false) => {
-        if (!selectedText) return;
+        if (!selectedText || selectionOffset < 0) return;
 
         const newHighlight = {
             id: Date.now().toString(),
             text: selectedText,
+            offset: selectionOffset, // exact position in the passage
             color: "#FFFF00",
             note: withNote ? noteText.trim() : "",
             createdAt: new Date().toISOString(),
@@ -100,18 +152,21 @@ export default function TextHighlighter({ children, passageId = "default" }) {
         setShowNoteInput(false);
         setNoteText("");
         setSelectedText("");
+        setSelectionOffset(-1);
         window.getSelection()?.removeAllRanges();
-    }, [selectedText, noteText]);
+    }, [selectedText, selectionOffset, noteText]);
 
-    // Remove highlight for selected text
+    // Remove highlight for selected text at the specific offset
     const handleRemoveHighlight = useCallback(() => {
         if (!selectedText) return;
 
-        setHighlights((prev) => prev.filter((h) => h.text !== selectedText));
+        // Remove the highlight that matches both text and offset
+        setHighlights((prev) => prev.filter((h) => !(h.text === selectedText && h.offset === selectionOffset)));
         setShowToolbar(false);
         window.getSelection()?.removeAllRanges();
         setSelectedText("");
-    }, [selectedText]);
+        setSelectionOffset(-1);
+    }, [selectedText, selectionOffset]);
 
     // Remove highlight by ID (from hover popup)
     const handleRemoveHighlightById = useCallback((highlightId) => {
@@ -130,50 +185,31 @@ export default function TextHighlighter({ children, passageId = "default" }) {
         handleHighlight(true);
     }, [handleHighlight]);
 
-    // Apply highlights to a single text string - returns React elements instead of HTML
-    const applyHighlightsToText = useCallback((text, baseKey = 0) => {
+    // Apply highlights to a single text string - position-based (only the exact selected instance)
+    // textStartOffset = the global character offset where this text node starts in the passage
+    const applyHighlightsToText = useCallback((text, textStartOffset = 0) => {
         if (!text || typeof text !== 'string' || highlights.length === 0) return null;
 
-        // Build an array of highlight ranges first
+        const textEndOffset = textStartOffset + text.length;
         const ranges = [];
 
-        // Sort highlights by text length (longest first) to prioritize longer matches
-        const sortedHighlights = [...highlights].sort((a, b) => b.text.length - a.text.length);
+        highlights.forEach((highlight) => {
+            const hlStart = highlight.offset;
+            const hlEnd = highlight.offset + highlight.text.length;
 
-        // Track which character positions are already highlighted
-        const highlightedPositions = new Set();
+            // Check if this highlight falls within this text node
+            if (hlStart >= textStartOffset && hlEnd <= textEndOffset) {
+                const localStart = hlStart - textStartOffset;
+                const localEnd = hlEnd - textStartOffset;
 
-        sortedHighlights.forEach((highlight) => {
-            // Find all occurrences of this highlight text
-            let searchIndex = 0;
-            while (searchIndex < text.length) {
-                const foundIndex = text.indexOf(highlight.text, searchIndex);
-                if (foundIndex === -1) break;
-
-                const endIndex = foundIndex + highlight.text.length;
-
-                // Check if any part of this range is already highlighted
-                let alreadyHighlighted = false;
-                for (let i = foundIndex; i < endIndex; i++) {
-                    if (highlightedPositions.has(i)) {
-                        alreadyHighlighted = true;
-                        break;
-                    }
-                }
-
-                if (!alreadyHighlighted) {
-                    // Mark positions as highlighted
-                    for (let i = foundIndex; i < endIndex; i++) {
-                        highlightedPositions.add(i);
-                    }
+                // Verify the text actually matches at this position
+                if (text.substring(localStart, localEnd) === highlight.text) {
                     ranges.push({
-                        start: foundIndex,
-                        end: endIndex,
+                        start: localStart,
+                        end: localEnd,
                         highlight: highlight
                     });
                 }
-
-                searchIndex = foundIndex + 1;
             }
         });
 
@@ -193,12 +229,14 @@ export default function TextHighlighter({ children, passageId = "default" }) {
             }
             // Add highlighted text as a span element
             const highlightedText = text.substring(range.start, range.end);
+            const hasNote = range.highlight.note && range.highlight.note.length > 0;
             elements.push(
                 <span
-                    key={`hl-${baseKey}-${idx}`}
+                    key={`hl-${textStartOffset}-${idx}`}
                     data-id={range.highlight.id}
                     data-note={encodeURIComponent(range.highlight.note || '')}
-                    className="text-highlight"
+                    className={`text-highlight ${hasNote ? 'has-note' : ''}`}
+                    title={hasNote ? range.highlight.note : undefined}
                 >
                     {highlightedText}
                 </span>
@@ -264,16 +302,19 @@ export default function TextHighlighter({ children, passageId = "default" }) {
         }
     }, []);
 
-    // Render children with highlights applied - uses React elements instead of dangerouslySetInnerHTML
+    // Render children with highlights applied - tracks global offset across text nodes
     const renderChildrenWithHighlights = useMemo(() => {
         if (!children || highlights.length === 0) return children;
 
-        let keyCounter = 0;
+        // Mutable offset tracker shared across all recursive calls
+        const offset = { value: 0 };
 
         const processNode = (node, key = 0) => {
             // Handle string nodes
             if (typeof node === 'string') {
-                const processed = applyHighlightsToText(node, keyCounter++);
+                const currentOffset = offset.value;
+                offset.value += node.length;
+                const processed = applyHighlightsToText(node, currentOffset);
                 if (processed) {
                     return <React.Fragment key={key}>{processed}</React.Fragment>;
                 }
@@ -286,7 +327,9 @@ export default function TextHighlighter({ children, passageId = "default" }) {
 
                 // If children is a simple string, process it
                 if (typeof nodeChildren === 'string') {
-                    const processed = applyHighlightsToText(nodeChildren, keyCounter++);
+                    const currentOffset = offset.value;
+                    offset.value += nodeChildren.length;
+                    const processed = applyHighlightsToText(nodeChildren, currentOffset);
                     if (processed) {
                         return React.cloneElement(node, { key }, processed);
                     }
@@ -467,9 +510,22 @@ export default function TextHighlighter({ children, passageId = "default" }) {
                     border-radius: 2px;
                     cursor: pointer;
                     transition: background-color 0.2s;
+                    position: relative;
                 }
                 .text-highlight:hover {
                     background-color: #FFD700 !important;
+                }
+                .text-highlight.has-note {
+                }
+                .text-highlight.has-note::before {
+                    content: '📝';
+                    position: absolute;
+                    top: -8px;
+                    left: 0;
+                    font-size: 12px;
+                    line-height: 1;
+                    pointer-events: none;
+                    user-select: none;
                 }
                 .text-highlighter-container {
                     user-select: text;
