@@ -15,6 +15,7 @@ import {
 } from "react-icons/fa";
 import { questionSetsAPI, studentsAPI } from "@/lib/api";
 import ExamSecurity from "@/components/ExamSecurity";
+import TextHighlighter from "@/components/TextHighlighter";
 
 export default function WritingExamPage() {
     const params = useParams();
@@ -425,41 +426,43 @@ export default function WritingExamPage() {
                     {/* Instructions Panel */}
                     <div className="lg:col-span-1">
                         <div className="bg-white border border-gray-200 rounded p-5">
-                            <div className="mb-4">
-                                <span className="bg-green-100 text-green-700 px-3 py-1 rounded text-sm font-medium">
-                                    {currentTaskData?.title}
-                                </span>
-                            </div>
-
-                            <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-line mb-4">
-                                {currentTaskData?.instruction}
-                            </div>
-
-                            {currentTaskData?.imageUrl && (
-                                <div className="bg-gray-50 border border-gray-200 rounded p-3 mt-4">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <p className="text-gray-600 text-sm font-medium">📊 Reference Image:</p>
-                                        <button
-                                            onClick={() => window.open(currentTaskData.imageUrl, '_blank')}
-                                            className="text-xs text-green-600 hover:underline cursor-pointer"
-                                        >
-                                            View Full Size ↗
-                                        </button>
-                                    </div>
-                                    <div className="bg-white p-2 rounded border border-gray-100">
-                                        <img
-                                            src={currentTaskData.imageUrl}
-                                            alt="Task reference - Map/Graph/Chart"
-                                            className="w-full rounded cursor-zoom-in hover:opacity-90 transition-opacity"
-                                            style={{ maxHeight: '400px', objectFit: 'contain' }}
-                                            onClick={() => window.open(currentTaskData.imageUrl, '_blank')}
-                                        />
-                                    </div>
-                                    <p className="text-gray-400 text-xs mt-2 text-center">
-                                        Click image to view in full size
-                                    </p>
+                            <TextHighlighter passageId={`writing_task_${currentTask}`}>
+                                <div className="mb-4">
+                                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded text-sm font-medium">
+                                        {currentTaskData?.title}
+                                    </span>
                                 </div>
-                            )}
+
+                                <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-line mb-4">
+                                    {currentTaskData?.instruction}
+                                </div>
+
+                                {currentTaskData?.imageUrl && (
+                                    <div className="bg-gray-50 border border-gray-200 rounded p-3 mt-4">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <p className="text-gray-600 text-sm font-medium">📊 Reference Image:</p>
+                                            <button
+                                                onClick={() => window.open(currentTaskData.imageUrl, '_blank')}
+                                                className="text-xs text-green-600 hover:underline cursor-pointer"
+                                            >
+                                                View Full Size ↗
+                                            </button>
+                                        </div>
+                                        <div className="bg-white p-2 rounded border border-gray-100">
+                                            <img
+                                                src={currentTaskData.imageUrl}
+                                                alt="Task reference - Map/Graph/Chart"
+                                                className="w-full rounded cursor-zoom-in hover:opacity-90 transition-opacity"
+                                                style={{ maxHeight: '400px', objectFit: 'contain' }}
+                                                onClick={() => window.open(currentTaskData.imageUrl, '_blank')}
+                                            />
+                                        </div>
+                                        <p className="text-gray-400 text-xs mt-2 text-center">
+                                            Click image to view in full size
+                                        </p>
+                                    </div>
+                                )}
+                            </TextHighlighter>
                         </div>
                     </div>
 

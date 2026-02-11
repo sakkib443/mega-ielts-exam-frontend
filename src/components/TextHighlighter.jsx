@@ -18,7 +18,7 @@ export default function TextHighlighter({ children, passageId = "default" }) {
     const [showNoteInput, setShowNoteInput] = useState(false);
     const [noteText, setNoteText] = useState("");
 
-    // Hover state for showing remove button
+    // Click state for showing note popup / remove button
     const [hoveredHighlightId, setHoveredHighlightId] = useState(null);
     const [hoverPopupPosition, setHoverPopupPosition] = useState({ x: 0, y: 0 });
     const [hoveredHighlightData, setHoveredHighlightData] = useState(null);
@@ -43,6 +43,24 @@ export default function TextHighlighter({ children, passageId = "default" }) {
         setShowNoteInput(false);
     }, [passageId]);
 
+    // Utility: compute text content from React children (MUST match processNode's counting logic exactly)
+    const getReactTextContent = useCallback((node) => {
+        if (typeof node === 'string') return node;
+        if (typeof node === 'number') return String(node);
+        if (node == null || typeof node === 'boolean') return '';
+        if (React.isValidElement(node)) {
+            const type = node.type;
+            if (type === 'input' || type === 'textarea' || type === 'select') return '';
+            return getReactTextContent(node.props.children);
+        }
+        if (Array.isArray(node)) return node.map(getReactTextContent).join('');
+        return '';
+    }, []);
+
+    // Keep a ref to current children so handleMouseUp always has the latest
+    const childrenRef = useRef(children);
+    childrenRef.current = children;
+
     // Handle text selection
     const handleMouseUp = useCallback((e) => {
         if (e.target.closest('.highlight-toolbar') || e.target.closest('.hover-popup')) return;
@@ -54,19 +72,11 @@ export default function TextHighlighter({ children, passageId = "default" }) {
             return;
         }
 
-        // Get the raw text content (strips any HTML tags like <mark>)
-        const rawText = selection.toString();
-        const text = rawText.trim();
-        const leadingSpaces = rawText.length - rawText.trimStart().length;
+        const text = selection.toString().trim();
 
         if (text && text.length > 0) {
-            // Create a temporary range to get proper bounding rect
             const range = selection.getRangeAt(0);
-
-            // Clone the range to avoid modifying the original selection
             const clonedRange = range.cloneRange();
-
-            // Get bounding rect from the cloned range
             const rect = clonedRange.getBoundingClientRect();
             const containerRect = containerRef.current?.getBoundingClientRect();
 
@@ -77,34 +87,33 @@ export default function TextHighlighter({ children, passageId = "default" }) {
                 });
                 setSelectedText(text);
 
-                // Calculate global character offset of selection within the container
-                // We use a TreeWalker to count only actual text, skipping note-icon elements
+                // Calculate offset using React text content (guaranteed to match processNode)
                 try {
-                    const container = containerRef.current;
-                    const walker = document.createTreeWalker(
-                        container,
-                        NodeFilter.SHOW_TEXT,
-                        {
-                            acceptNode: (node) => {
-                                // Skip text inside note-icon elements
-                                if (node.parentElement?.closest('.note-icon')) {
-                                    return NodeFilter.FILTER_REJECT;
-                                }
-                                return NodeFilter.FILTER_ACCEPT;
-                            }
-                        }
-                    );
+                    // Get full text as React tree sees it
+                    const reactFullText = getReactTextContent(childrenRef.current);
 
-                    let offset = 0;
-                    let currentNode;
-                    while ((currentNode = walker.nextNode())) {
-                        if (currentNode === range.startContainer) {
-                            offset += range.startOffset + leadingSpaces;
-                            break;
+                    // Get approximate DOM offset as a hint for finding the right occurrence
+                    const preRange = document.createRange();
+                    preRange.selectNodeContents(containerRef.current);
+                    preRange.setEnd(range.startContainer, range.startOffset);
+                    const domOffset = preRange.toString().length;
+
+                    // Find the occurrence of selected text in reactFullText closest to domOffset
+                    let bestOffset = -1;
+                    let bestDistance = Infinity;
+                    let searchFrom = 0;
+                    while (searchFrom < reactFullText.length) {
+                        const idx = reactFullText.indexOf(text, searchFrom);
+                        if (idx === -1) break;
+                        const distance = Math.abs(idx - domOffset);
+                        if (distance < bestDistance) {
+                            bestDistance = distance;
+                            bestOffset = idx;
                         }
-                        offset += currentNode.textContent.length;
+                        if (idx > domOffset + 500) break; // stop searching far ahead
+                        searchFrom = idx + 1;
                     }
-                    setSelectionOffset(offset);
+                    setSelectionOffset(bestOffset);
                 } catch {
                     setSelectionOffset(-1);
                 }
@@ -118,7 +127,7 @@ export default function TextHighlighter({ children, passageId = "default" }) {
             setShowToolbar(false);
             setShowNoteInput(false);
         }
-    }, []);
+    }, [getReactTextContent]);
 
 
     // Hide toolbar when clicking outside
@@ -185,8 +194,8 @@ export default function TextHighlighter({ children, passageId = "default" }) {
         handleHighlight(true);
     }, [handleHighlight]);
 
-    // Apply highlights to a single text string - position-based (only the exact selected instance)
-    // textStartOffset = the global character offset where this text node starts in the passage
+    // Apply highlights to a single text string - position-based
+    // Supports highlights that span across multiple text nodes (overlap matching)
     const applyHighlightsToText = useCallback((text, textStartOffset = 0) => {
         if (!text || typeof text !== 'string' || highlights.length === 0) return null;
 
@@ -197,18 +206,24 @@ export default function TextHighlighter({ children, passageId = "default" }) {
             const hlStart = highlight.offset;
             const hlEnd = highlight.offset + highlight.text.length;
 
-            // Check if this highlight falls within this text node
-            if (hlStart >= textStartOffset && hlEnd <= textEndOffset) {
-                const localStart = hlStart - textStartOffset;
-                const localEnd = hlEnd - textStartOffset;
+            // Check if this highlight OVERLAPS with this text node (not just fully contained)
+            if (hlStart < textEndOffset && hlEnd > textStartOffset) {
+                const localStart = Math.max(0, hlStart - textStartOffset);
+                const localEnd = Math.min(text.length, hlEnd - textStartOffset);
 
-                // Verify the text actually matches at this position
-                if (text.substring(localStart, localEnd) === highlight.text) {
-                    ranges.push({
-                        start: localStart,
-                        end: localEnd,
-                        highlight: highlight
-                    });
+                if (localEnd > localStart) {
+                    // Verify the overlapping portion matches
+                    const portionStart = Math.max(0, textStartOffset - hlStart);
+                    const expectedPortion = highlight.text.substring(portionStart, portionStart + (localEnd - localStart));
+                    const actualPortion = text.substring(localStart, localEnd);
+
+                    if (actualPortion === expectedPortion) {
+                        ranges.push({
+                            start: localStart,
+                            end: localEnd,
+                            highlight: highlight
+                        });
+                    }
                 }
             }
         });
@@ -261,15 +276,23 @@ export default function TextHighlighter({ children, passageId = "default" }) {
     };
 
 
-    // Handle hover on highlights to show remove button
-    const handleContentMouseOver = useCallback((e) => {
+    // Handle click on highlights to show note popup / remove button
+    const handleHighlightClick = useCallback((e) => {
         const mark = e.target.closest('.text-highlight');
         if (mark && !showToolbar) {
+            e.stopPropagation();
             const highlightId = mark.dataset.id;
             const note = decodeURIComponent(mark.dataset.note || '');
             const highlight = highlights.find(h => h.id === highlightId);
 
             if (highlight) {
+                // If clicking the same highlight, toggle off
+                if (hoveredHighlightId === highlightId) {
+                    setHoveredHighlightId(null);
+                    setHoveredHighlightData(null);
+                    return;
+                }
+
                 const rect = mark.getBoundingClientRect();
                 const containerRect = containerRef.current?.getBoundingClientRect();
 
@@ -283,24 +306,7 @@ export default function TextHighlighter({ children, passageId = "default" }) {
                 }
             }
         }
-    }, [highlights, showToolbar]);
-
-    const handleContentMouseOut = useCallback((e) => {
-        const relatedTarget = e.relatedTarget;
-        // Don't hide if moving to the popup itself
-        if (relatedTarget?.closest('.hover-popup')) return;
-
-        if (e.target.closest('.text-highlight')) {
-            // Small delay to allow moving to popup
-            setTimeout(() => {
-                const popup = document.querySelector('.hover-popup:hover');
-                if (!popup) {
-                    setHoveredHighlightId(null);
-                    setHoveredHighlightData(null);
-                }
-            }, 100);
-        }
-    }, []);
+    }, [highlights, showToolbar, hoveredHighlightId]);
 
     // Render children with highlights applied - tracks global offset across text nodes
     const renderChildrenWithHighlights = useMemo(() => {
@@ -321,9 +327,31 @@ export default function TextHighlighter({ children, passageId = "default" }) {
                 return node;
             }
 
+            // Handle numbers (they render as text in DOM)
+            // NOTE: booleans (true/false) do NOT render in React, so skip them!
+            if (typeof node === 'number') {
+                const text = String(node);
+                const currentOffset = offset.value;
+                offset.value += text.length;
+                const processed = applyHighlightsToText(text, currentOffset);
+                if (processed) {
+                    return <React.Fragment key={key}>{processed}</React.Fragment>;
+                }
+                return node;
+            }
+
+            // Handle null/undefined/boolean - React doesn't render these
+            if (node == null || typeof node === 'boolean') return null;
+
             // Handle React elements
             if (React.isValidElement(node)) {
                 const nodeChildren = node.props.children;
+
+                // Skip processing input/textarea/select elements (form elements)
+                const nodeType = node.type;
+                if (nodeType === 'input' || nodeType === 'textarea' || nodeType === 'select') {
+                    return node;
+                }
 
                 // If children is a simple string, process it
                 if (typeof nodeChildren === 'string') {
@@ -333,6 +361,23 @@ export default function TextHighlighter({ children, passageId = "default" }) {
                     if (processed) {
                         return React.cloneElement(node, { key }, processed);
                     }
+                    return node;
+                }
+
+                // If children is a number (renders as text in DOM)
+                if (typeof nodeChildren === 'number') {
+                    const text = String(nodeChildren);
+                    const currentOffset = offset.value;
+                    offset.value += text.length;
+                    const processed = applyHighlightsToText(text, currentOffset);
+                    if (processed) {
+                        return React.cloneElement(node, { key }, processed);
+                    }
+                    return node;
+                }
+
+                // Skip booleans (React doesn't render them)
+                if (typeof nodeChildren === 'boolean') {
                     return node;
                 }
 
@@ -369,27 +414,73 @@ export default function TextHighlighter({ children, passageId = "default" }) {
             className="relative text-highlighter-container"
             onMouseUp={handleMouseUp}
             onMouseDown={handleMouseDown}
-            onMouseOver={handleContentMouseOver}
-            onMouseOut={handleContentMouseOut}
+            onClick={handleHighlightClick}
         >
             {renderChildrenWithHighlights}
 
-            {/* Hover Popup with Remove Button - Shows when hovering on highlighted text */}
+            {/* Click Popup - Sticky Note Style */}
             {hoveredHighlightId && hoveredHighlightData && !showToolbar && (
-                <div
-                    className="hover-popup absolute z-50 bg-gray-800 rounded-lg shadow-xl p-1.5 border border-gray-700"
-                    style={{
-                        left: `${hoverPopupPosition.x}px`,
-                        top: `${hoverPopupPosition.y}px`,
-                        transform: "translate(-50%, -100%)",
-                    }}
-                    onMouseLeave={() => {
-                        setHoveredHighlightId(null);
-                        setHoveredHighlightData(null);
-                    }}
-                >
-                    <div className="flex items-center gap-1">
-                        {/* Remove/Deselect Button */}
+                hoveredHighlightData.note ? (
+                    /* Sticky Note Popup for highlights with notes */
+                    <div
+                        className="hover-popup absolute z-50"
+                        style={{
+                            left: `${hoverPopupPosition.x}px`,
+                            top: `${hoverPopupPosition.y}px`,
+                            transform: "translate(-50%, -100%)",
+                        }}
+                    >
+                        <div
+                            className="relative rounded shadow-lg border border-yellow-400"
+                            style={{
+                                backgroundColor: '#FFFACD',
+                                minWidth: '160px',
+                                maxWidth: '280px',
+                            }}
+                        >
+                            {/* Top bar with red square + close button */}
+                            <div className="flex items-center justify-between px-2 py-1">
+                                <div className="w-4 h-4 bg-red-600 rounded-sm" />
+                                <button
+                                    onClick={() => {
+                                        setHoveredHighlightId(null);
+                                        setHoveredHighlightData(null);
+                                    }}
+                                    className="w-5 h-5 flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-yellow-300 rounded text-xs font-bold cursor-pointer"
+                                    title="Close"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            {/* Note content */}
+                            <div className="px-3 py-2">
+                                <p className="text-gray-800 text-sm leading-relaxed break-words whitespace-pre-wrap">
+                                    {hoveredHighlightData.note}
+                                </p>
+                            </div>
+
+                            {/* Delete button */}
+                            <div className="px-2 pb-2 flex justify-end">
+                                <button
+                                    onClick={() => handleRemoveHighlightById(hoveredHighlightId)}
+                                    className="px-3 py-1 bg-gray-400 hover:bg-red-500 text-white text-xs font-medium rounded cursor-pointer transition-colors"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    /* Simple popup for highlights without notes - also click based */
+                    <div
+                        className="hover-popup absolute z-50 bg-gray-800 rounded-lg shadow-xl p-1.5 border border-gray-700"
+                        style={{
+                            left: `${hoverPopupPosition.x}px`,
+                            top: `${hoverPopupPosition.y}px`,
+                            transform: "translate(-50%, -100%)",
+                        }}
+                    >
                         <button
                             onClick={() => handleRemoveHighlightById(hoveredHighlightId)}
                             className="flex items-center gap-1.5 px-2 py-1 text-white text-xs hover:bg-red-500 rounded transition-colors"
@@ -398,26 +489,16 @@ export default function TextHighlighter({ children, passageId = "default" }) {
                             <FaEraser size={11} />
                             <span>Remove</span>
                         </button>
-
-                        {/* Show note if exists */}
-                        {hoveredHighlightData.note && (
-                            <div className="flex items-center gap-1 px-2 py-1 text-gray-300 text-xs border-l border-gray-600">
-                                <FaStickyNote className="text-yellow-400" size={10} />
-                                <span className="max-w-[120px] truncate">{hoveredHighlightData.note}</span>
-                            </div>
-                        )}
+                        <div
+                            className="absolute w-2 h-2 bg-gray-800 border-r border-b border-gray-700 transform rotate-45"
+                            style={{
+                                bottom: "-5px",
+                                left: "50%",
+                                marginLeft: "-4px",
+                            }}
+                        />
                     </div>
-
-                    {/* Arrow pointing down */}
-                    <div
-                        className="absolute w-2 h-2 bg-gray-800 border-r border-b border-gray-700 transform rotate-45"
-                        style={{
-                            bottom: "-5px",
-                            left: "50%",
-                            marginLeft: "-4px",
-                        }}
-                    />
-                </div>
+                )
             )}
 
             {/* Floating Toolbar - Shows when selecting text */}

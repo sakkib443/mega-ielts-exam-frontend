@@ -573,455 +573,457 @@ export default function ReadingExamPage() {
                         {/* Question */}
                         {/* Questions List - Using questionGroups if available */}
                         <div className="space-y-6 max-h-[calc(100vh-250px)] overflow-y-auto pr-2">
-                            {currentPass.questionGroups && currentPass.questionGroups.length > 0 ? (
-                                // New format using questionGroups
-                                currentPass.questionGroups.map((group, gIdx) => (
-                                    <div key={gIdx} className="mb-8">
-                                        {/* Note Completion Format (Matches User's Image) */}
-                                        {(group.questionType === "note-completion" || group.groupType === "note-completion") && (
-                                            <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mb-6">
-                                                {/* Range and Instructions */}
-                                                <div className="mb-4">
-                                                    <h3 className="text-lg font-bold text-gray-900 mb-1">
-                                                        Questions {group.startQuestion}-{group.endQuestion}
-                                                    </h3>
-                                                    <p className="text-gray-800 font-medium mb-1">{group.instructions || group.mainInstruction}</p>
-                                                    <p className="text-gray-700 text-sm italic">
-                                                        Choose <span className="font-bold">ONE WORD ONLY</span> from the passage for each answer.
-                                                    </p>
-                                                </div>
-
-                                                {/* Main Heading from data */}
-                                                {group.mainHeading && (
-                                                    <h3 className="text-xl font-bold text-blue-900 mb-4 border-b-2 border-blue-100 pb-2">
-                                                        {group.mainHeading}
-                                                    </h3>
-                                                )}
-
-                                                {/* Render passage with headings and bullets */}
-                                                {(group.passage || "").split('\n').map((line, lineIdx) => {
-                                                    const trimmedLine = line.trim();
-                                                    if (!trimmedLine) return <div key={lineIdx} className="h-3" />;
-
-                                                    // Identify Heading (No bullet, no blank, short)
-                                                    const isBullet = trimmedLine.startsWith('•') || trimmedLine.startsWith('-');
-                                                    const hasBlank = trimmedLine.includes('__________');
-                                                    const isHeading = !isBullet && !hasBlank && trimmedLine.length < 100;
-
-                                                    const renderLine = (text) => {
-                                                        const parts = text.split(/(\d+\s*__________)/g);
-                                                        return parts.map((part, pIdx) => {
-                                                            const match = part.match(/(\d+)\s*__________/);
-                                                            if (match) {
-                                                                const qNum = parseInt(match[1]);
-                                                                return (
-                                                                    <span key={pIdx} className="inline-flex items-center gap-1 mx-1 align-baseline">
-                                                                        <span className="bg-white border border-gray-400 text-gray-800 text-xs font-bold px-1.5 py-0.5 rounded shadow-sm">
-                                                                            {qNum}
-                                                                        </span>
-                                                                        <input
-                                                                            type="text"
-                                                                            value={answers[qNum] || ""}
-                                                                            onChange={(e) => handleAnswer(qNum, e.target.value)}
-                                                                            className="border border-gray-300 rounded px-2 py-1 bg-white w-32 h-8 focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none transition-all shadow-sm"
-                                                                        />
-                                                                    </span>
-                                                                );
-                                                            }
-                                                            return <span key={pIdx}>{part}</span>;
-                                                        });
-                                                    };
-
-                                                    if (isHeading) {
-                                                        return (
-                                                            <h4 key={lineIdx} className="font-extrabold text-gray-900 text-base mt-5 mb-2 uppercase tracking-wide">
-                                                                {trimmedLine}
-                                                            </h4>
-                                                        );
-                                                    }
-
-                                                    if (isBullet) {
-                                                        const bulletText = trimmedLine.replace(/^[•\-]\s*/, '');
-                                                        return (
-                                                            <div key={lineIdx} className="flex items-start gap-3 ml-6 mb-2">
-                                                                <span className="text-gray-400 mt-1.5 text-xs">•</span>
-                                                                <span className="flex-1 text-gray-700 leading-relaxed font-medium">
-                                                                    {renderLine(bulletText)}
-                                                                </span>
-                                                            </div>
-                                                        );
-                                                    }
-
-                                                    return (
-                                                        <p key={lineIdx} className="text-gray-700 leading-relaxed mb-2 ml-2">
-                                                            {renderLine(trimmedLine)}
+                            <TextHighlighter passageId={`reading_questions_${currentPassage}`}>
+                                {currentPass.questionGroups && currentPass.questionGroups.length > 0 ? (
+                                    // New format using questionGroups
+                                    currentPass.questionGroups.map((group, gIdx) => (
+                                        <div key={gIdx} className="mb-8">
+                                            {/* Note Completion Format (Matches User's Image) */}
+                                            {(group.questionType === "note-completion" || group.groupType === "note-completion") && (
+                                                <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mb-6">
+                                                    {/* Range and Instructions */}
+                                                    <div className="mb-4">
+                                                        <h3 className="text-lg font-bold text-gray-900 mb-1">
+                                                            Questions {group.startQuestion}-{group.endQuestion}
+                                                        </h3>
+                                                        <p className="text-gray-800 font-medium mb-1">{group.instructions || group.mainInstruction}</p>
+                                                        <p className="text-gray-700 text-sm italic">
+                                                            Choose <span className="font-bold">ONE WORD ONLY</span> from the passage for each answer.
                                                         </p>
-                                                    );
-                                                })}
+                                                    </div>
 
-                                                {/* Original format support for notesSections */}
-                                                {!group.passage && group.notesSections?.map((section, sIdx) => (
-                                                    <div key={sIdx} className="mt-3">
-                                                        <h4 className="font-bold text-gray-800 mb-2">{section.subHeading}</h4>
-                                                        <ul className="space-y-2 pl-4">
-                                                            {section.bullets?.map((bullet, bIdx) => (
-                                                                <li key={bIdx} className="flex items-start gap-2 text-gray-700">
-                                                                    <span className="mt-0.5">•</span>
-                                                                    {bullet.type === "context" ? (
-                                                                        <span>{bullet.text}</span>
-                                                                    ) : (
-                                                                        <div className="flex items-center flex-wrap gap-1">
-                                                                            <span>{bullet.textBefore}</span>
-                                                                            <span className="inline-flex items-center gap-1">
-                                                                                <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{bullet.questionNumber}</span>
-                                                                                <input
-                                                                                    type="text"
-                                                                                    value={answers[bullet.questionNumber] || ""}
-                                                                                    onChange={(e) => handleAnswer(bullet.questionNumber, e.target.value)}
-                                                                                    className="border border-gray-300 rounded px-2 py-1 bg-white w-32 h-8 focus:border-blue-500 outline-none"
-                                                                                />
+                                                    {/* Main Heading from data */}
+                                                    {group.mainHeading && (
+                                                        <h3 className="text-xl font-bold text-blue-900 mb-4 border-b-2 border-blue-100 pb-2">
+                                                            {group.mainHeading}
+                                                        </h3>
+                                                    )}
+
+                                                    {/* Render passage with headings and bullets */}
+                                                    {(group.passage || "").split('\n').map((line, lineIdx) => {
+                                                        const trimmedLine = line.trim();
+                                                        if (!trimmedLine) return <div key={lineIdx} className="h-3" />;
+
+                                                        // Identify Heading (No bullet, no blank, short)
+                                                        const isBullet = trimmedLine.startsWith('•') || trimmedLine.startsWith('-');
+                                                        const hasBlank = trimmedLine.includes('__________');
+                                                        const isHeading = !isBullet && !hasBlank && trimmedLine.length < 100;
+
+                                                        const renderLine = (text) => {
+                                                            const parts = text.split(/(\d+\s*__________)/g);
+                                                            return parts.map((part, pIdx) => {
+                                                                const match = part.match(/(\d+)\s*__________/);
+                                                                if (match) {
+                                                                    const qNum = parseInt(match[1]);
+                                                                    return (
+                                                                        <span key={pIdx} className="inline-flex items-center gap-1 mx-1 align-baseline">
+                                                                            <span className="bg-white border border-gray-400 text-gray-800 text-xs font-bold px-1.5 py-0.5 rounded shadow-sm">
+                                                                                {qNum}
                                                                             </span>
-                                                                            {bullet.textAfter && <span>{bullet.textAfter}</span>}
-                                                                        </div>
-                                                                    )}
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
+                                                                            <input
+                                                                                type="text"
+                                                                                value={answers[qNum] || ""}
+                                                                                onChange={(e) => handleAnswer(qNum, e.target.value)}
+                                                                                className="border border-gray-300 rounded px-2 py-1 bg-white w-32 h-8 focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none transition-all shadow-sm"
+                                                                            />
+                                                                        </span>
+                                                                    );
+                                                                }
+                                                                return <span key={pIdx}>{part}</span>;
+                                                            });
+                                                        };
 
-                                        {/* TRUE/FALSE/NOT GIVEN Format (Matches User's Image) */}
-                                        {(group.questionType === "true-false-not-given" || group.groupType === "true-false-not-given" || group.questionType === "true-false-ng") && (
-                                            <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mb-6">
-                                                <div className="mb-4">
-                                                    <h3 className="text-lg font-bold text-gray-900 mb-1">
-                                                        Questions {group.startQuestion}-{group.endQuestion}
-                                                    </h3>
-                                                    <p className="text-gray-800 font-medium mb-3">{group.instructions || group.mainInstruction}</p>
+                                                        if (isHeading) {
+                                                            return (
+                                                                <h4 key={lineIdx} className="font-extrabold text-gray-900 text-base mt-5 mb-2 uppercase tracking-wide">
+                                                                    {trimmedLine}
+                                                                </h4>
+                                                            );
+                                                        }
 
-                                                    <div className="bg-gray-50 p-4 rounded-md space-y-2 text-sm border-l-4 border-gray-300">
-                                                        <p><span className="font-bold w-24 inline-block">TRUE</span> if the statement agrees with the information</p>
-                                                        <p><span className="font-bold w-24 inline-block">FALSE</span> if the statement contradicts the information</p>
-                                                        <p><span className="font-bold w-24 inline-block">NOT GIVEN</span> if there is no information on this</p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-6 mt-6">
-                                                    {(group.statements || group.questions)?.map((stmt) => (
-                                                        <div key={stmt.questionNumber} className="pb-4 border-b border-gray-100 last:border-0">
-                                                            <div className="flex items-start gap-3 mb-4">
-                                                                <span className="bg-gray-100 border border-gray-300 text-gray-800 text-sm font-bold px-2 py-0.5 rounded shadow-sm">
-                                                                    {stmt.questionNumber}
-                                                                </span>
-                                                                <p className="text-gray-800 font-medium leading-relaxed">{stmt.text || stmt.questionText}</p>
-                                                            </div>
-
-                                                            <div className="flex flex-wrap gap-3 pl-10">
-                                                                {["TRUE", "FALSE", "NOT GIVEN"].map((opt) => (
-                                                                    <label
-                                                                        key={opt}
-                                                                        className={`flex items-center gap-2 px-5 py-2 border rounded-full cursor-pointer transition-all duration-200 ${answers[stmt.questionNumber] === opt
-                                                                            ? "bg-blue-600 border-blue-600 text-white shadow-md transform scale-105"
-                                                                            : "bg-white border-gray-300 text-gray-700 hover:border-blue-400 hover:bg-blue-50"
-                                                                            }`}
-                                                                        onClick={() => handleAnswer(stmt.questionNumber, opt)}
-                                                                    >
-                                                                        <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${answers[stmt.questionNumber] === opt ? "bg-white border-white" : "border-gray-400"}`}>
-                                                                            {answers[stmt.questionNumber] === opt && <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" />}
-                                                                        </div>
-                                                                        <span className="text-xs font-black uppercase tracking-wider">{opt}</span>
-                                                                    </label>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* MATCHING INFORMATION Format */}
-                                        {group.groupType === "matching-information" && (
-                                            <div className="space-y-3">
-                                                {/* Main Instruction */}
-                                                <p className="text-gray-800">{group.mainInstruction}</p>
-
-                                                {/* Sub Instruction */}
-                                                <p className="text-gray-800">{group.subInstruction}</p>
-
-                                                {/* NB Note */}
-                                                {group.note && (
-                                                    <p className="text-gray-700 text-sm">
-                                                        <span className="font-bold">NB</span> <em>{group.note.replace('NB ', '')}</em>
-                                                    </p>
-                                                )}
-
-                                                {/* Matching Items */}
-                                                <div className="space-y-3 mt-4">
-                                                    {group.matchingItems?.map((item) => (
-                                                        <div key={item.questionNumber} className="flex items-center gap-3">
-                                                            <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5 flex-shrink-0">
-                                                                {item.questionNumber}
-                                                            </span>
-                                                            <span className="flex-1 text-gray-800">{item.text}</span>
-                                                            <select
-                                                                value={answers[item.questionNumber] || ""}
-                                                                onChange={(e) => handleAnswer(item.questionNumber, e.target.value)}
-                                                                className="border border-gray-300 rounded px-3 py-1.5 text-gray-700 focus:border-blue-500 focus:outline-none min-w-[80px]"
-                                                            >
-                                                                <option value="">--</option>
-                                                                {group.paragraphOptions?.map((opt) => (
-                                                                    <option key={opt} value={opt}>{opt}</option>
-                                                                ))}
-                                                            </select>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* SUMMARY COMPLETION Format */}
-                                        {group.groupType === "summary-completion" && (
-                                            <div className="space-y-3 mt-6 pt-4 border-t">
-                                                {/* Main Instruction */}
-                                                <p className="text-gray-800 italic">{group.mainInstruction}</p>
-
-                                                {/* Sub Instruction */}
-                                                <p className="text-gray-800">
-                                                    Choose <span className="font-bold">ONE WORD ONLY</span> from the passage for each answer.
-                                                </p>
-
-                                                {/* Main Heading */}
-                                                <h3 className="text-lg font-bold text-gray-900 mt-4">{group.mainHeading}</h3>
-
-                                                {/* Summary Paragraph with inline blanks */}
-                                                <div className="text-gray-700 leading-relaxed">
-                                                    {group.summarySegments?.map((segment, sIdx) => (
-                                                        segment.type === "text" ? (
-                                                            <span key={sIdx}>{segment.content} </span>
-                                                        ) : (
-                                                            <span key={sIdx} className="inline-flex items-center gap-1 mx-1">
-                                                                <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{segment.questionNumber}</span>
-                                                                <input
-                                                                    type="text"
-                                                                    value={answers[segment.questionNumber] || ""}
-                                                                    onChange={(e) => handleAnswer(segment.questionNumber, e.target.value)}
-                                                                    className="border-b border-gray-400 bg-white w-32 px-2 py-1 focus:border-blue-600 focus:outline-none"
-                                                                />
-                                                            </span>
-                                                        )
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* CHOOSE TWO LETTERS Format */}
-                                        {group.groupType === "choose-two-letters" && (
-                                            <div className="space-y-4 mt-6 pt-4 border-t">
-                                                {/* Main Instruction */}
-                                                <p className="text-gray-800 italic">{group.mainInstruction}</p>
-
-                                                {/* Question Sets */}
-                                                {group.questionSets?.map((qSet, qsIdx) => (
-                                                    <div key={qsIdx} className="mt-4">
-                                                        {/* Question Numbers and Text */}
-                                                        <div className="flex items-start gap-2 mb-3">
-                                                            <div className="flex gap-1">
-                                                                {qSet.questionNumbers?.map((qNum) => (
-                                                                    <span key={qNum} className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">
-                                                                        {qNum}
+                                                        if (isBullet) {
+                                                            const bulletText = trimmedLine.replace(/^[•\-]\s*/, '');
+                                                            return (
+                                                                <div key={lineIdx} className="flex items-start gap-3 ml-6 mb-2">
+                                                                    <span className="text-gray-400 mt-1.5 text-xs">•</span>
+                                                                    <span className="flex-1 text-gray-700 leading-relaxed font-medium">
+                                                                        {renderLine(bulletText)}
                                                                     </span>
-                                                                ))}
-                                                            </div>
-                                                            <p className="text-gray-800">
-                                                                {qSet.questionText?.replace('TWO', '')}
-                                                                <span className="font-bold">TWO</span>
-                                                                {qSet.questionText?.split('TWO')[1]}
+                                                                </div>
+                                                            );
+                                                        }
+
+                                                        return (
+                                                            <p key={lineIdx} className="text-gray-700 leading-relaxed mb-2 ml-2">
+                                                                {renderLine(trimmedLine)}
                                                             </p>
-                                                        </div>
+                                                        );
+                                                    })}
 
-                                                        {/* Options with Checkboxes */}
-                                                        <div className="space-y-2 ml-6">
-                                                            {qSet.options?.map((opt) => {
-                                                                const isSelected = qSet.questionNumbers?.some(qNum => answers[qNum] === opt.letter);
-                                                                return (
-                                                                    <label
-                                                                        key={opt.letter}
-                                                                        onClick={() => {
-                                                                            // Find which question number doesn't have this answer yet
-                                                                            const firstEmpty = qSet.questionNumbers?.find(qNum => !answers[qNum] || answers[qNum] === opt.letter);
-                                                                            if (firstEmpty) {
-                                                                                if (answers[firstEmpty] === opt.letter) {
-                                                                                    handleAnswer(firstEmpty, ""); // Deselect
-                                                                                } else {
-                                                                                    handleAnswer(firstEmpty, opt.letter);
-                                                                                }
-                                                                            }
-                                                                        }}
-                                                                        className="flex items-center gap-2 cursor-pointer"
-                                                                    >
-                                                                        <span className="font-bold text-gray-700">{opt.letter}</span>
-                                                                        <div className={`w-4 h-4 border rounded flex items-center justify-center ${isSelected ? "bg-blue-600 border-blue-600" : "border-gray-400"}`}>
-                                                                            {isSelected && (
-                                                                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                                                </svg>
-                                                                            )}
-                                                                        </div>
-                                                                        <span className="text-gray-700">{opt.text}</span>
-                                                                    </label>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {/* SUMMARY WITH OPTIONS (Phrase List) Format */}
-                                        {group.groupType === "summary-with-options" && (
-                                            <div className="space-y-3">
-                                                {/* Main Instruction */}
-                                                <p className="text-gray-800">{group.mainInstruction}</p>
-                                                <p className="text-gray-800">{group.subInstruction}</p>
-
-                                                {/* Phrase List - FIRST */}
-                                                <div className="grid grid-cols-2 gap-x-8 gap-y-2 mt-3">
-                                                    {group.phraseList?.map((phrase) => (
-                                                        <div key={phrase.letter} className="text-gray-700">
-                                                            <span className="font-bold">{phrase.letter}</span> {phrase.text}
+                                                    {/* Original format support for notesSections */}
+                                                    {!group.passage && group.notesSections?.map((section, sIdx) => (
+                                                        <div key={sIdx} className="mt-3">
+                                                            <h4 className="font-bold text-gray-800 mb-2">{section.subHeading}</h4>
+                                                            <ul className="space-y-2 pl-4">
+                                                                {section.bullets?.map((bullet, bIdx) => (
+                                                                    <li key={bIdx} className="flex items-start gap-2 text-gray-700">
+                                                                        <span className="mt-0.5">•</span>
+                                                                        {bullet.type === "context" ? (
+                                                                            <span>{bullet.text}</span>
+                                                                        ) : (
+                                                                            <div className="flex items-center flex-wrap gap-1">
+                                                                                <span>{bullet.textBefore}</span>
+                                                                                <span className="inline-flex items-center gap-1">
+                                                                                    <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{bullet.questionNumber}</span>
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        value={answers[bullet.questionNumber] || ""}
+                                                                                        onChange={(e) => handleAnswer(bullet.questionNumber, e.target.value)}
+                                                                                        className="border border-gray-300 rounded px-2 py-1 bg-white w-32 h-8 focus:border-blue-500 outline-none"
+                                                                                    />
+                                                                                </span>
+                                                                                {bullet.textAfter && <span>{bullet.textAfter}</span>}
+                                                                            </div>
+                                                                        )}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
                                                         </div>
                                                     ))}
                                                 </div>
+                                            )}
 
-                                                {/* Main Heading */}
-                                                <h3 className="text-lg font-bold text-gray-900 mt-4">{group.mainHeading}</h3>
+                                            {/* TRUE/FALSE/NOT GIVEN Format (Matches User's Image) */}
+                                            {(group.questionType === "true-false-not-given" || group.groupType === "true-false-not-given" || group.questionType === "true-false-ng") && (
+                                                <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mb-6">
+                                                    <div className="mb-4">
+                                                        <h3 className="text-lg font-bold text-gray-900 mb-1">
+                                                            Questions {group.startQuestion}-{group.endQuestion}
+                                                        </h3>
+                                                        <p className="text-gray-800 font-medium mb-3">{group.instructions || group.mainInstruction}</p>
 
-                                                {/* Summary Paragraph with dropdowns */}
-                                                <div className="text-gray-700 leading-relaxed">
-                                                    {group.summarySegments?.map((segment, sIdx) => (
-                                                        segment.type === "text" ? (
-                                                            <span key={sIdx}>{segment.content} </span>
-                                                        ) : (
-                                                            <span key={sIdx} className="inline-flex items-center gap-1 mx-1">
-                                                                <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{segment.questionNumber}</span>
+                                                        <div className="bg-gray-50 p-4 rounded-md space-y-2 text-sm border-l-4 border-gray-300">
+                                                            <p><span className="font-bold w-24 inline-block">TRUE</span> if the statement agrees with the information</p>
+                                                            <p><span className="font-bold w-24 inline-block">FALSE</span> if the statement contradicts the information</p>
+                                                            <p><span className="font-bold w-24 inline-block">NOT GIVEN</span> if there is no information on this</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-6 mt-6">
+                                                        {(group.statements || group.questions)?.map((stmt) => (
+                                                            <div key={stmt.questionNumber} className="pb-4 border-b border-gray-100 last:border-0">
+                                                                <div className="flex items-start gap-3 mb-4">
+                                                                    <span className="bg-gray-100 border border-gray-300 text-gray-800 text-sm font-bold px-2 py-0.5 rounded shadow-sm">
+                                                                        {stmt.questionNumber}
+                                                                    </span>
+                                                                    <p className="text-gray-800 font-medium leading-relaxed">{stmt.text || stmt.questionText}</p>
+                                                                </div>
+
+                                                                <div className="flex flex-wrap gap-3 pl-10">
+                                                                    {["TRUE", "FALSE", "NOT GIVEN"].map((opt) => (
+                                                                        <label
+                                                                            key={opt}
+                                                                            className={`flex items-center gap-2 px-5 py-2 border rounded-full cursor-pointer transition-all duration-200 ${answers[stmt.questionNumber] === opt
+                                                                                ? "bg-blue-600 border-blue-600 text-white shadow-md transform scale-105"
+                                                                                : "bg-white border-gray-300 text-gray-700 hover:border-blue-400 hover:bg-blue-50"
+                                                                                }`}
+                                                                            onClick={() => handleAnswer(stmt.questionNumber, opt)}
+                                                                        >
+                                                                            <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${answers[stmt.questionNumber] === opt ? "bg-white border-white" : "border-gray-400"}`}>
+                                                                                {answers[stmt.questionNumber] === opt && <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" />}
+                                                                            </div>
+                                                                            <span className="text-xs font-black uppercase tracking-wider">{opt}</span>
+                                                                        </label>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* MATCHING INFORMATION Format */}
+                                            {group.groupType === "matching-information" && (
+                                                <div className="space-y-3">
+                                                    {/* Main Instruction */}
+                                                    <p className="text-gray-800">{group.mainInstruction}</p>
+
+                                                    {/* Sub Instruction */}
+                                                    <p className="text-gray-800">{group.subInstruction}</p>
+
+                                                    {/* NB Note */}
+                                                    {group.note && (
+                                                        <p className="text-gray-700 text-sm">
+                                                            <span className="font-bold">NB</span> <em>{group.note.replace('NB ', '')}</em>
+                                                        </p>
+                                                    )}
+
+                                                    {/* Matching Items */}
+                                                    <div className="space-y-3 mt-4">
+                                                        {group.matchingItems?.map((item) => (
+                                                            <div key={item.questionNumber} className="flex items-center gap-3">
+                                                                <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5 flex-shrink-0">
+                                                                    {item.questionNumber}
+                                                                </span>
+                                                                <span className="flex-1 text-gray-800">{item.text}</span>
                                                                 <select
-                                                                    value={answers[segment.questionNumber] || ""}
-                                                                    onChange={(e) => handleAnswer(segment.questionNumber, e.target.value)}
-                                                                    className="border border-gray-300 rounded px-2 py-1 text-gray-700 focus:border-blue-500 focus:outline-none"
+                                                                    value={answers[item.questionNumber] || ""}
+                                                                    onChange={(e) => handleAnswer(item.questionNumber, e.target.value)}
+                                                                    className="border border-gray-300 rounded px-3 py-1.5 text-gray-700 focus:border-blue-500 focus:outline-none min-w-[80px]"
                                                                 >
                                                                     <option value="">--</option>
-                                                                    {group.phraseList?.map((phrase) => (
-                                                                        <option key={phrase.letter} value={phrase.letter}>{phrase.letter}</option>
+                                                                    {group.paragraphOptions?.map((opt) => (
+                                                                        <option key={opt} value={opt}>{opt}</option>
                                                                     ))}
                                                                 </select>
-                                                            </span>
-                                                        )
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* YES/NO/NOT GIVEN Format */}
-                                        {group.groupType === "yes-no-not-given" && (
-                                            <div className="space-y-3 mt-6 pt-4 border-t">
-                                                {/* Main Instruction */}
-                                                <p className="text-gray-800">{group.mainInstruction}</p>
-                                                <p className="text-gray-800">{group.subInstruction}</p>
-
-                                                {/* Options Explanation */}
-                                                <div className="space-y-1 pl-4 text-sm">
-                                                    {group.optionsExplanation?.map((opt) => (
-                                                        <div key={opt.label} className="text-gray-700">
-                                                            <span className="font-bold">{opt.label}</span> {opt.description}
-                                                        </div>
-                                                    ))}
-                                                </div>
-
-                                                {/* Statements */}
-                                                <div className="space-y-4 mt-3">
-                                                    {group.statements?.map((stmt) => (
-                                                        <div key={stmt.questionNumber} className="py-2">
-                                                            <div className="flex items-start gap-2 mb-2">
-                                                                <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{stmt.questionNumber}</span>
-                                                                <span className="text-gray-800">{stmt.text}</span>
                                                             </div>
-                                                            <div className="ml-8 space-y-1">
-                                                                {["YES", "NO", "NOT GIVEN"].map((opt) => (
-                                                                    <label
-                                                                        key={opt}
-                                                                        onClick={() => handleAnswer(stmt.questionNumber, opt)}
-                                                                        className="flex items-center gap-2 cursor-pointer"
-                                                                    >
-                                                                        <span className="text-gray-500">•</span>
-                                                                        <div className={`w-4 h-4 border rounded flex items-center justify-center ${answers[stmt.questionNumber] === opt
-                                                                            ? "bg-blue-600 border-blue-600"
-                                                                            : "border-gray-400"
-                                                                            }`}>
-                                                                            {answers[stmt.questionNumber] === opt && (
-                                                                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                                                </svg>
-                                                                            )}
-                                                                        </div>
-                                                                        <span className={`${answers[stmt.questionNumber] === opt ? "font-bold text-blue-600" : "text-gray-700"}`}>{opt}</span>
-                                                                    </label>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    ))}
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        )}
+                                            )}
 
-                                        {/* MULTIPLE CHOICE FULL Format */}
-                                        {group.groupType === "multiple-choice-full" && (
-                                            <div className="space-y-3 mt-6 pt-4 border-t">
-                                                {/* Main Instruction */}
-                                                <p className="text-gray-800 italic">{group.mainInstruction}</p>
-                                                <p className="text-gray-800">{group.subInstruction}</p>
+                                            {/* SUMMARY COMPLETION Format */}
+                                            {group.groupType === "summary-completion" && (
+                                                <div className="space-y-3 mt-6 pt-4 border-t">
+                                                    {/* Main Instruction */}
+                                                    <p className="text-gray-800 italic">{group.mainInstruction}</p>
 
-                                                {/* Questions */}
-                                                <div className="space-y-6 mt-4">
-                                                    {group.mcQuestions?.map((mcQ) => (
-                                                        <div key={mcQ.questionNumber} className="py-2">
+                                                    {/* Sub Instruction */}
+                                                    <p className="text-gray-800">
+                                                        Choose <span className="font-bold">ONE WORD ONLY</span> from the passage for each answer.
+                                                    </p>
+
+                                                    {/* Main Heading */}
+                                                    <h3 className="text-lg font-bold text-gray-900 mt-4">{group.mainHeading}</h3>
+
+                                                    {/* Summary Paragraph with inline blanks */}
+                                                    <div className="text-gray-700 leading-relaxed">
+                                                        {group.summarySegments?.map((segment, sIdx) => (
+                                                            segment.type === "text" ? (
+                                                                <span key={sIdx}>{segment.content} </span>
+                                                            ) : (
+                                                                <span key={sIdx} className="inline-flex items-center gap-1 mx-1">
+                                                                    <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{segment.questionNumber}</span>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={answers[segment.questionNumber] || ""}
+                                                                        onChange={(e) => handleAnswer(segment.questionNumber, e.target.value)}
+                                                                        className="border-b border-gray-400 bg-white w-32 px-2 py-1 focus:border-blue-600 focus:outline-none"
+                                                                    />
+                                                                </span>
+                                                            )
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* CHOOSE TWO LETTERS Format */}
+                                            {group.groupType === "choose-two-letters" && (
+                                                <div className="space-y-4 mt-6 pt-4 border-t">
+                                                    {/* Main Instruction */}
+                                                    <p className="text-gray-800 italic">{group.mainInstruction}</p>
+
+                                                    {/* Question Sets */}
+                                                    {group.questionSets?.map((qSet, qsIdx) => (
+                                                        <div key={qsIdx} className="mt-4">
+                                                            {/* Question Numbers and Text */}
                                                             <div className="flex items-start gap-2 mb-3">
-                                                                <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{mcQ.questionNumber}</span>
-                                                                <span className="text-gray-800 font-medium">{mcQ.questionText}</span>
-                                                            </div>
-                                                            <div className="ml-8 space-y-2">
-                                                                {mcQ.options?.map((opt) => (
-                                                                    <label
-                                                                        key={opt.letter}
-                                                                        onClick={() => handleAnswer(mcQ.questionNumber, opt.letter)}
-                                                                        className="flex items-start gap-2 cursor-pointer"
-                                                                    >
-                                                                        <span className="font-bold text-gray-700 mt-0.5">{opt.letter}</span>
-                                                                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${answers[mcQ.questionNumber] === opt.letter
-                                                                            ? "border-blue-600 bg-blue-600"
-                                                                            : "border-gray-400"
-                                                                            }`}>
-                                                                            {answers[mcQ.questionNumber] === opt.letter && (
-                                                                                <div className="w-2 h-2 bg-white rounded-full"></div>
-                                                                            )}
-                                                                        </div>
-                                                                        <span className={`${answers[mcQ.questionNumber] === opt.letter ? "text-blue-600" : "text-gray-700"}`}>
-                                                                            {opt.text}
+                                                                <div className="flex gap-1">
+                                                                    {qSet.questionNumbers?.map((qNum) => (
+                                                                        <span key={qNum} className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">
+                                                                            {qNum}
                                                                         </span>
-                                                                    </label>
-                                                                ))}
+                                                                    ))}
+                                                                </div>
+                                                                <p className="text-gray-800">
+                                                                    {qSet.questionText?.replace('TWO', '')}
+                                                                    <span className="font-bold">TWO</span>
+                                                                    {qSet.questionText?.split('TWO')[1]}
+                                                                </p>
+                                                            </div>
+
+                                                            {/* Options with Checkboxes */}
+                                                            <div className="space-y-2 ml-6">
+                                                                {qSet.options?.map((opt) => {
+                                                                    const isSelected = qSet.questionNumbers?.some(qNum => answers[qNum] === opt.letter);
+                                                                    return (
+                                                                        <label
+                                                                            key={opt.letter}
+                                                                            onClick={() => {
+                                                                                // Find which question number doesn't have this answer yet
+                                                                                const firstEmpty = qSet.questionNumbers?.find(qNum => !answers[qNum] || answers[qNum] === opt.letter);
+                                                                                if (firstEmpty) {
+                                                                                    if (answers[firstEmpty] === opt.letter) {
+                                                                                        handleAnswer(firstEmpty, ""); // Deselect
+                                                                                    } else {
+                                                                                        handleAnswer(firstEmpty, opt.letter);
+                                                                                    }
+                                                                                }
+                                                                            }}
+                                                                            className="flex items-center gap-2 cursor-pointer"
+                                                                        >
+                                                                            <span className="font-bold text-gray-700">{opt.letter}</span>
+                                                                            <div className={`w-4 h-4 border rounded flex items-center justify-center ${isSelected ? "bg-blue-600 border-blue-600" : "border-gray-400"}`}>
+                                                                                {isSelected && (
+                                                                                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                                                    </svg>
+                                                                                )}
+                                                                            </div>
+                                                                            <span className="text-gray-700">{opt.text}</span>
+                                                                        </label>
+                                                                    );
+                                                                })}
                                                             </div>
                                                         </div>
                                                     ))}
                                                 </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))
-                            ) : null}
+                                            )}
+
+                                            {/* SUMMARY WITH OPTIONS (Phrase List) Format */}
+                                            {group.groupType === "summary-with-options" && (
+                                                <div className="space-y-3">
+                                                    {/* Main Instruction */}
+                                                    <p className="text-gray-800">{group.mainInstruction}</p>
+                                                    <p className="text-gray-800">{group.subInstruction}</p>
+
+                                                    {/* Phrase List - FIRST */}
+                                                    <div className="grid grid-cols-2 gap-x-8 gap-y-2 mt-3">
+                                                        {group.phraseList?.map((phrase) => (
+                                                            <div key={phrase.letter} className="text-gray-700">
+                                                                <span className="font-bold">{phrase.letter}</span> {phrase.text}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+
+                                                    {/* Main Heading */}
+                                                    <h3 className="text-lg font-bold text-gray-900 mt-4">{group.mainHeading}</h3>
+
+                                                    {/* Summary Paragraph with dropdowns */}
+                                                    <div className="text-gray-700 leading-relaxed">
+                                                        {group.summarySegments?.map((segment, sIdx) => (
+                                                            segment.type === "text" ? (
+                                                                <span key={sIdx}>{segment.content} </span>
+                                                            ) : (
+                                                                <span key={sIdx} className="inline-flex items-center gap-1 mx-1">
+                                                                    <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{segment.questionNumber}</span>
+                                                                    <select
+                                                                        value={answers[segment.questionNumber] || ""}
+                                                                        onChange={(e) => handleAnswer(segment.questionNumber, e.target.value)}
+                                                                        className="border border-gray-300 rounded px-2 py-1 text-gray-700 focus:border-blue-500 focus:outline-none"
+                                                                    >
+                                                                        <option value="">--</option>
+                                                                        {group.phraseList?.map((phrase) => (
+                                                                            <option key={phrase.letter} value={phrase.letter}>{phrase.letter}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                </span>
+                                                            )
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* YES/NO/NOT GIVEN Format */}
+                                            {group.groupType === "yes-no-not-given" && (
+                                                <div className="space-y-3 mt-6 pt-4 border-t">
+                                                    {/* Main Instruction */}
+                                                    <p className="text-gray-800">{group.mainInstruction}</p>
+                                                    <p className="text-gray-800">{group.subInstruction}</p>
+
+                                                    {/* Options Explanation */}
+                                                    <div className="space-y-1 pl-4 text-sm">
+                                                        {group.optionsExplanation?.map((opt) => (
+                                                            <div key={opt.label} className="text-gray-700">
+                                                                <span className="font-bold">{opt.label}</span> {opt.description}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+
+                                                    {/* Statements */}
+                                                    <div className="space-y-4 mt-3">
+                                                        {group.statements?.map((stmt) => (
+                                                            <div key={stmt.questionNumber} className="py-2">
+                                                                <div className="flex items-start gap-2 mb-2">
+                                                                    <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{stmt.questionNumber}</span>
+                                                                    <span className="text-gray-800">{stmt.text}</span>
+                                                                </div>
+                                                                <div className="ml-8 space-y-1">
+                                                                    {["YES", "NO", "NOT GIVEN"].map((opt) => (
+                                                                        <label
+                                                                            key={opt}
+                                                                            onClick={() => handleAnswer(stmt.questionNumber, opt)}
+                                                                            className="flex items-center gap-2 cursor-pointer"
+                                                                        >
+                                                                            <span className="text-gray-500">•</span>
+                                                                            <div className={`w-4 h-4 border rounded flex items-center justify-center ${answers[stmt.questionNumber] === opt
+                                                                                ? "bg-blue-600 border-blue-600"
+                                                                                : "border-gray-400"
+                                                                                }`}>
+                                                                                {answers[stmt.questionNumber] === opt && (
+                                                                                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                                                    </svg>
+                                                                                )}
+                                                                            </div>
+                                                                            <span className={`${answers[stmt.questionNumber] === opt ? "font-bold text-blue-600" : "text-gray-700"}`}>{opt}</span>
+                                                                        </label>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* MULTIPLE CHOICE FULL Format */}
+                                            {group.groupType === "multiple-choice-full" && (
+                                                <div className="space-y-3 mt-6 pt-4 border-t">
+                                                    {/* Main Instruction */}
+                                                    <p className="text-gray-800 italic">{group.mainInstruction}</p>
+                                                    <p className="text-gray-800">{group.subInstruction}</p>
+
+                                                    {/* Questions */}
+                                                    <div className="space-y-6 mt-4">
+                                                        {group.mcQuestions?.map((mcQ) => (
+                                                            <div key={mcQ.questionNumber} className="py-2">
+                                                                <div className="flex items-start gap-2 mb-3">
+                                                                    <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{mcQ.questionNumber}</span>
+                                                                    <span className="text-gray-800 font-medium">{mcQ.questionText}</span>
+                                                                </div>
+                                                                <div className="ml-8 space-y-2">
+                                                                    {mcQ.options?.map((opt) => (
+                                                                        <label
+                                                                            key={opt.letter}
+                                                                            onClick={() => handleAnswer(mcQ.questionNumber, opt.letter)}
+                                                                            className="flex items-start gap-2 cursor-pointer"
+                                                                        >
+                                                                            <span className="font-bold text-gray-700 mt-0.5">{opt.letter}</span>
+                                                                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${answers[mcQ.questionNumber] === opt.letter
+                                                                                ? "border-blue-600 bg-blue-600"
+                                                                                : "border-gray-400"
+                                                                                }`}>
+                                                                                {answers[mcQ.questionNumber] === opt.letter && (
+                                                                                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                                                                                )}
+                                                                            </div>
+                                                                            <span className={`${answers[mcQ.questionNumber] === opt.letter ? "text-blue-600" : "text-gray-700"}`}>
+                                                                                {opt.text}
+                                                                            </span>
+                                                                        </label>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))
+                                ) : null}
 
 
+                            </TextHighlighter>
                         </div>
 
                         <div className="flex items-center justify-between border-t border-gray-200 pt-6 mt-4">
