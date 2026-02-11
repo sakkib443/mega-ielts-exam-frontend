@@ -6,6 +6,7 @@ import {
     FaHeadphones,
     FaBook,
     FaPen,
+    FaMicrophone,
     FaArrowRight,
     FaCheck,
     FaClock
@@ -29,7 +30,8 @@ export default function FullExamPage() {
     const modules = [
         { id: "listening", name: "Listening", icon: <FaHeadphones />, duration: 40, questions: 40 },
         { id: "reading", name: "Reading", icon: <FaBook />, duration: 60, questions: 40 },
-        { id: "writing", name: "Writing", icon: <FaPen />, duration: 60, questions: 2 }
+        { id: "writing", name: "Writing", icon: <FaPen />, duration: 60, questions: 2 },
+        { id: "speaking", name: "Speaking", icon: <FaMicrophone />, duration: 14, questions: 3 }
     ];
 
     useEffect(() => {
@@ -43,7 +45,7 @@ export default function FullExamPage() {
                     const parsed = JSON.parse(storedSession);
 
                     // Check localStorage first
-                    if (parsed && parsed.completedModules && Array.isArray(parsed.completedModules) && parsed.completedModules.length >= 3) {
+                    if (parsed && parsed.completedModules && Array.isArray(parsed.completedModules) && parsed.completedModules.length >= 4) {
                         router.push(`/exam/${params.examId}`);
                         return;
                     }
@@ -53,7 +55,7 @@ export default function FullExamPage() {
                         const response = await studentsAPI.verifyExamId(parsed.examId);
                         if (response.success && response.data) {
                             const dbCompletedModules = response.data.completedModules || [];
-                            if (dbCompletedModules.length >= 3) {
+                            if (dbCompletedModules.length >= 4) {
                                 parsed.completedModules = dbCompletedModules;
                                 localStorage.setItem("examSession", JSON.stringify(parsed));
                                 router.push(`/exam/${params.examId}`);
@@ -78,6 +80,9 @@ export default function FullExamPage() {
                         const writing = localStorage.getItem(`exam_${params.examId}_writing`);
                         if (writing) results.writing = JSON.parse(writing);
 
+                        const speaking = localStorage.getItem(`exam_${params.examId}_speaking`);
+                        if (speaking) results.speaking = JSON.parse(speaking);
+
                         setModuleResults(results);
 
                         if (!results.listening) {
@@ -86,6 +91,8 @@ export default function FullExamPage() {
                             setCurrentModule(1);
                         } else if (!results.writing) {
                             setCurrentModule(2);
+                        } else if (!results.speaking) {
+                            setCurrentModule(3);
                         } else {
                             router.push(`/exam/${params.examId}/result?module=full`);
                         }

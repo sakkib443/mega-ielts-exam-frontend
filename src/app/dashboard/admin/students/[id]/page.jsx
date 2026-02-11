@@ -13,6 +13,7 @@ import {
     FaHeadphones,
     FaBook,
     FaPen,
+    FaMicrophone,
     FaCheckCircle,
     FaExclamationTriangle,
     FaGlobe,
@@ -21,7 +22,8 @@ import {
     FaLock,
     FaStar,
     FaAward,
-    FaRedo
+    FaRedo,
+    FaVideo
 } from "react-icons/fa";
 import { studentsAPI } from "@/lib/api";
 
@@ -165,18 +167,22 @@ const ViewAnswersModal = ({ show, onClose, module, answers, loading, scores }) =
                 {/* Header */}
                 <div className={`px-6 py-5 border-b border-slate-100 flex items-center justify-between ${module?.toLowerCase() === 'listening' ? 'bg-gradient-to-r from-blue-500 to-indigo-600' :
                     module?.toLowerCase() === 'reading' ? 'bg-gradient-to-r from-emerald-500 to-teal-600' :
-                        'bg-gradient-to-r from-violet-500 to-purple-600'
+                        module?.toLowerCase() === 'speaking' ? 'bg-gradient-to-r from-orange-500 to-amber-600' :
+                            'bg-gradient-to-r from-violet-500 to-purple-600'
                     } text-white`}>
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
                             {module?.toLowerCase() === 'listening' ? <FaHeadphones className="text-2xl" /> :
                                 module?.toLowerCase() === 'reading' ? <FaBook className="text-2xl" /> :
-                                    <FaPen className="text-2xl" />}
+                                    module?.toLowerCase() === 'speaking' ? <FaMicrophone className="text-2xl" /> :
+                                        <FaPen className="text-2xl" />}
                         </div>
                         <div>
                             <h3 className="font-bold text-xl">{module} - Student Answers</h3>
                             <p className="text-white/80 text-sm">
-                                {module?.toLowerCase() === 'writing' ? 'Essay Submissions' : 'Question-wise Answer Review'}
+                                {module?.toLowerCase() === 'writing' ? 'Essay Submissions' :
+                                    module?.toLowerCase() === 'speaking' ? 'Speaking Test Questions' :
+                                        'Question-wise Answer Review'}
                             </p>
                         </div>
                     </div>
@@ -186,7 +192,7 @@ const ViewAnswersModal = ({ show, onClose, module, answers, loading, scores }) =
                 </div>
 
                 {/* Stats Bar for Listening/Reading */}
-                {module?.toLowerCase() !== 'writing' && !loading && answers?.length > 0 && (
+                {module?.toLowerCase() !== 'writing' && module?.toLowerCase() !== 'speaking' && !loading && answers?.length > 0 && (
                     <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-center gap-8">
                         <div className="flex items-center gap-2">
                             <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold">
@@ -226,6 +232,108 @@ const ViewAnswersModal = ({ show, onClose, module, answers, loading, scores }) =
                         <div className="py-16 text-center">
                             <FaSpinner className="animate-spin text-slate-400 text-3xl mx-auto mb-3" />
                             <p className="text-slate-500 text-sm">Loading answers...</p>
+                        </div>
+                    ) : module?.toLowerCase() === 'speaking' ? (
+                        /* Speaking Module - Show Speaking Questions */
+                        <div className="space-y-6">
+                            {/* Recordings Section */}
+                            {answers?.recordings && answers.recordings.length > 0 && (
+                                <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
+                                    <h4 className="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
+                                        <FaVideo className="text-orange-500" />
+                                        Recorded Video Responses
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {answers.recordings.map((rec, idx) => (
+                                            <div key={idx} className="bg-white rounded-xl border border-slate-100 overflow-hidden shadow-sm">
+                                                <div className="p-3 border-b border-slate-50 bg-slate-50/50">
+                                                    <p className="font-bold text-xs text-slate-500 uppercase tracking-wider mb-1">{rec.questionLabel || `Recording ${idx + 1}`}</p>
+                                                    <p className="text-sm text-slate-800 font-medium line-clamp-1">{rec.questionText}</p>
+                                                </div>
+                                                <div className="aspect-video bg-black flex items-center justify-center">
+                                                    <video
+                                                        src={rec.videoUrl}
+                                                        controls
+                                                        className="w-full h-full object-contain"
+                                                    />
+                                                </div>
+                                                {rec.duration && (
+                                                    <div className="p-2 text-right">
+                                                        <span className="text-[10px] font-bold text-slate-400">Duration: {Math.round(rec.duration)}s</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Part 1 */}
+                            {answers?.part1 && (
+                                <div className="bg-orange-50 rounded-2xl p-6 border border-orange-100">
+                                    <h4 className="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
+                                        <span className="w-8 h-8 rounded-lg bg-orange-500 text-white flex items-center justify-center font-bold text-sm">1</span>
+                                        Part 1 — Introduction & Interview
+                                    </h4>
+                                    {answers.part1.topics?.map((topic, tIdx) => (
+                                        <div key={tIdx} className="mb-4">
+                                            <p className="font-semibold text-orange-700 mb-2">{topic.topicName || topic.topic}</p>
+                                            <ul className="space-y-1">
+                                                {topic.questions?.map((q, qIdx) => (
+                                                    <li key={qIdx} className="text-slate-700 text-sm pl-4 border-l-2 border-orange-200 py-1">
+                                                        {typeof q === 'string' ? q : q.question || q.text}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {/* Part 2 */}
+                            {answers?.part2 && (
+                                <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100">
+                                    <h4 className="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
+                                        <span className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold text-sm">2</span>
+                                        Part 2 — Cue Card
+                                    </h4>
+                                    <p className="font-semibold text-amber-800 mb-2">{answers.part2.topic}</p>
+                                    {answers.part2.cueCard && <p className="text-slate-600 mb-3">{answers.part2.cueCard}</p>}
+                                    {answers.part2.bulletPoints && (
+                                        <ul className="space-y-1 mb-3">
+                                            {answers.part2.bulletPoints.map((bp, idx) => (
+                                                <li key={idx} className="text-slate-700 text-sm flex gap-2"><span className="text-amber-500">•</span>{typeof bp === 'string' ? bp : bp.text}</li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                    {answers.part2.followUpQuestion && (
+                                        <p className="text-slate-600 italic text-sm border-t border-amber-200 pt-2 mt-2">{answers.part2.followUpQuestion}</p>
+                                    )}
+                                </div>
+                            )}
+                            {/* Part 3 */}
+                            {answers?.part3 && (
+                                <div className="bg-yellow-50 rounded-2xl p-6 border border-yellow-100">
+                                    <h4 className="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
+                                        <span className="w-8 h-8 rounded-lg bg-yellow-500 text-white flex items-center justify-center font-bold text-sm">3</span>
+                                        Part 3 — Discussion
+                                    </h4>
+                                    {answers.part3.topic && <p className="font-semibold text-yellow-800 mb-3">{answers.part3.topic}</p>}
+                                    <ul className="space-y-2">
+                                        {answers.part3.questions?.map((q, idx) => (
+                                            <li key={idx} className="text-slate-700 text-sm pl-4 border-l-2 border-yellow-300 py-1">
+                                                {typeof q === 'string' ? q : q.question || q.text}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                            {!answers?.part1 && !answers?.part2 && !answers?.part3 && (!answers?.recordings || answers.recordings.length === 0) && (
+                                <div className="py-16 text-center">
+                                    <FaExclamationTriangle className="text-amber-400 text-5xl mx-auto mb-4" />
+                                    <h4 className="text-slate-700 font-bold text-lg mb-2">No Answers Found</h4>
+                                    <p className="text-slate-500">This student hasn't completed the Speaking module yet.</p>
+                                </div>
+                            )}
                         </div>
                     ) : module?.toLowerCase() === 'writing' ? (
                         /* Writing Module - Show Task 1 and Task 2 essays with Questions */
@@ -425,6 +533,7 @@ const ScoreEditModal = ({ show, onClose, student, onSave, saving }) => {
         listening: { band: 0, correctAnswers: 0 },
         reading: { band: 0, correctAnswers: 0 },
         writing: { task1Band: 0, task2Band: 0, overallBand: 0 },
+        speaking: { band: 0 },
         adminRemarks: ""
     });
 
@@ -444,6 +553,9 @@ const ScoreEditModal = ({ show, onClose, student, onSave, saving }) => {
                     task2Band: student.scores.writing?.task2Band || 0,
                     overallBand: student.scores.writing?.overallBand || 0
                 },
+                speaking: {
+                    band: student.scores.speaking?.band || 0
+                },
                 adminRemarks: student.adminRemarks || ""
             });
         }
@@ -451,7 +563,7 @@ const ScoreEditModal = ({ show, onClose, student, onSave, saving }) => {
 
     // Calculate overall band
     const calculateOverall = () => {
-        const bands = [scores.listening.band, scores.reading.band, scores.writing.overallBand].filter(b => b > 0);
+        const bands = [scores.listening.band, scores.reading.band, scores.writing.overallBand, scores.speaking.band].filter(b => b > 0);
         if (bands.length === 0) return 0;
         const sum = bands.reduce((a, b) => a + b, 0);
         return Math.round((sum / bands.length) * 2) / 2;
@@ -593,6 +705,25 @@ const ScoreEditModal = ({ show, onClose, student, onSave, saving }) => {
                                     className="w-full h-12 px-4 rounded-xl border-2 border-violet-200 focus:border-violet-500 focus:ring-0 outline-none bg-white font-bold text-lg text-slate-800"
                                 />
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Speaking Section */}
+                    <div className="bg-orange-50 rounded-2xl p-5 border border-orange-100">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center">
+                                <FaMicrophone />
+                            </div>
+                            <h4 className="font-bold text-slate-800">Speaking Score</h4>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Band Score (0-9)</label>
+                            <input
+                                type="number" step="0.5" min="0" max="9"
+                                value={scores.speaking.band}
+                                onChange={(e) => setScores(prev => ({ ...prev, speaking: { ...prev.speaking, band: parseFloat(e.target.value) || 0 } }))}
+                                className="w-full h-12 px-4 rounded-xl border-2 border-orange-200 focus:border-orange-500 focus:ring-0 outline-none bg-white font-bold text-lg text-slate-800"
+                            />
                         </div>
                     </div>
 
@@ -852,7 +983,7 @@ function StudentContent() {
             </div>
 
             {/* Module Score Cards */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
                 <ModuleScoreCard
                     icon={FaHeadphones}
                     title="Listening"
@@ -888,6 +1019,18 @@ function StudentContent() {
                     onEdit={() => setEditModal({ show: true })}
                     onReset={() => handleResetModule('writing')}
                     resetting={resetting === 'writing'}
+                />
+                <ModuleScoreCard
+                    icon={FaMicrophone}
+                    title="Speaking"
+                    band={student.scores?.speaking?.band}
+                    subInfo="Examiner graded"
+                    color="orange"
+                    isCompleted={completedModules.some(m => m.toLowerCase() === 'speaking')}
+                    onView={() => handleViewAnswers('Speaking')}
+                    onEdit={() => setEditModal({ show: true })}
+                    onReset={() => handleResetModule('speaking')}
+                    resetting={resetting === 'speaking'}
                 />
             </div>
 

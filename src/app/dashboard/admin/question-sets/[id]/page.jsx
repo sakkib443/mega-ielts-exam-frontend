@@ -10,6 +10,7 @@ import {
     FaHeadphones,
     FaBook,
     FaPen,
+    FaMicrophone,
     FaToggleOn,
     FaToggleOff,
     FaClone,
@@ -64,6 +65,8 @@ export default function QuestionSetDetailPage() {
                 return <FaBook className="text-blue-600" />;
             case "WRITING":
                 return <FaPen className="text-green-600" />;
+            case "SPEAKING":
+                return <FaMicrophone className="text-orange-600" />;
             default:
                 return <FaQuestionCircle />;
         }
@@ -77,6 +80,8 @@ export default function QuestionSetDetailPage() {
                 return "bg-blue-100 text-blue-700";
             case "WRITING":
                 return "bg-green-100 text-green-700";
+            case "SPEAKING":
+                return "bg-orange-100 text-orange-700";
             default:
                 return "bg-gray-100 text-gray-700";
         }
@@ -229,8 +234,122 @@ export default function QuestionSetDetailPage() {
                 </div>
             )}
 
+            {/* Speaking Parts */}
+            {set.setType === "SPEAKING" && (
+                <div className="space-y-6">
+                    {/* Part 1 */}
+                    {set.part1 && (
+                        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                            <div className="bg-orange-50 p-4 border-b border-gray-200">
+                                <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                                    <FaMicrophone className="text-orange-600" />
+                                    Part 1 — Introduction & Interview
+                                    <span className="ml-auto text-sm text-gray-500">{set.part1.duration} min</span>
+                                </h3>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                {set.part1.topics?.map((topic, tIdx) => (
+                                    <div key={tIdx} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                        <h4 className="font-medium text-gray-700 mb-2">{topic.topicName || `Topic ${tIdx + 1}`}</h4>
+                                        <ul className="space-y-2">
+                                            {topic.questions?.map((q, qIdx) => (
+                                                <li key={qIdx} className="flex items-start gap-2 text-gray-600 text-sm">
+                                                    <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-xs font-medium flex-shrink-0">Q{qIdx + 1}</span>
+                                                    {q}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Part 2 */}
+                    {set.part2 && (
+                        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                            <div className="bg-orange-50 p-4 border-b border-gray-200">
+                                <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                                    <FaMicrophone className="text-orange-600" />
+                                    Part 2 — Individual Long Turn (Cue Card)
+                                    <span className="ml-auto text-sm text-gray-500">
+                                        Prep: {set.part2.preparationTime} min | Speak: {set.part2.speakingTime} min
+                                    </span>
+                                </h3>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                {set.part2.topic && (
+                                    <div>
+                                        <p className="text-sm text-gray-500 mb-1">Topic</p>
+                                        <p className="font-medium text-gray-800">{set.part2.topic}</p>
+                                    </div>
+                                )}
+                                {set.part2.cueCard && (
+                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                        <p className="text-sm font-medium text-yellow-800 mb-2">📋 Cue Card</p>
+                                        <p className="text-gray-700 whitespace-pre-wrap">{set.part2.cueCard}</p>
+                                    </div>
+                                )}
+                                {set.part2.bulletPoints?.length > 0 && (
+                                    <div>
+                                        <p className="text-sm text-gray-500 mb-2">You should say:</p>
+                                        <ul className="space-y-1">
+                                            {set.part2.bulletPoints.map((bp, bpIdx) => (
+                                                <li key={bpIdx} className="flex items-center gap-2 text-gray-600 text-sm">
+                                                    <span className="text-orange-400">•</span> {bp}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {set.part2.followUpQuestion && (
+                                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                                        <p className="text-sm text-gray-500 mb-1">Follow-up Question</p>
+                                        <p className="text-gray-700 text-sm">{set.part2.followUpQuestion}</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Part 3 */}
+                    {set.part3 && (
+                        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                            <div className="bg-orange-50 p-4 border-b border-gray-200">
+                                <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                                    <FaMicrophone className="text-orange-600" />
+                                    Part 3 — Two-way Discussion
+                                    <span className="ml-auto text-sm text-gray-500">{set.part3.duration} min</span>
+                                </h3>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                {set.part3.topic && (
+                                    <div>
+                                        <p className="text-sm text-gray-500 mb-1">Discussion Topic</p>
+                                        <p className="font-medium text-gray-800">{set.part3.topic}</p>
+                                    </div>
+                                )}
+                                {set.part3.questions?.length > 0 && (
+                                    <div>
+                                        <p className="text-sm text-gray-500 mb-2">Discussion Questions</p>
+                                        <ul className="space-y-2">
+                                            {set.part3.questions.map((q, qIdx) => (
+                                                <li key={qIdx} className="flex items-start gap-2 text-gray-600 text-sm">
+                                                    <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-xs font-medium flex-shrink-0">Q{qIdx + 1}</span>
+                                                    {q}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Sections for Listening/Reading */}
-            {!isWriting && set.sections && (
+            {!isWriting && set.setType !== "SPEAKING" && set.sections && (
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                     {/* Section Tabs */}
                     <div className="flex border-b border-gray-200 overflow-x-auto">

@@ -17,6 +17,7 @@ import {
     FaHeadphones,
     FaBook,
     FaPen,
+    FaMicrophone,
     FaTimes,
     FaExclamationTriangle,
 } from "react-icons/fa";
@@ -112,6 +113,7 @@ export default function CreateStudentPage() {
     const [listeningSets, setListeningSets] = useState([]);
     const [readingSets, setReadingSets] = useState([]);
     const [writingSets, setWritingSets] = useState([]);
+    const [speakingSets, setSpeakingSets] = useState([]);
 
     // Form data
     const [formData, setFormData] = useState({
@@ -128,6 +130,7 @@ export default function CreateStudentPage() {
         listeningSetNumber: "",
         readingSetNumber: "",
         writingSetNumber: "",
+        speakingSetNumber: "",
     });
 
     useEffect(() => {
@@ -136,15 +139,17 @@ export default function CreateStudentPage() {
 
     const fetchQuestionSets = async () => {
         try {
-            const [listeningRes, readingRes, writingRes] = await Promise.all([
+            const [listeningRes, readingRes, writingRes, speakingRes] = await Promise.all([
                 questionSetsAPI.getSummary("LISTENING").catch(() => ({ data: [] })),
                 questionSetsAPI.getSummary("READING").catch(() => ({ data: [] })),
                 questionSetsAPI.getSummary("WRITING").catch(() => ({ data: [] })),
+                questionSetsAPI.getSummary("SPEAKING").catch(() => ({ data: [] })),
             ]);
 
             setListeningSets(listeningRes.data || []);
             setReadingSets(readingRes.data || []);
             setWritingSets(writingRes.data || []);
+            setSpeakingSets(speakingRes.data || []);
         } catch (error) {
             console.error("Failed to fetch question sets:", error);
         }
@@ -214,6 +219,7 @@ export default function CreateStudentPage() {
                 listeningSetNumber: formData.listeningSetNumber ? Number(formData.listeningSetNumber) : undefined,
                 readingSetNumber: formData.readingSetNumber ? Number(formData.readingSetNumber) : undefined,
                 writingSetNumber: formData.writingSetNumber ? Number(formData.writingSetNumber) : undefined,
+                speakingSetNumber: formData.speakingSetNumber ? Number(formData.speakingSetNumber) : undefined,
             };
 
             // Remove empty fields
@@ -375,6 +381,7 @@ export default function CreateStudentPage() {
                                     listeningSetNumber: "",
                                     readingSetNumber: "",
                                     writingSetNumber: "",
+                                    speakingSetNumber: "",
                                 });
                             }}
                             className="px-6 py-2.5 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50"
@@ -614,7 +621,7 @@ export default function CreateStudentPage() {
                     <p className="text-sm text-gray-500 mb-4">
                         Select which question sets this student will receive (optional - can be assigned later)
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 <FaHeadphones className="inline mr-1 text-purple-500" />
@@ -666,6 +673,25 @@ export default function CreateStudentPage() {
                             >
                                 <option value="">Select a set...</option>
                                 {writingSets.map((set) => (
+                                    <option key={set._id} value={set.setNumber}>
+                                        Set #{set.setNumber} - {set.title}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <FaMicrophone className="inline mr-1 text-orange-500" />
+                                Speaking Set
+                            </label>
+                            <select
+                                name="speakingSetNumber"
+                                value={formData.speakingSetNumber}
+                                onChange={handleInputChange}
+                                className={getInputClass("speakingSetNumber")}
+                            >
+                                <option value="">Select a set...</option>
+                                {speakingSets.map((set) => (
                                     <option key={set._id} value={set.setNumber}>
                                         Set #{set.setNumber} - {set.title}
                                     </option>

@@ -12,6 +12,7 @@ import {
     FaHeadphones,
     FaBook,
     FaPen,
+    FaMicrophone,
     FaCloudUploadAlt,
     FaCheck,
 } from "react-icons/fa";
@@ -77,6 +78,25 @@ export default function EditQuestionSetPage() {
 
     const [sections, setSections] = useState([]);
     const [writingTasks, setWritingTasks] = useState([]);
+
+    // Speaking state
+    const [speakingPart1, setSpeakingPart1] = useState({
+        topics: [{ topicName: "", questions: [""] }],
+        duration: 5,
+    });
+    const [speakingPart2, setSpeakingPart2] = useState({
+        topic: "",
+        cueCard: "",
+        bulletPoints: ["", "", ""],
+        followUpQuestion: "",
+        preparationTime: 1,
+        speakingTime: 2,
+    });
+    const [speakingPart3, setSpeakingPart3] = useState({
+        topic: "",
+        questions: [""],
+        duration: 5,
+    });
 
     // Handle audio file upload
     const handleAudioUpload = async (e) => {
@@ -174,6 +194,13 @@ export default function EditQuestionSetPage() {
                     }
                 } else if (set.writingTasks) {
                     setWritingTasks(set.writingTasks);
+                }
+
+                // Handle Speaking data
+                if (set.setType === "SPEAKING") {
+                    if (set.part1) setSpeakingPart1(set.part1);
+                    if (set.part2) setSpeakingPart2(set.part2);
+                    if (set.part3) setSpeakingPart3(set.part3);
                 }
             }
         } catch (error) {
@@ -291,20 +318,29 @@ export default function EditQuestionSetPage() {
         setSaving(true);
 
         try {
-            const isWriting = formData.setType === "WRITING";
+            const isWritingType = formData.setType === "WRITING";
+            const isSpeakingType = formData.setType === "SPEAKING";
+
+            let setData = {};
+            if (isSpeakingType) {
+                setData = { part1: speakingPart1, part2: speakingPart2, part3: speakingPart3 };
+            } else if (isWritingType) {
+                setData = { writingTasks };
+            } else {
+                setData = {
+                    sections: sections.map((s) => ({
+                        ...s,
+                        questions: s.questions.map((q, idx) => ({
+                            ...q,
+                            questionNumber: idx + 1,
+                        })),
+                    })),
+                };
+            }
+
             const updateData = {
                 ...formData,
-                ...(isWriting
-                    ? { writingTasks }
-                    : {
-                        sections: sections.map((s) => ({
-                            ...s,
-                            questions: s.questions.map((q, idx) => ({
-                                ...q,
-                                questionNumber: idx + 1,
-                            })),
-                        })),
-                    }),
+                ...setData,
             };
 
             const response = await questionSetsAPI.update(params.id, updateData);
@@ -327,12 +363,15 @@ export default function EditQuestionSetPage() {
                 return <FaBook className="text-blue-600" />;
             case "WRITING":
                 return <FaPen className="text-green-600" />;
+            case "SPEAKING":
+                return <FaMicrophone className="text-orange-600" />;
             default:
                 return null;
         }
     };
 
     const isWriting = formData.setType === "WRITING";
+    const isSpeaking = formData.setType === "SPEAKING";
 
     if (loading) {
         return (
@@ -711,8 +750,210 @@ export default function EditQuestionSetPage() {
                     </div>
                 )}
 
+                {/* Speaking Parts */}
+                {isSpeaking && (
+                    <div className="space-y-6">
+                        {/* Part 1 */}
+                        <div className="bg-white rounded-xl border border-gray-200 p-6">
+                            <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                <FaMicrophone className="text-orange-600" />
+                                Part 1 — Introduction & Interview
+                            </h3>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Duration (minutes)</label>
+                                <input
+                                    type="number"
+                                    value={speakingPart1.duration}
+                                    onChange={(e) => setSpeakingPart1(prev => ({ ...prev, duration: Number(e.target.value) }))}
+                                    min={1}
+                                    className="w-32 border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
+                                />
+                            </div>
+                            {speakingPart1.topics.map((topic, tIndex) => (
+                                <div key={tIndex} className="bg-gray-50 rounded-lg p-4 mb-3 border border-gray-100">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <input
+                                            type="text"
+                                            value={topic.topicName}
+                                            onChange={(e) => {
+                                                const newTopics = [...speakingPart1.topics];
+                                                newTopics[tIndex] = { ...newTopics[tIndex], topicName: e.target.value };
+                                                setSpeakingPart1(prev => ({ ...prev, topics: newTopics }));
+                                            }}
+                                            placeholder="Topic name (e.g., Home & Accommodation)"
+                                            className="flex-1 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-500"
+                                        />
+                                        {speakingPart1.topics.length > 1 && (
+                                            <button type="button" onClick={() => {
+                                                setSpeakingPart1(prev => ({ ...prev, topics: prev.topics.filter((_, i) => i !== tIndex) }));
+                                            }} className="ml-2 text-red-500 hover:bg-red-50 p-2 rounded-lg"><FaTrash className="text-sm" /></button>
+                                        )}
+                                    </div>
+                                    {topic.questions.map((q, qIndex) => (
+                                        <div key={qIndex} className="flex items-center gap-2 mb-2">
+                                            <span className="text-xs text-gray-400 w-6">Q{qIndex + 1}</span>
+                                            <input
+                                                type="text"
+                                                value={q}
+                                                onChange={(e) => {
+                                                    const newTopics = [...speakingPart1.topics];
+                                                    const newQuestions = [...newTopics[tIndex].questions];
+                                                    newQuestions[qIndex] = e.target.value;
+                                                    newTopics[tIndex] = { ...newTopics[tIndex], questions: newQuestions };
+                                                    setSpeakingPart1(prev => ({ ...prev, topics: newTopics }));
+                                                }}
+                                                placeholder="Enter question..."
+                                                className="flex-1 border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-cyan-500"
+                                            />
+                                            {topic.questions.length > 1 && (
+                                                <button type="button" onClick={() => {
+                                                    const newTopics = [...speakingPart1.topics];
+                                                    newTopics[tIndex] = { ...newTopics[tIndex], questions: newTopics[tIndex].questions.filter((_, i) => i !== qIndex) };
+                                                    setSpeakingPart1(prev => ({ ...prev, topics: newTopics }));
+                                                }} className="text-red-400 hover:text-red-600 p-1"><FaTrash className="text-xs" /></button>
+                                            )}
+                                        </div>
+                                    ))}
+                                    <button type="button" onClick={() => {
+                                        const newTopics = [...speakingPart1.topics];
+                                        newTopics[tIndex] = { ...newTopics[tIndex], questions: [...newTopics[tIndex].questions, ""] };
+                                        setSpeakingPart1(prev => ({ ...prev, topics: newTopics }));
+                                    }} className="text-cyan-600 hover:bg-cyan-50 px-3 py-1 rounded text-sm flex items-center gap-1 mt-1">
+                                        <FaPlus className="text-xs" /> Add Question
+                                    </button>
+                                </div>
+                            ))}
+                            <button type="button" onClick={() => {
+                                setSpeakingPart1(prev => ({ ...prev, topics: [...prev.topics, { topicName: "", questions: [""] }] }));
+                            }} className="w-full bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-3 text-gray-500 hover:bg-gray-100 hover:border-gray-400 transition-colors flex items-center justify-center gap-2 text-sm">
+                                <FaPlus /> Add Topic
+                            </button>
+                        </div>
+
+                        {/* Part 2 */}
+                        <div className="bg-white rounded-xl border border-gray-200 p-6">
+                            <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                <FaMicrophone className="text-orange-600" />
+                                Part 2 — Individual Long Turn (Cue Card)
+                            </h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Topic</label>
+                                    <input type="text" value={speakingPart2.topic}
+                                        onChange={(e) => setSpeakingPart2(prev => ({ ...prev, topic: e.target.value }))}
+                                        placeholder="e.g., Describe a time when you helped someone"
+                                        className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Cue Card Text</label>
+                                    <textarea value={speakingPart2.cueCard}
+                                        onChange={(e) => setSpeakingPart2(prev => ({ ...prev, cueCard: e.target.value }))}
+                                        rows={3} placeholder="Describe a time when..."
+                                        className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Bullet Points</label>
+                                    {speakingPart2.bulletPoints.map((bp, bpIdx) => (
+                                        <div key={bpIdx} className="flex items-center gap-2 mb-2">
+                                            <span className="text-gray-400">•</span>
+                                            <input type="text" value={bp}
+                                                onChange={(e) => {
+                                                    const newBps = [...speakingPart2.bulletPoints];
+                                                    newBps[bpIdx] = e.target.value;
+                                                    setSpeakingPart2(prev => ({ ...prev, bulletPoints: newBps }));
+                                                }}
+                                                placeholder="Bullet point..."
+                                                className="flex-1 border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-cyan-500" />
+                                            {speakingPart2.bulletPoints.length > 1 && (
+                                                <button type="button" onClick={() => {
+                                                    setSpeakingPart2(prev => ({ ...prev, bulletPoints: prev.bulletPoints.filter((_, i) => i !== bpIdx) }));
+                                                }} className="text-red-400 hover:text-red-600 p-1"><FaTrash className="text-xs" /></button>
+                                            )}
+                                        </div>
+                                    ))}
+                                    <button type="button" onClick={() => {
+                                        setSpeakingPart2(prev => ({ ...prev, bulletPoints: [...prev.bulletPoints, ""] }));
+                                    }} className="text-cyan-600 hover:bg-cyan-50 px-3 py-1 rounded text-sm flex items-center gap-1">
+                                        <FaPlus className="text-xs" /> Add Bullet Point
+                                    </button>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Follow-up Question</label>
+                                    <input type="text" value={speakingPart2.followUpQuestion}
+                                        onChange={(e) => setSpeakingPart2(prev => ({ ...prev, followUpQuestion: e.target.value }))}
+                                        placeholder="Follow-up question after cue card..."
+                                        className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Preparation Time (min)</label>
+                                        <input type="number" value={speakingPart2.preparationTime}
+                                            onChange={(e) => setSpeakingPart2(prev => ({ ...prev, preparationTime: Number(e.target.value) }))}
+                                            min={1} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Speaking Time (min)</label>
+                                        <input type="number" value={speakingPart2.speakingTime}
+                                            onChange={(e) => setSpeakingPart2(prev => ({ ...prev, speakingTime: Number(e.target.value) }))}
+                                            min={1} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Part 3 */}
+                        <div className="bg-white rounded-xl border border-gray-200 p-6">
+                            <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                <FaMicrophone className="text-orange-600" />
+                                Part 3 — Two-way Discussion
+                            </h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Discussion Topic</label>
+                                    <input type="text" value={speakingPart3.topic}
+                                        onChange={(e) => setSpeakingPart3(prev => ({ ...prev, topic: e.target.value }))}
+                                        placeholder="e.g., Helping others in the community"
+                                        className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Duration (minutes)</label>
+                                    <input type="number" value={speakingPart3.duration}
+                                        onChange={(e) => setSpeakingPart3(prev => ({ ...prev, duration: Number(e.target.value) }))}
+                                        min={1} className="w-32 border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Discussion Questions</label>
+                                    {speakingPart3.questions.map((q, qIdx) => (
+                                        <div key={qIdx} className="flex items-center gap-2 mb-2">
+                                            <span className="text-xs text-gray-400 w-6">Q{qIdx + 1}</span>
+                                            <input type="text" value={q}
+                                                onChange={(e) => {
+                                                    const newQs = [...speakingPart3.questions];
+                                                    newQs[qIdx] = e.target.value;
+                                                    setSpeakingPart3(prev => ({ ...prev, questions: newQs }));
+                                                }}
+                                                placeholder="Enter discussion question..."
+                                                className="flex-1 border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-cyan-500" />
+                                            {speakingPart3.questions.length > 1 && (
+                                                <button type="button" onClick={() => {
+                                                    setSpeakingPart3(prev => ({ ...prev, questions: prev.questions.filter((_, i) => i !== qIdx) }));
+                                                }} className="text-red-400 hover:text-red-600 p-1"><FaTrash className="text-xs" /></button>
+                                            )}
+                                        </div>
+                                    ))}
+                                    <button type="button" onClick={() => {
+                                        setSpeakingPart3(prev => ({ ...prev, questions: [...prev.questions, ""] }));
+                                    }} className="text-cyan-600 hover:bg-cyan-50 px-3 py-1 rounded text-sm flex items-center gap-1">
+                                        <FaPlus className="text-xs" /> Add Question
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Sections */}
-                {!isWriting && sections.length > 0 && (
+                {!isWriting && !isSpeaking && sections.length > 0 && (
                     <div className="space-y-6">
                         {sections.map((section, sIndex) => (
                             <div key={sIndex} className="bg-white rounded-xl border border-gray-200 overflow-hidden">

@@ -21,6 +21,7 @@ import {
     FaBell,
     FaGlobe,
     FaChevronDown,
+    FaMicrophone,
 } from "react-icons/fa";
 import Logo from "@/components/Logo";
 
@@ -45,6 +46,7 @@ const menuItems = [
             { title: "Listening Sets", icon: FaHeadphones, href: "/dashboard/admin/question-sets?type=LISTENING", type: "LISTENING" },
             { title: "Reading Sets", icon: FaBook, href: "/dashboard/admin/question-sets?type=READING", type: "READING" },
             { title: "Writing Sets", icon: FaPen, href: "/dashboard/admin/question-sets?type=WRITING", type: "WRITING" },
+            { title: "Speaking Sets", icon: FaMicrophone, href: "/dashboard/admin/question-sets?type=SPEAKING", type: "SPEAKING" },
         ],
     },
     {

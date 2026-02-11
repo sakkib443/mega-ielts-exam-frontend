@@ -15,6 +15,7 @@ import {
     FaHeadphones,
     FaBook,
     FaPen,
+    FaMicrophone,
 } from "react-icons/fa";
 import { studentsAPI, questionSetsAPI } from "@/lib/api";
 
@@ -29,6 +30,7 @@ export default function EditStudentPage() {
     const [listeningSets, setListeningSets] = useState([]);
     const [readingSets, setReadingSets] = useState([]);
     const [writingSets, setWritingSets] = useState([]);
+    const [speakingSets, setSpeakingSets] = useState([]);
 
     // Form data
     const [formData, setFormData] = useState({
@@ -44,6 +46,7 @@ export default function EditStudentPage() {
         listeningSetNumber: "",
         readingSetNumber: "",
         writingSetNumber: "",
+        speakingSetNumber: "",
         isActive: true,
         canRetake: false,
     });
@@ -75,6 +78,7 @@ export default function EditStudentPage() {
                     listeningSetNumber: student.assignedSets?.listeningSetNumber || "",
                     readingSetNumber: student.assignedSets?.readingSetNumber || "",
                     writingSetNumber: student.assignedSets?.writingSetNumber || "",
+                    speakingSetNumber: student.assignedSets?.speakingSetNumber || "",
                     isActive: student.isActive !== false,
                     canRetake: student.canRetake || false,
                 });
@@ -89,15 +93,17 @@ export default function EditStudentPage() {
 
     const fetchQuestionSets = async () => {
         try {
-            const [listeningRes, readingRes, writingRes] = await Promise.all([
+            const [listeningRes, readingRes, writingRes, speakingRes] = await Promise.all([
                 questionSetsAPI.getSummary("LISTENING").catch(() => ({ data: [] })),
                 questionSetsAPI.getSummary("READING").catch(() => ({ data: [] })),
                 questionSetsAPI.getSummary("WRITING").catch(() => ({ data: [] })),
+                questionSetsAPI.getSummary("SPEAKING").catch(() => ({ data: [] })),
             ]);
 
             setListeningSets(listeningRes.data || []);
             setReadingSets(readingRes.data || []);
             setWritingSets(writingRes.data || []);
+            setSpeakingSets(speakingRes.data || []);
         } catch (error) {
             console.error("Failed to fetch question sets:", error);
         }
@@ -131,6 +137,7 @@ export default function EditStudentPage() {
                 listeningSetNumber: formData.listeningSetNumber ? Number(formData.listeningSetNumber) : undefined,
                 readingSetNumber: formData.readingSetNumber ? Number(formData.readingSetNumber) : undefined,
                 writingSetNumber: formData.writingSetNumber ? Number(formData.writingSetNumber) : undefined,
+                speakingSetNumber: formData.speakingSetNumber ? Number(formData.speakingSetNumber) : undefined,
                 isActive: formData.isActive,
                 canRetake: formData.canRetake,
             };
@@ -329,7 +336,7 @@ export default function EditStudentPage() {
                 {/* Question Sets Assignment */}
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
                     <h3 className="font-semibold text-gray-800 mb-4">Assigned Question Sets</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 <FaHeadphones className="inline mr-1 text-purple-500" />
@@ -381,6 +388,25 @@ export default function EditStudentPage() {
                             >
                                 <option value="">Not Assigned</option>
                                 {writingSets.map((set) => (
+                                    <option key={set._id || set.setId} value={set.setNumber}>
+                                        Set #{set.setNumber} - {set.title}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <FaMicrophone className="inline mr-1 text-orange-500" />
+                                Speaking Set
+                            </label>
+                            <select
+                                name="speakingSetNumber"
+                                value={formData.speakingSetNumber}
+                                onChange={handleInputChange}
+                                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
+                            >
+                                <option value="">Not Assigned</option>
+                                {speakingSets.map((set) => (
                                     <option key={set._id || set.setId} value={set.setNumber}>
                                         Set #{set.setNumber} - {set.title}
                                     </option>

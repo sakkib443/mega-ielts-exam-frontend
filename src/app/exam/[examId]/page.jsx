@@ -6,6 +6,7 @@ import {
     FaHeadphones,
     FaBook,
     FaPen,
+    FaMicrophone,
     FaPlay,
     FaClock,
     FaQuestionCircle,
@@ -76,7 +77,7 @@ export default function ExamSelectionPage() {
                         const dbCompletedModules = verifyResponse.data.completedModules || [];
                         const dbScores = verifyResponse.data.scores || null;
 
-                        if (!verifyResponse.data.valid && dbCompletedModules.length < 3) {
+                        if (!verifyResponse.data.valid && dbCompletedModules.length < 4) {
                             setError(verifyResponse.data.message || "Invalid session. Please start again.");
                             setIsLoading(false);
                             return;
@@ -173,6 +174,18 @@ export default function ExamSelectionPage() {
             details: "Task 1: 150 words • Task 2: 250 words",
             color: "green",
             setNumber: session?.assignedSets?.writingSetNumber
+        },
+        {
+            id: "speaking",
+            name: "Speaking",
+            icon: <FaMicrophone className="text-2xl" />,
+            duration: 14,
+            questions: 3,
+            sections: 3,
+            description: "Face-to-face interview",
+            details: "Part 1: Interview • Part 2: Cue Card • Part 3: Discussion",
+            color: "orange",
+            setNumber: session?.assignedSets?.speakingSetNumber
         }
     ];
 
@@ -209,7 +222,7 @@ export default function ExamSelectionPage() {
 
             <div className="max-w-5xl mx-auto px-4 py-10">
                 {/* Check if all modules are completed */}
-                {completedModules.length >= 3 ? (
+                {completedModules.length >= 4 ? (
                     <div className="text-center py-16 px-4 bg-gradient-to-br from-green-50 to-cyan-50 rounded-2xl border-2 border-green-100 shadow-sm">
                         <div className="w-28 h-28 bg-gradient-to-br from-green-400 to-green-600 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                             <FaCheckCircle className="text-6xl" />
@@ -221,7 +234,7 @@ export default function ExamSelectionPage() {
                             Examination Completed Successfully
                         </h2>
                         <p className="text-gray-600 max-w-lg mx-auto mb-8 text-lg">
-                            Congratulations, <span className="font-semibold text-gray-800">{session?.studentName}</span>! You have successfully completed all three modules of the IELTS Academic Test.
+                            Congratulations, <span className="font-semibold text-gray-800">{session?.studentName}</span>! You have successfully completed all four modules of the IELTS Academic Test.
                         </p>
 
                         {/* Submission Status Box */}
@@ -292,7 +305,7 @@ export default function ExamSelectionPage() {
                                             <h2 className="text-xl font-bold text-gray-800">Complete IELTS Exam</h2>
                                             <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-xs font-medium">Recommended</span>
                                         </div>
-                                        <p className="text-gray-500 mb-3">Take all three sections: Listening → Reading → Writing</p>
+                                        <p className="text-gray-500 mb-3">Take all four sections: Listening → Reading → Writing → Speaking</p>
                                         <div className="flex flex-wrap items-center gap-3 text-sm">
                                             <span className="flex items-center gap-2 text-gray-600 bg-white px-3 py-1.5 rounded border border-gray-200">
                                                 <FaClock className="text-cyan-600" />
@@ -322,7 +335,7 @@ export default function ExamSelectionPage() {
                         </div>
 
                         {/* Individual Module Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {examModules.map((module) => {
                                 const hasSet = module.setNumber != null;
                                 const isCompleted = completedModules.includes(module.id);
@@ -333,6 +346,7 @@ export default function ExamSelectionPage() {
                                     if (module.id === "listening") return moduleScores.listening?.band;
                                     if (module.id === "reading") return moduleScores.reading?.band;
                                     if (module.id === "writing") return moduleScores.writing?.overallBand;
+                                    if (module.id === "speaking") return moduleScores.speaking?.band;
                                     return null;
                                 };
                                 const score = getModuleScore();
@@ -362,7 +376,9 @@ export default function ExamSelectionPage() {
                                                 ? 'bg-cyan-100 text-cyan-600'
                                                 : module.color === 'blue'
                                                     ? 'bg-blue-100 text-blue-600'
-                                                    : 'bg-green-100 text-green-600'
+                                                    : module.color === 'orange'
+                                                        ? 'bg-orange-100 text-orange-600'
+                                                        : 'bg-green-100 text-green-600'
                                             } rounded-xl flex items-center justify-center mb-4`}>
                                             {isCompleted ? <FaCheckCircle className="text-2xl" /> : module.icon}
                                         </div>
@@ -401,7 +417,7 @@ export default function ExamSelectionPage() {
                                                 Already Completed
                                             </div>
                                         ) : hasSet ? (
-                                            <button className={`w-full flex items-center justify-center gap-3 ${module.color === 'cyan' ? 'bg-cyan-600 hover:bg-cyan-700' : module.color === 'blue' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'} text-white py-3 rounded-xl font-bold transition-all hover:shadow-lg cursor-pointer group`}>
+                                            <button className={`w-full flex items-center justify-center gap-3 ${module.color === 'cyan' ? 'bg-cyan-600 hover:bg-cyan-700' : module.color === 'blue' ? 'bg-blue-600 hover:bg-blue-700' : module.color === 'orange' ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700'} text-white py-3 rounded-xl font-bold transition-all hover:shadow-lg cursor-pointer group`}>
                                                 <FaPlay className="text-sm transition-transform group-hover:scale-110" />
                                                 <span>Start {module.name}</span>
                                                 <FaArrowRight className="text-sm transition-transform group-hover:translate-x-1" />

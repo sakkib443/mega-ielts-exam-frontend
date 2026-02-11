@@ -5,6 +5,7 @@ import {
     FaHeadphones,
     FaBook,
     FaPen,
+    FaMicrophone,
     FaLock,
     FaClock,
     FaDownload,
@@ -61,7 +62,7 @@ export default function StudentResults() {
         completedModules = []
     } = studentData || {};
 
-    const isAllCompleted = completedModules.length >= 3;
+    const isAllCompleted = completedModules.length >= 4;
     const hasStartedExam = completedModules.length > 0;
 
     // Check if today is exam day
@@ -132,7 +133,7 @@ export default function StudentResults() {
                     </div>
 
                     {/* Module Scores */}
-                    <div className="grid md:grid-cols-3 gap-4">
+                    <div className="grid md:grid-cols-4 gap-4">
                         <ScoreCard
                             title="Listening"
                             icon={FaHeadphones}
@@ -153,6 +154,12 @@ export default function StudentResults() {
                             band={scores?.writing?.overallBand}
                             task1={scores?.writing?.task1Band}
                             task2={scores?.writing?.task2Band}
+                        />
+                        <ScoreCard
+                            title="Speaking"
+                            icon={FaMicrophone}
+                            band={scores?.speaking?.band}
+                            examinerGraded
                         />
                     </div>
 
@@ -218,18 +225,18 @@ export default function StudentResults() {
                         </div>
                         <h3 className="text-lg font-semibold text-gray-800 mb-2">Exam In Progress</h3>
                         <p className="text-gray-500 text-sm mb-6">
-                            You need to complete all 3 modules (Listening, Reading, Writing) to get your results.
+                            You need to complete all 4 modules (Listening, Reading, Writing, Speaking) to get your results.
                         </p>
 
                         <div className="bg-gray-50 border border-gray-200 rounded-md p-4 mb-6">
                             <div className="flex justify-between text-sm mb-2">
                                 <span className="text-gray-500">Progress</span>
-                                <span className="text-gray-700 font-medium">{completedModules.length}/3 completed</span>
+                                <span className="text-gray-700 font-medium">{completedModules.length}/4 completed</span>
                             </div>
                             <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-blue-600 rounded-full transition-all"
-                                    style={{ width: `${(completedModules.length / 3) * 100}%` }}
+                                    style={{ width: `${(completedModules.length / 4) * 100}%` }}
                                 />
                             </div>
                         </div>
@@ -272,7 +279,7 @@ export default function StudentResults() {
     );
 }
 
-const ScoreCard = ({ title, icon: Icon, band, raw, total, task1, task2 }) => (
+const ScoreCard = ({ title, icon: Icon, band, raw, total, task1, task2, examinerGraded }) => (
     <div className="bg-white border border-gray-200 rounded-md p-5">
         <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2.5">
@@ -313,6 +320,11 @@ const ScoreCard = ({ title, icon: Icon, band, raw, total, task1, task2 }) => (
                     <p className="text-[10px] text-gray-400 uppercase">Task 2</p>
                     <p className="font-semibold text-gray-800">{task2 || "—"}</p>
                 </div>
+            </div>
+        )}
+        {examinerGraded && (
+            <div className="text-center">
+                <p className="text-xs text-gray-400">Examiner Graded</p>
             </div>
         )}
     </div>

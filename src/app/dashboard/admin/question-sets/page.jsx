@@ -19,6 +19,7 @@ import {
     FaToggleOn,
     FaToggleOff,
     FaClone,
+    FaMicrophone,
 } from "react-icons/fa";
 import { questionSetsAPI } from "@/lib/api";
 
@@ -128,6 +129,8 @@ export default function QuestionSetsPage() {
                 return <FaBook className="text-blue-600" />;
             case "WRITING":
                 return <FaPen className="text-green-600" />;
+            case "SPEAKING":
+                return <FaMicrophone className="text-orange-600" />;
             default:
                 return null;
         }
@@ -141,6 +144,8 @@ export default function QuestionSetsPage() {
                 return "bg-blue-100";
             case "WRITING":
                 return "bg-green-100";
+            case "SPEAKING":
+                return "bg-orange-100";
             default:
                 return "bg-gray-100";
         }
@@ -158,7 +163,7 @@ export default function QuestionSetsPage() {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800">Question Sets</h1>
-                    <p className="text-gray-500 mt-1">Manage listening, reading, and writing question sets</p>
+                    <p className="text-gray-500 mt-1">Manage listening, reading, writing, and speaking question sets</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Link
@@ -182,11 +187,18 @@ export default function QuestionSetsPage() {
                         <FaPen />
                         Writing
                     </Link>
+                    <Link
+                        href="/dashboard/admin/question-sets/create?type=SPEAKING"
+                        className="px-4 py-2.5 bg-orange-100 text-orange-700 rounded-lg font-medium hover:bg-orange-200 transition-all flex items-center gap-2"
+                    >
+                        <FaMicrophone />
+                        Speaking
+                    </Link>
                 </div>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="bg-white rounded-xl border border-gray-200 p-4">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
@@ -217,6 +229,17 @@ export default function QuestionSetsPage() {
                         <div>
                             <p className="text-gray-500 text-sm">Writing</p>
                             <p className="text-xl font-bold text-gray-800">{stats?.writing || 0}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-white rounded-xl border border-gray-200 p-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                            <FaMicrophone className="text-orange-600" />
+                        </div>
+                        <div>
+                            <p className="text-gray-500 text-sm">Speaking</p>
+                            <p className="text-xl font-bold text-gray-800">{stats?.speaking || 0}</p>
                         </div>
                     </div>
                 </div>
@@ -272,6 +295,7 @@ export default function QuestionSetsPage() {
                                 <option value="LISTENING">Listening</option>
                                 <option value="READING">Reading</option>
                                 <option value="WRITING">Writing</option>
+                                <option value="SPEAKING">Speaking</option>
                             </select>
                         </div>
                         <div>
@@ -449,6 +473,13 @@ export default function QuestionSetsPage() {
                                                 className="text-green-600 hover:underline"
                                             >
                                                 Create Writing Set
+                                            </Link>
+                                            <span className="text-gray-300">|</span>
+                                            <Link
+                                                href="/dashboard/admin/question-sets/create?type=SPEAKING"
+                                                className="text-orange-600 hover:underline"
+                                            >
+                                                Create Speaking Set
                                             </Link>
                                         </div>
                                     </td>

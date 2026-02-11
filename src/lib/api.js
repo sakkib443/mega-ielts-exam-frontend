@@ -464,6 +464,30 @@ export const uploadAPI = {
         });
         return response;
     },
+
+    // Upload speaking recording (public — no auth needed)
+    uploadSpeakingRecording: async (blob) => {
+        const formData = new FormData();
+        formData.append("video", blob, `speaking-${Date.now()}.webm`);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/upload/speaking-recording`, {
+                method: "POST",
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Failed to upload recording");
+            }
+
+            return data;
+        } catch (error) {
+            console.error("Upload Error:", error);
+            throw error;
+        }
+    },
 };
 
 // ================== STATS API ==================

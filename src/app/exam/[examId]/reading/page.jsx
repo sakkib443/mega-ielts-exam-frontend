@@ -57,7 +57,7 @@ export default function ReadingExamPage() {
                     const verifyResponse = await studentsAPI.verifyExamId(parsed.examId);
                     if (verifyResponse.success && verifyResponse.data) {
                         const dbCompletedModules = verifyResponse.data.completedModules || [];
-                        const isFinished = dbCompletedModules.length >= 3;
+                        const isFinished = dbCompletedModules.length >= 4;
 
                         // Security check: If reading is already completed OR all 3 are done, redirect back
                         if (dbCompletedModules.includes("reading") || isFinished) {
@@ -72,7 +72,7 @@ export default function ReadingExamPage() {
                 } catch (apiError) {
                     console.error("Failed to verify completion from DB, using localStorage:", apiError);
                     // Fallback to localStorage check
-                    if (parsed.completedModules && (parsed.completedModules.includes("reading") || parsed.completedModules.length >= 3)) {
+                    if (parsed.completedModules && (parsed.completedModules.includes("reading") || parsed.completedModules.length >= 4)) {
                         router.push(`/exam/${params.examId}`);
                         return;
                     }
