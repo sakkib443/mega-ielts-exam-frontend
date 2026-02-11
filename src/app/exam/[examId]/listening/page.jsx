@@ -605,7 +605,7 @@ export default function ListeningExamPage() {
 
                                                             // Render question input
                                                             return (
-                                                                <span key={index} className="inline-flex items-center align-middle mx-1 my-0.5">
+                                                                <span key={index} id={`q-${displayNum}`} className="inline-flex items-center align-middle mx-1 my-0.5">
                                                                     <span className="inline-block border border-gray-300 font-bold px-1.5 py-0 text-[13px] bg-gray-50 min-w-[28px] text-center text-gray-600 rounded">
                                                                         {displayNum}
                                                                     </span>
@@ -726,7 +726,7 @@ export default function ListeningExamPage() {
                                                         )}
                                                         <div className="space-y-4 max-w-2xl">
                                                             {block.questions.map((q, idx) => (
-                                                                <div key={idx} className="flex items-center gap-4 group">
+                                                                <div key={idx} id={`q-${q.displayNumber}`} className="flex items-center gap-4 group">
                                                                     <div className="bg-white border border-gray-400 text-gray-700 w-8 h-8 flex items-center justify-center rounded font-bold text-sm flex-shrink-0">
                                                                         {q.displayNumber}
                                                                     </div>
@@ -781,7 +781,7 @@ export default function ListeningExamPage() {
                                                     <div className="flex items-start gap-3 mb-6">
                                                         <div className="flex gap-1 flex-shrink-0">
                                                             {qNumbers.map(num => (
-                                                                <span key={num} className="border-2 border-gray-800 text-gray-800 font-bold w-9 h-9 flex items-center justify-center rounded text-sm">
+                                                                <span key={num} id={`q-${num}`} className="border-2 border-gray-800 text-gray-800 font-bold w-9 h-9 flex items-center justify-center rounded text-sm">
                                                                     {num}
                                                                 </span>
                                                             ))}

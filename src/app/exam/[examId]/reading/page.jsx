@@ -616,7 +616,7 @@ export default function ReadingExamPage() {
                                                                 if (match) {
                                                                     const qNum = parseInt(match[1]);
                                                                     return (
-                                                                        <span key={pIdx} className="inline-flex items-center gap-1 mx-1 align-baseline">
+                                                                        <span key={pIdx} id={`q-${qNum}`} className="inline-flex items-center gap-1 mx-1 align-baseline">
                                                                             <span className="bg-white border border-gray-400 text-gray-800 text-xs font-bold px-1.5 py-0.5 rounded shadow-sm">
                                                                                 {qNum}
                                                                             </span>
@@ -671,7 +671,7 @@ export default function ReadingExamPage() {
                                                                         {bullet.type === "context" ? (
                                                                             <span>{bullet.text}</span>
                                                                         ) : (
-                                                                            <div className="flex items-center flex-wrap gap-1">
+                                                                            <div id={`q-${bullet.questionNumber}`} className="flex items-center flex-wrap gap-1">
                                                                                 <span>{bullet.textBefore}</span>
                                                                                 <span className="inline-flex items-center gap-1">
                                                                                     <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{bullet.questionNumber}</span>
@@ -711,7 +711,7 @@ export default function ReadingExamPage() {
 
                                                     <div className="space-y-6 mt-6">
                                                         {(group.statements || group.questions)?.map((stmt) => (
-                                                            <div key={stmt.questionNumber} className="pb-4 border-b border-gray-100 last:border-0">
+                                                            <div key={stmt.questionNumber} id={`q-${stmt.questionNumber}`} className="pb-4 border-b border-gray-100 last:border-0">
                                                                 <div className="flex items-start gap-3 mb-4">
                                                                     <span className="bg-gray-100 border border-gray-300 text-gray-800 text-sm font-bold px-2 py-0.5 rounded shadow-sm">
                                                                         {stmt.questionNumber}
@@ -761,7 +761,7 @@ export default function ReadingExamPage() {
                                                     {/* Matching Items */}
                                                     <div className="space-y-3 mt-4">
                                                         {group.matchingItems?.map((item) => (
-                                                            <div key={item.questionNumber} className="flex items-center gap-3">
+                                                            <div key={item.questionNumber} id={`q-${item.questionNumber}`} className="flex items-center gap-3">
                                                                 <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5 flex-shrink-0">
                                                                     {item.questionNumber}
                                                                 </span>
@@ -802,7 +802,7 @@ export default function ReadingExamPage() {
                                                             segment.type === "text" ? (
                                                                 <span key={sIdx}>{segment.content} </span>
                                                             ) : (
-                                                                <span key={sIdx} className="inline-flex items-center gap-1 mx-1">
+                                                                <span key={sIdx} id={`q-${segment.questionNumber}`} className="inline-flex items-center gap-1 mx-1">
                                                                     <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{segment.questionNumber}</span>
                                                                     <input
                                                                         type="text"
@@ -830,7 +830,7 @@ export default function ReadingExamPage() {
                                                             <div className="flex items-start gap-2 mb-3">
                                                                 <div className="flex gap-1">
                                                                     {qSet.questionNumbers?.map((qNum) => (
-                                                                        <span key={qNum} className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">
+                                                                        <span key={qNum} id={`q-${qNum}`} className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">
                                                                             {qNum}
                                                                         </span>
                                                                     ))}
@@ -905,7 +905,7 @@ export default function ReadingExamPage() {
                                                             segment.type === "text" ? (
                                                                 <span key={sIdx}>{segment.content} </span>
                                                             ) : (
-                                                                <span key={sIdx} className="inline-flex items-center gap-1 mx-1">
+                                                                <span key={sIdx} id={`q-${segment.questionNumber}`} className="inline-flex items-center gap-1 mx-1">
                                                                     <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{segment.questionNumber}</span>
                                                                     <select
                                                                         value={answers[segment.questionNumber] || ""}
@@ -943,7 +943,7 @@ export default function ReadingExamPage() {
                                                     {/* Statements */}
                                                     <div className="space-y-4 mt-3">
                                                         {group.statements?.map((stmt) => (
-                                                            <div key={stmt.questionNumber} className="py-2">
+                                                            <div key={stmt.questionNumber} id={`q-${stmt.questionNumber}`} className="py-2">
                                                                 <div className="flex items-start gap-2 mb-2">
                                                                     <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{stmt.questionNumber}</span>
                                                                     <span className="text-gray-800">{stmt.text}</span>
@@ -986,7 +986,7 @@ export default function ReadingExamPage() {
                                                     {/* Questions */}
                                                     <div className="space-y-6 mt-4">
                                                         {group.mcQuestions?.map((mcQ) => (
-                                                            <div key={mcQ.questionNumber} className="py-2">
+                                                            <div key={mcQ.questionNumber} id={`q-${mcQ.questionNumber}`} className="py-2">
                                                                 <div className="flex items-start gap-2 mb-3">
                                                                     <span className="border border-gray-400 text-gray-700 text-sm font-bold px-1.5 py-0.5">{mcQ.questionNumber}</span>
                                                                     <span className="text-gray-800 font-medium">{mcQ.questionText}</span>
