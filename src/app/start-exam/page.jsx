@@ -52,9 +52,23 @@ function ExamEntryContent() {
 
         try {
             const response = await studentsAPI.verifyExamId(examId.trim());
-            if (response.success && response.data && response.data.valid) {
-                setExamDetails(response.data.student);
-                setStep(2);
+            if (response.success && response.data) {
+                if (response.data.valid) {
+                    setExamDetails(response.data.student);
+                    setStep(2);
+                } else if (response.data.completedModules && response.data.completedModules.length >= 3) {
+                    // If exam is completed, redirect to the exam page which shows the success screen
+                    // We need to set a temporary session for the page to work
+                    localStorage.setItem("examSession", JSON.stringify({
+                        examId: examId.trim().toUpperCase(),
+                        studentName: response.data.name || "Student",
+                        completedModules: response.data.completedModules,
+                        scores: response.data.scores
+                    }));
+                    router.push(`/exam/${examId.trim().toUpperCase()}`);
+                } else {
+                    setError(response.data?.message || "Invalid Exam ID. Please check and try again.");
+                }
             } else {
                 setError(response.data?.message || "Invalid Exam ID. Please check and try again.");
             }

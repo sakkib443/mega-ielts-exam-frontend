@@ -77,7 +77,9 @@ export default function ExamSelectionPage() {
                         const dbCompletedModules = verifyResponse.data.completedModules || [];
                         const dbScores = verifyResponse.data.scores || null;
 
-                        if (!verifyResponse.data.valid && dbCompletedModules.length < 4) {
+                        // Check if exam is completed (at least 3 modules done)
+                        // If invalid but all 3 modules done, we should NOT show error, but show completion screen
+                        if (!verifyResponse.data.valid && dbCompletedModules.length < 3) {
                             setError(verifyResponse.data.message || "Invalid session. Please start again.");
                             setIsLoading(false);
                             return;
@@ -174,18 +176,6 @@ export default function ExamSelectionPage() {
             details: "Task 1: 150 words • Task 2: 250 words",
             color: "green",
             setNumber: session?.assignedSets?.writingSetNumber
-        },
-        {
-            id: "speaking",
-            name: "Speaking",
-            icon: <FaMicrophone className="text-2xl" />,
-            duration: 14,
-            questions: 3,
-            sections: 3,
-            description: "Face-to-face interview",
-            details: "Part 1: Interview • Part 2: Cue Card • Part 3: Discussion",
-            color: "orange",
-            setNumber: session?.assignedSets?.speakingSetNumber
         }
     ];
 
@@ -222,44 +212,70 @@ export default function ExamSelectionPage() {
 
             <div className="max-w-5xl mx-auto px-4 py-10">
                 {/* Check if all modules are completed */}
-                {completedModules.length >= 4 ? (
-                    <div className="text-center py-16 px-4 bg-gradient-to-br from-green-50 to-cyan-50 rounded-2xl border-2 border-green-100 shadow-sm">
-                        <div className="w-28 h-28 bg-gradient-to-br from-green-400 to-green-600 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                            <FaCheckCircle className="text-6xl" />
-                        </div>
-                        <h1 className="text-4xl font-bold text-gray-800 mb-3">
-                            🎉 Thank You!
-                        </h1>
-                        <h2 className="text-2xl font-semibold text-green-600 mb-4">
-                            Examination Completed Successfully
-                        </h2>
-                        <p className="text-gray-600 max-w-lg mx-auto mb-8 text-lg">
-                            Congratulations, <span className="font-semibold text-gray-800">{session?.studentName}</span>! You have successfully completed all four modules of the IELTS Academic Test.
-                        </p>
+                {completedModules.length >= 3 ? (
+                    <div className="max-w-2xl mx-auto text-center py-10 px-6 bg-white rounded-md border border-gray-200 shadow-sm relative">
+                        <div className="relative z-10">
+                            <div className="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-5">
+                                <FaCheckCircle className="text-3xl" />
+                            </div>
 
-                        {/* Submission Status Box */}
-                        <div className="bg-white p-8 rounded-xl border border-green-200 shadow-sm inline-block min-w-[350px] mb-8">
-                            <div className="flex items-center justify-center gap-3 mb-4">
-                                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                                    <FaCheckCircle className="text-green-600 text-2xl" />
+                            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                                Congratulations!
+                            </h1>
+                            <h2 className="text-lg font-medium text-green-600 mb-6">
+                                Examination Completed Successfully
+                            </h2>
+
+                            <div className="max-w-xl mx-auto space-y-4">
+                                <p className="text-gray-600 text-base">
+                                    Thank you, <span className="font-semibold text-gray-800">{session?.studentName}</span>! You have successfully finished all modules.
+                                </p>
+
+                                <div className="bg-gray-50 border border-gray-200 rounded-md p-6 my-6 text-left">
+                                    <p className="text-gray-800 text-sm font-semibold mb-4 tracking-tight uppercase">
+                                        SUBMISSION CONFIRMED
+                                    </p>
+
+                                    <div className="space-y-3 mb-4">
+                                        <div className="flex items-center gap-3">
+                                            <FaUser className="text-xs text-cyan-600" />
+                                            <p className="text-sm text-gray-700 font-medium">Login with Exam ID & Password for results</p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <FaQuestionCircle className="text-xs text-green-600" />
+                                            <p className="text-sm text-gray-700 font-medium">Contact support team for assistance</p>
+                                        </div>
+                                    </div>
+
+                                    <p className="text-amber-600 text-[11px] border-t border-gray-200 pt-3 italic">
+                                        * Writing results available in 24-48 hours.
+                                    </p>
                                 </div>
                             </div>
-                            <p className="text-gray-800 font-bold text-xl mb-2">All Modules Submitted</p>
-                            <p className="text-gray-500 text-sm mb-4">
-                                Your responses are being reviewed by our examiners.
-                            </p>
-                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-left">
-                                <p className="text-amber-700 text-sm">
-                                    <strong>📋 What's Next?</strong><br />
-                                    Results will be available once the evaluation is complete. Please contact your instructor for more information.
-                                </p>
-                            </div>
-                        </div>
 
-                        {/* Student Info */}
-                        <div className="text-gray-400 text-sm">
-                            <p>Exam ID: <span className="font-mono font-semibold text-gray-600">{session?.examId}</span></p>
-                            <p className="mt-1">You may now close this window.</p>
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
+                                <button
+                                    onClick={() => {
+                                        localStorage.removeItem("examSession");
+                                        router.push("/");
+                                    }}
+                                    className="w-full sm:w-auto px-8 py-2.5 bg-gray-900 text-white rounded-md font-bold text-sm hover:bg-black transition-all flex items-center justify-center gap-2 group cursor-pointer"
+                                >
+                                    Go to Home
+                                    <FaArrowRight className="text-xs group-hover:translate-x-0.5 transition-transform" />
+                                </button>
+
+                                <button
+                                    onClick={() => router.push("/login")}
+                                    className="w-full sm:w-auto px-8 py-2.5 bg-white text-gray-900 border border-gray-300 rounded-md font-bold text-sm hover:bg-gray-50 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                >
+                                    Student Login
+                                </button>
+                            </div>
+
+                            <p className="mt-8 text-gray-400 text-xs uppercase tracking-widest font-mono">
+                                ID: {session?.examId}
+                            </p>
                         </div>
                     </div>
                 ) : (
@@ -305,7 +321,7 @@ export default function ExamSelectionPage() {
                                             <h2 className="text-xl font-bold text-gray-800">Complete IELTS Exam</h2>
                                             <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-xs font-medium">Recommended</span>
                                         </div>
-                                        <p className="text-gray-500 mb-3">Take all four sections: Listening → Reading → Writing → Speaking</p>
+                                        <p className="text-gray-500 mb-3">Take all three sections: Listening → Reading → Writing</p>
                                         <div className="flex flex-wrap items-center gap-3 text-sm">
                                             <span className="flex items-center gap-2 text-gray-600 bg-white px-3 py-1.5 rounded border border-gray-200">
                                                 <FaClock className="text-cyan-600" />
@@ -335,7 +351,7 @@ export default function ExamSelectionPage() {
                         </div>
 
                         {/* Individual Module Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {examModules.map((module) => {
                                 const hasSet = module.setNumber != null;
                                 const isCompleted = completedModules.includes(module.id);

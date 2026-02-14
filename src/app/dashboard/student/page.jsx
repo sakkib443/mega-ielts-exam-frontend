@@ -83,7 +83,7 @@ export default function StudentDashboard() {
         completedModules = [],
     } = studentData;
 
-    const isAllCompleted = completedModules.length >= 4;
+    const isAllCompleted = completedModules.length >= 3;
 
     // Check if today is exam day
     const isExamDay = () => {
@@ -146,7 +146,7 @@ export default function StudentDashboard() {
                 />
                 <StatCard
                     label="Completed"
-                    value={`${completedModules.length}/4 Modules`}
+                    value={`${completedModules.length}/3 Modules`}
                 />
                 <StatCard
                     label="Exam Date"
@@ -205,18 +205,18 @@ export default function StudentDashboard() {
                     <div className="mb-5">
                         <div className="flex justify-between text-xs text-gray-500 mb-2">
                             <span>Progress</span>
-                            <span>{completedModules.length}/4 completed</span>
+                            <span>{completedModules.length}/3 completed</span>
                         </div>
                         <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
                             <div
                                 className="h-full bg-cyan-600 rounded-full transition-all duration-500"
-                                style={{ width: `${(completedModules.length / 4) * 100}%` }}
+                                style={{ width: `${(completedModules.length / 3) * 100}%` }}
                             />
                         </div>
                     </div>
 
                     {/* Module Cards */}
-                    <div className="grid grid-cols-4 gap-3">
+                    <div className="grid grid-cols-3 gap-3">
                         <ModuleCard
                             title="Listening"
                             icon={FaHeadphones}
@@ -231,11 +231,6 @@ export default function StudentDashboard() {
                             title="Writing"
                             icon={FaPen}
                             completed={completedModules.includes("writing")}
-                        />
-                        <ModuleCard
-                            title="Speaking"
-                            icon={FaMicrophone}
-                            completed={completedModules.includes("speaking")}
                         />
                     </div>
                 </div>
@@ -257,7 +252,7 @@ export default function StudentDashboard() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-4 gap-3">
+                        <div className="grid grid-cols-3 gap-3">
                             <ScoreCard
                                 title="Listening"
                                 icon={FaHeadphones}
@@ -276,11 +271,6 @@ export default function StudentDashboard() {
                                 title="Writing"
                                 icon={FaPen}
                                 band={scores?.writing?.overallBand}
-                            />
-                            <ScoreCard
-                                title="Speaking"
-                                icon={FaMicrophone}
-                                band={scores?.speaking?.band}
                             />
                         </div>
                     </div>
@@ -316,7 +306,7 @@ export default function StudentDashboard() {
                                 </p>
                             </div>
                             <span className="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-md text-xs font-medium">
-                                {completedModules.length}/4 Done
+                                {completedModules.length}/3 Done
                             </span>
                         </div>
                     </div>

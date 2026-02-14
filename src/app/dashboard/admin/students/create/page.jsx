@@ -679,25 +679,28 @@ export default function CreateStudentPage() {
                                 ))}
                             </select>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                <FaMicrophone className="inline mr-1 text-orange-500" />
-                                Speaking Set
-                            </label>
-                            <select
-                                name="speakingSetNumber"
-                                value={formData.speakingSetNumber}
-                                onChange={handleInputChange}
-                                className={getInputClass("speakingSetNumber")}
-                            >
-                                <option value="">Select a set...</option>
-                                {speakingSets.map((set) => (
-                                    <option key={set._id} value={set.setNumber}>
-                                        Set #{set.setNumber} - {set.title}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        {/* Speaking Set selection hidden */}
+                        {false && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <FaMicrophone className="inline mr-1 text-orange-500" />
+                                    Speaking Set
+                                </label>
+                                <select
+                                    name="speakingSetNumber"
+                                    value={formData.speakingSetNumber}
+                                    onChange={handleInputChange}
+                                    className={getInputClass("speakingSetNumber")}
+                                >
+                                    <option value="">Select a set...</option>
+                                    {speakingSets.map((set) => (
+                                        <option key={set._id} value={set.setNumber}>
+                                            Set #{set.setNumber} - {set.title}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                     </div>
                 </div>
 

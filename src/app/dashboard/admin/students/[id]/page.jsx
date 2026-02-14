@@ -565,7 +565,8 @@ const ScoreEditModal = ({ show, onClose, student, onSave, saving, editModule }) 
 
     // Calculate overall band
     const calculateOverall = () => {
-        const bands = [scores.listening.band, scores.reading.band, scores.writing.overallBand, scores.speaking.band].filter(b => b > 0);
+        // Filter out Speaking if it's 0 or not yet provided, to calculate average of 3 modules
+        const bands = [scores.listening.band, scores.reading.band, scores.writing.overallBand].filter(b => b > 0);
         if (bands.length === 0) return 0;
         const sum = bands.reduce((a, b) => a + b, 0);
         return Math.round((sum / bands.length) * 2) / 2;
@@ -720,8 +721,8 @@ const ScoreEditModal = ({ show, onClose, student, onSave, saving, editModule }) 
                         </div>
                     )}
 
-                    {/* Speaking Section */}
-                    {(!editModule || editModule === 'speaking') && (
+                    {/* Speaking Section - Hidden for now */}
+                    {false && (!editModule || editModule === 'speaking') && (
                         <div className="bg-orange-50 rounded-2xl p-5 border border-orange-100">
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center">
@@ -997,7 +998,7 @@ function StudentContent() {
             </div>
 
             {/* Module Score Cards */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <ModuleScoreCard
                     icon={FaHeadphones}
                     title="Listening"
@@ -1034,18 +1035,21 @@ function StudentContent() {
                     onReset={() => handleResetModule('writing')}
                     resetting={resetting === 'writing'}
                 />
-                <ModuleScoreCard
-                    icon={FaMicrophone}
-                    title="Speaking"
-                    band={student.scores?.speaking?.band}
-                    subInfo="Examiner graded"
-                    color="orange"
-                    isCompleted={completedModules.some(m => m.toLowerCase() === 'speaking')}
-                    onView={() => handleViewAnswers('Speaking')}
-                    onEdit={() => setEditModal({ show: true, module: 'speaking' })}
-                    onReset={() => handleResetModule('speaking')}
-                    resetting={resetting === 'speaking'}
-                />
+                {/* Speaking card hidden */}
+                {false && (
+                    <ModuleScoreCard
+                        icon={FaMicrophone}
+                        title="Speaking"
+                        band={student.scores?.speaking?.band}
+                        subInfo="Examiner graded"
+                        color="orange"
+                        isCompleted={completedModules.some(m => m.toLowerCase() === 'speaking')}
+                        onView={() => handleViewAnswers('Speaking')}
+                        onEdit={() => setEditModal({ show: true, module: 'speaking' })}
+                        onReset={() => handleResetModule('speaking')}
+                        resetting={resetting === 'speaking'}
+                    />
+                )}
             </div>
 
             {/* Student Information Grid */}

@@ -394,25 +394,28 @@ export default function EditStudentPage() {
                                 ))}
                             </select>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                <FaMicrophone className="inline mr-1 text-orange-500" />
-                                Speaking Set
-                            </label>
-                            <select
-                                name="speakingSetNumber"
-                                value={formData.speakingSetNumber}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
-                            >
-                                <option value="">Not Assigned</option>
-                                {speakingSets.map((set) => (
-                                    <option key={set._id || set.setId} value={set.setNumber}>
-                                        Set #{set.setNumber} - {set.title}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        {/* Speaking Set selection hidden */}
+                        {false && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <FaMicrophone className="inline mr-1 text-orange-500" />
+                                    Speaking Set
+                                </label>
+                                <select
+                                    name="speakingSetNumber"
+                                    value={formData.speakingSetNumber}
+                                    onChange={handleInputChange}
+                                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-cyan-500"
+                                >
+                                    <option value="">Not Assigned</option>
+                                    {speakingSets.map((set) => (
+                                        <option key={set._id || set.setId} value={set.setNumber}>
+                                            Set #{set.setNumber} - {set.title}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                     </div>
                 </div>
 
