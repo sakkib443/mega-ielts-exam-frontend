@@ -86,6 +86,7 @@ function ResultsContent() {
                                     <th className="px-6 py-4 text-center">L</th>
                                     <th className="px-6 py-4 text-center">R</th>
                                     <th className="px-6 py-4 text-center">W</th>
+                                    <th className="px-6 py-4 text-center">S</th>
                                     <th className="px-6 py-4 text-center">Overall</th>
                                     <th className="px-6 py-4 text-right">Action</th>
                                 </tr>
@@ -105,15 +106,15 @@ function ResultsContent() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${result.examStatus === 'completed'
-                                                    ? 'bg-emerald-100/60 text-emerald-700'
-                                                    : 'bg-amber-100/60 text-amber-700'
+                                                ? 'bg-emerald-100/60 text-emerald-700'
+                                                : 'bg-amber-100/60 text-amber-700'
                                                 }`}>
                                                 {result.examStatus === 'completed' ? <FaCheckCircle className="text-[10px]" /> : <FaSpinner className="text-[10px]" />}
                                                 <span className="capitalize">{result.examStatus}</span>
                                             </span>
                                         </td>
 
-                                        {['Listening', 'Reading', 'Writing'].map((mod) => {
+                                        {['Listening', 'Reading', 'Writing', 'Speaking'].map((mod) => {
                                             const score = result.scores?.[mod.toLowerCase()]?.band ||
                                                 result.scores?.[mod.toLowerCase()]?.overallBand || 0;
                                             return (

@@ -72,12 +72,14 @@ const ModuleScoreCard = ({
         blue: "bg-blue-50 border-blue-100 hover:border-blue-200",
         green: "bg-emerald-50 border-emerald-100 hover:border-emerald-200",
         purple: "bg-violet-50 border-violet-100 hover:border-violet-200",
+        orange: "bg-orange-50 border-orange-100 hover:border-orange-200",
     };
 
     const iconColorClasses = {
         blue: "bg-blue-500 text-white",
         green: "bg-emerald-500 text-white",
         purple: "bg-violet-500 text-white",
+        orange: "bg-orange-500 text-white",
     };
 
     return (
@@ -528,7 +530,7 @@ const ViewAnswersModal = ({ show, onClose, module, answers, loading, scores }) =
 };
 
 // Comprehensive Score Edit Modal
-const ScoreEditModal = ({ show, onClose, student, onSave, saving }) => {
+const ScoreEditModal = ({ show, onClose, student, onSave, saving, editModule }) => {
     const [scores, setScores] = useState({
         listening: { band: 0, correctAnswers: 0 },
         reading: { band: 0, correctAnswers: 0 },
@@ -601,8 +603,12 @@ const ScoreEditModal = ({ show, onClose, student, onSave, saving }) => {
                     {/* Overall Band Preview */}
                     <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 flex items-center justify-between">
                         <div>
-                            <span className="text-slate-400 text-sm font-medium uppercase tracking-wider">Calculated Overall Band</span>
-                            <p className="text-white/70 text-xs mt-1">Auto-calculated from module scores</p>
+                            <span className="text-slate-400 text-sm font-medium uppercase tracking-wider">
+                                {editModule ? `Editing ${editModule.charAt(0).toUpperCase() + editModule.slice(1)} Score` : 'Calculated Overall Band'}
+                            </span>
+                            <p className="text-white/70 text-xs mt-1">
+                                {editModule ? 'Only this module score will be updated' : 'Auto-calculated from module scores'}
+                            </p>
                         </div>
                         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-black text-4xl shadow-lg shadow-amber-500/30">
                             {calculateOverall() || "-"}
@@ -610,122 +616,130 @@ const ScoreEditModal = ({ show, onClose, student, onSave, saving }) => {
                     </div>
 
                     {/* Listening Section */}
-                    <div className="bg-blue-50 rounded-2xl p-5 border border-blue-100">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center">
-                                <FaHeadphones />
+                    {(!editModule || editModule === 'listening') && (
+                        <div className="bg-blue-50 rounded-2xl p-5 border border-blue-100">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center">
+                                    <FaHeadphones />
+                                </div>
+                                <h4 className="font-bold text-slate-800">Listening Score</h4>
                             </div>
-                            <h4 className="font-bold text-slate-800">Listening Score</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Band Score (0-9)</label>
+                                    <input
+                                        type="number" step="0.5" min="0" max="9"
+                                        value={scores.listening.band}
+                                        onChange={(e) => setScores(prev => ({ ...prev, listening: { ...prev.listening, band: parseFloat(e.target.value) || 0 } }))}
+                                        className="w-full h-12 px-4 rounded-xl border-2 border-blue-200 focus:border-blue-500 focus:ring-0 outline-none bg-white font-bold text-lg text-slate-800"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Correct Answers (/40)</label>
+                                    <input
+                                        type="number" min="0" max="40"
+                                        value={scores.listening.correctAnswers}
+                                        onChange={(e) => setScores(prev => ({ ...prev, listening: { ...prev.listening, correctAnswers: parseInt(e.target.value) || 0 } }))}
+                                        className="w-full h-12 px-4 rounded-xl border-2 border-blue-200 focus:border-blue-500 focus:ring-0 outline-none bg-white font-bold text-lg text-slate-800"
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Band Score (0-9)</label>
-                                <input
-                                    type="number" step="0.5" min="0" max="9"
-                                    value={scores.listening.band}
-                                    onChange={(e) => setScores(prev => ({ ...prev, listening: { ...prev.listening, band: parseFloat(e.target.value) || 0 } }))}
-                                    className="w-full h-12 px-4 rounded-xl border-2 border-blue-200 focus:border-blue-500 focus:ring-0 outline-none bg-white font-bold text-lg text-slate-800"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Correct Answers (/40)</label>
-                                <input
-                                    type="number" min="0" max="40"
-                                    value={scores.listening.correctAnswers}
-                                    onChange={(e) => setScores(prev => ({ ...prev, listening: { ...prev.listening, correctAnswers: parseInt(e.target.value) || 0 } }))}
-                                    className="w-full h-12 px-4 rounded-xl border-2 border-blue-200 focus:border-blue-500 focus:ring-0 outline-none bg-white font-bold text-lg text-slate-800"
-                                />
-                            </div>
-                        </div>
-                    </div>
+                    )}
 
                     {/* Reading Section */}
-                    <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-100">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center">
-                                <FaBook />
+                    {(!editModule || editModule === 'reading') && (
+                        <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-100">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center">
+                                    <FaBook />
+                                </div>
+                                <h4 className="font-bold text-slate-800">Reading Score</h4>
                             </div>
-                            <h4 className="font-bold text-slate-800">Reading Score</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Band Score (0-9)</label>
+                                    <input
+                                        type="number" step="0.5" min="0" max="9"
+                                        value={scores.reading.band}
+                                        onChange={(e) => setScores(prev => ({ ...prev, reading: { ...prev.reading, band: parseFloat(e.target.value) || 0 } }))}
+                                        className="w-full h-12 px-4 rounded-xl border-2 border-emerald-200 focus:border-emerald-500 focus:ring-0 outline-none bg-white font-bold text-lg text-slate-800"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Correct Answers (/40)</label>
+                                    <input
+                                        type="number" min="0" max="40"
+                                        value={scores.reading.correctAnswers}
+                                        onChange={(e) => setScores(prev => ({ ...prev, reading: { ...prev.reading, correctAnswers: parseInt(e.target.value) || 0 } }))}
+                                        className="w-full h-12 px-4 rounded-xl border-2 border-emerald-200 focus:border-emerald-500 focus:ring-0 outline-none bg-white font-bold text-lg text-slate-800"
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                    )}
+
+                    {/* Writing Section */}
+                    {(!editModule || editModule === 'writing') && (
+                        <div className="bg-violet-50 rounded-2xl p-5 border border-violet-100">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-xl bg-violet-500 text-white flex items-center justify-center">
+                                    <FaPen />
+                                </div>
+                                <h4 className="font-bold text-slate-800">Writing Score</h4>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Task 1 Band</label>
+                                    <input
+                                        type="number" step="0.5" min="0" max="9"
+                                        value={scores.writing.task1Band}
+                                        onChange={(e) => setScores(prev => ({ ...prev, writing: { ...prev.writing, task1Band: parseFloat(e.target.value) || 0 } }))}
+                                        className="w-full h-12 px-4 rounded-xl border-2 border-violet-200 focus:border-violet-500 focus:ring-0 outline-none bg-white font-bold text-lg text-slate-800"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Task 2 Band</label>
+                                    <input
+                                        type="number" step="0.5" min="0" max="9"
+                                        value={scores.writing.task2Band}
+                                        onChange={(e) => setScores(prev => ({ ...prev, writing: { ...prev.writing, task2Band: parseFloat(e.target.value) || 0 } }))}
+                                        className="w-full h-12 px-4 rounded-xl border-2 border-violet-200 focus:border-violet-500 focus:ring-0 outline-none bg-white font-bold text-lg text-slate-800"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Overall Band</label>
+                                    <input
+                                        type="number" step="0.5" min="0" max="9"
+                                        value={scores.writing.overallBand}
+                                        onChange={(e) => setScores(prev => ({ ...prev, writing: { ...prev.writing, overallBand: parseFloat(e.target.value) || 0 } }))}
+                                        className="w-full h-12 px-4 rounded-xl border-2 border-violet-200 focus:border-violet-500 focus:ring-0 outline-none bg-white font-bold text-lg text-slate-800"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Speaking Section */}
+                    {(!editModule || editModule === 'speaking') && (
+                        <div className="bg-orange-50 rounded-2xl p-5 border border-orange-100">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center">
+                                    <FaMicrophone />
+                                </div>
+                                <h4 className="font-bold text-slate-800">Speaking Score</h4>
+                            </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Band Score (0-9)</label>
                                 <input
                                     type="number" step="0.5" min="0" max="9"
-                                    value={scores.reading.band}
-                                    onChange={(e) => setScores(prev => ({ ...prev, reading: { ...prev.reading, band: parseFloat(e.target.value) || 0 } }))}
-                                    className="w-full h-12 px-4 rounded-xl border-2 border-emerald-200 focus:border-emerald-500 focus:ring-0 outline-none bg-white font-bold text-lg text-slate-800"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Correct Answers (/40)</label>
-                                <input
-                                    type="number" min="0" max="40"
-                                    value={scores.reading.correctAnswers}
-                                    onChange={(e) => setScores(prev => ({ ...prev, reading: { ...prev.reading, correctAnswers: parseInt(e.target.value) || 0 } }))}
-                                    className="w-full h-12 px-4 rounded-xl border-2 border-emerald-200 focus:border-emerald-500 focus:ring-0 outline-none bg-white font-bold text-lg text-slate-800"
+                                    value={scores.speaking.band}
+                                    onChange={(e) => setScores(prev => ({ ...prev, speaking: { ...prev.speaking, band: parseFloat(e.target.value) || 0 } }))}
+                                    className="w-full h-12 px-4 rounded-xl border-2 border-orange-200 focus:border-orange-500 focus:ring-0 outline-none bg-white font-bold text-lg text-slate-800"
                                 />
                             </div>
                         </div>
-                    </div>
-
-                    {/* Writing Section */}
-                    <div className="bg-violet-50 rounded-2xl p-5 border border-violet-100">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 rounded-xl bg-violet-500 text-white flex items-center justify-center">
-                                <FaPen />
-                            </div>
-                            <h4 className="font-bold text-slate-800">Writing Score</h4>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Task 1 Band</label>
-                                <input
-                                    type="number" step="0.5" min="0" max="9"
-                                    value={scores.writing.task1Band}
-                                    onChange={(e) => setScores(prev => ({ ...prev, writing: { ...prev.writing, task1Band: parseFloat(e.target.value) || 0 } }))}
-                                    className="w-full h-12 px-4 rounded-xl border-2 border-violet-200 focus:border-violet-500 focus:ring-0 outline-none bg-white font-bold text-lg text-slate-800"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Task 2 Band</label>
-                                <input
-                                    type="number" step="0.5" min="0" max="9"
-                                    value={scores.writing.task2Band}
-                                    onChange={(e) => setScores(prev => ({ ...prev, writing: { ...prev.writing, task2Band: parseFloat(e.target.value) || 0 } }))}
-                                    className="w-full h-12 px-4 rounded-xl border-2 border-violet-200 focus:border-violet-500 focus:ring-0 outline-none bg-white font-bold text-lg text-slate-800"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Overall Band</label>
-                                <input
-                                    type="number" step="0.5" min="0" max="9"
-                                    value={scores.writing.overallBand}
-                                    onChange={(e) => setScores(prev => ({ ...prev, writing: { ...prev.writing, overallBand: parseFloat(e.target.value) || 0 } }))}
-                                    className="w-full h-12 px-4 rounded-xl border-2 border-violet-200 focus:border-violet-500 focus:ring-0 outline-none bg-white font-bold text-lg text-slate-800"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Speaking Section */}
-                    <div className="bg-orange-50 rounded-2xl p-5 border border-orange-100">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center">
-                                <FaMicrophone />
-                            </div>
-                            <h4 className="font-bold text-slate-800">Speaking Score</h4>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Band Score (0-9)</label>
-                            <input
-                                type="number" step="0.5" min="0" max="9"
-                                value={scores.speaking.band}
-                                onChange={(e) => setScores(prev => ({ ...prev, speaking: { ...prev.speaking, band: parseFloat(e.target.value) || 0 } }))}
-                                className="w-full h-12 px-4 rounded-xl border-2 border-orange-200 focus:border-orange-500 focus:ring-0 outline-none bg-white font-bold text-lg text-slate-800"
-                            />
-                        </div>
-                    </div>
+                    )}
 
                     {/* Admin Remarks */}
                     <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200">
@@ -992,7 +1006,7 @@ function StudentContent() {
                     color="blue"
                     isCompleted={completedModules.some(m => m.toLowerCase() === 'listening')}
                     onView={() => handleViewAnswers('Listening')}
-                    onEdit={() => setEditModal({ show: true })}
+                    onEdit={() => setEditModal({ show: true, module: 'listening' })}
                     onReset={() => handleResetModule('listening')}
                     resetting={resetting === 'listening'}
                 />
@@ -1004,7 +1018,7 @@ function StudentContent() {
                     color="green"
                     isCompleted={completedModules.some(m => m.toLowerCase() === 'reading')}
                     onView={() => handleViewAnswers('Reading')}
-                    onEdit={() => setEditModal({ show: true })}
+                    onEdit={() => setEditModal({ show: true, module: 'reading' })}
                     onReset={() => handleResetModule('reading')}
                     resetting={resetting === 'reading'}
                 />
@@ -1016,7 +1030,7 @@ function StudentContent() {
                     color="purple"
                     isCompleted={completedModules.some(m => m.toLowerCase() === 'writing')}
                     onView={() => handleViewAnswers('Writing')}
-                    onEdit={() => setEditModal({ show: true })}
+                    onEdit={() => setEditModal({ show: true, module: 'writing' })}
                     onReset={() => handleResetModule('writing')}
                     resetting={resetting === 'writing'}
                 />
@@ -1028,7 +1042,7 @@ function StudentContent() {
                     color="orange"
                     isCompleted={completedModules.some(m => m.toLowerCase() === 'speaking')}
                     onView={() => handleViewAnswers('Speaking')}
-                    onEdit={() => setEditModal({ show: true })}
+                    onEdit={() => setEditModal({ show: true, module: 'speaking' })}
                     onReset={() => handleResetModule('speaking')}
                     resetting={resetting === 'speaking'}
                 />
@@ -1116,6 +1130,7 @@ function StudentContent() {
                 student={student}
                 onSave={handleSaveAllScores}
                 saving={saving}
+                editModule={editModal.module || null}
             />
         </div>
     );
