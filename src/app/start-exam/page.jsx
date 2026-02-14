@@ -359,7 +359,7 @@ function ExamEntryContent() {
 
                 {/* Footer */}
                 <p className="text-center text-gray-400 text-sm mt-6">
-                    © 2024 IELTS Exam. BdCalling Academy.
+                    © 2024 IELTS Exam. Mizan's Care.
                 </p>
             </div>
         </div>

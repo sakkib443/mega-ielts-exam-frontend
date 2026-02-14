@@ -259,7 +259,7 @@ export default function FullExamPage() {
             {/* Footer */}
             <footer className="bg-white border-t border-gray-200 py-3 px-4">
                 <div className="max-w-4xl mx-auto text-center text-gray-400 text-sm">
-                    IELTS Full Exam Mode • BdCalling Academy
+                    IELTS Full Exam Mode • Mizan's Care
                 </div>
             </footer>
         </div>

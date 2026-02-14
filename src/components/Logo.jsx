@@ -1,15 +1,12 @@
-export default function Logo({ className = "" }) {
+export default function Logo({ className = "", size = "default" }) {
+    const heightClass = size === "small" ? "h-10" : size === "large" ? "h-16" : "h-14";
+
     return (
-        <div className={`flex items-center gap-3 ${className}`}>
+        <div className={`flex items-center ${className}`}>
             <img
-                src="/images/Logo-01.png"
-                alt="BdCalling Academy"
-                className="h-8 object-contain"
-            />
-            <img
-                src="/images/Logo-03.png"
-                alt="IELTS"
-                className="h-8 object-contain"
+                src="/images/IMG_5177.PNG"
+                alt="Mizan's Care | idp IELTS Official Test Venue"
+                className={`${heightClass} object-contain`}
             />
         </div>
     );

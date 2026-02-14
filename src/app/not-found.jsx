@@ -95,7 +95,7 @@ export default function NotFound() {
                     className="mt-12 pt-8 border-t border-white/10"
                 >
                     <p className="text-slate-500 text-sm">
-                        © 2024 IELTSPro - BdCalling Academy
+                        © 2024 IELTSPro - Mizan's Care
                     </p>
                 </motion.div>
             </div>

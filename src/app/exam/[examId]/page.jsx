@@ -470,7 +470,7 @@ export default function ExamSelectionPage() {
             {/* Footer */}
             <footer className="bg-white border-t border-gray-200 py-4 px-4 mt-auto">
                 <div className="max-w-5xl mx-auto text-center text-gray-400 text-sm">
-                    © 2024 IELTS Exam - BdCalling Academy. All rights reserved.
+                    © 2024 IELTS Exam - Mizan's Care. All rights reserved.
                 </div>
             </footer>
         </div>

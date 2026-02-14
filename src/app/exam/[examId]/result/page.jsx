@@ -172,7 +172,7 @@ function ResultContent() {
                     </div>
 
                     <p className="mt-12 text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">
-                        © 2024 BdCalling Academy · IELTS Department
+                        © 2024 Mizan's Care · IELTS Department
                     </p>
                 </div>
             </main>

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { MdOutlineRemoveRedEye, MdOutlineVisibilityOff } from "react-icons/md";
 import { FiMail, FiLock, FiAlertCircle } from "react-icons/fi";
 import { useRouter } from "next/navigation";
-import Logo from "@/components/Logo";
 import { authAPI } from "@/lib/api";
 
 const Login = () => {
@@ -21,6 +20,11 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
   const [isChecking, setIsChecking] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Check if already logged in
   useEffect(() => {
@@ -38,7 +42,6 @@ const Login = () => {
         }
       }
     } catch (e) {
-      // Clear corrupted data
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       localStorage.removeItem("adminAuth");
@@ -92,7 +95,6 @@ const Login = () => {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
 
-        // Store adminAuth for admin users
         if (response.data.user.role === "admin") {
           localStorage.setItem(
             "adminAuth",
@@ -112,11 +114,9 @@ const Login = () => {
           localStorage.removeItem("rememberedEmail");
         }
 
-        // Redirect based on role
         if (response.data.user.role === "admin") {
           router.push("/dashboard/admin/dashboard");
         } else {
-          // Both 'user' and 'student' roles go to student dashboard
           router.push("/dashboard/student");
         }
       }
@@ -130,129 +130,185 @@ const Login = () => {
   // Show loading while checking auth
   if (isChecking) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-cyan-600 mx-auto mb-3"></div>
-          <p className="text-gray-500 text-sm">Loading...</p>
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-cyan-400 border-t-transparent mx-auto mb-3"></div>
+          <p className="text-slate-400 text-sm">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-10 px-4">
-      <div className="w-full max-w-4xl">
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #0a0f1c 0%, #0d1b2a 30%, #1a1a3e 60%, #0d1b2a 100%)' }}>
+
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Large gradient orb */}
+        <div
+          className="absolute -top-40 -right-40 w-96 h-96 rounded-full opacity-20"
+          style={{
+            background: 'radial-gradient(circle, rgba(0,188,212,0.4) 0%, transparent 70%)',
+            animation: mounted ? 'float 8s ease-in-out infinite' : 'none',
+          }}
+        />
+        <div
+          className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full opacity-15"
+          style={{
+            background: 'radial-gradient(circle, rgba(99,102,241,0.4) 0%, transparent 70%)',
+            animation: mounted ? 'float 10s ease-in-out infinite reverse' : 'none',
+          }}
+        />
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-5"
+          style={{
+            background: 'radial-gradient(circle, rgba(0,188,212,0.3) 0%, transparent 60%)',
+          }}
+        />
+
+        {/* Grid pattern */}
+        <div className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+            backgroundSize: '60px 60px',
+          }}
+        />
+
+        {/* Floating dots */}
+        {mounted && (
+          <>
+            <div className="absolute top-[15%] left-[10%] w-1.5 h-1.5 bg-cyan-400 rounded-full opacity-40" style={{ animation: 'pulse-dot 3s ease-in-out infinite' }} />
+            <div className="absolute top-[25%] right-[15%] w-1 h-1 bg-indigo-400 rounded-full opacity-30" style={{ animation: 'pulse-dot 4s ease-in-out infinite 1s' }} />
+            <div className="absolute bottom-[20%] left-[20%] w-1 h-1 bg-cyan-300 rounded-full opacity-30" style={{ animation: 'pulse-dot 3.5s ease-in-out infinite 0.5s' }} />
+            <div className="absolute bottom-[35%] right-[10%] w-1.5 h-1.5 bg-indigo-300 rounded-full opacity-20" style={{ animation: 'pulse-dot 5s ease-in-out infinite 2s' }} />
+            <div className="absolute top-[60%] left-[5%] w-1 h-1 bg-teal-400 rounded-full opacity-25" style={{ animation: 'pulse-dot 4.5s ease-in-out infinite 1.5s' }} />
+          </>
+        )}
+      </div>
+
+      {/* Main Card */}
+      <div
+        className={`relative z-10 w-full max-w-[460px] mx-4 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+      >
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link href="/">
-            <Logo className="mx-auto" />
+          <Link href="/" className="inline-flex items-center">
+            <img
+              src="/images/IMG_5177.PNG"
+              alt="Mizan's Care | idp IELTS Official Test Venue"
+              className="h-14 object-contain brightness-0 invert"
+            />
           </Link>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-md overflow-hidden grid grid-cols-1 lg:grid-cols-2">
-          {/* Left Side - Illustration */}
-          <div className="hidden lg:flex flex-col items-center justify-center bg-gradient-to-br from-cyan-600 via-cyan-700 to-teal-700 p-10 relative overflow-hidden">
-            {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white rounded-full"></div>
-              <div className="absolute bottom-20 right-10 w-24 h-24 border-2 border-white rounded-full"></div>
-              <div className="absolute top-1/2 left-1/4 w-16 h-16 border-2 border-white rounded-full"></div>
-            </div>
-
-            <div className="relative z-10 text-center text-white">
-              {/* Icon Illustration */}
-              <div className="mb-8">
-                <div className="w-32 h-32 mx-auto bg-white/20 rounded-3xl flex items-center justify-center backdrop-blur-sm border border-white/30 shadow-2xl">
-                  <div className="text-6xl">📚</div>
-                </div>
-              </div>
-
-              {/* Text */}
-              <h2 className="text-2xl font-bold mb-3">Welcome Back!</h2>
-              <p className="text-cyan-100 text-sm max-w-xs mx-auto leading-relaxed">
-                Login to access your IELTS exam portal and continue your learning journey
-              </p>
-
-              {/* Features */}
-              <div className="mt-8 space-y-3 text-left">
-                <div className="flex items-center gap-3 text-sm text-cyan-100">
-                  <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">✓</div>
-                  <span>Practice Tests</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-cyan-100">
-                  <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">✓</div>
-                  <span>Instant Results</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-cyan-100">
-                  <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">✓</div>
-                  <span>Track Progress</span>
-                </div>
-              </div>
-            </div>
+        {/* Glass Card */}
+        <div
+          className="backdrop-blur-xl rounded-2xl border overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)',
+            borderColor: 'rgba(255,255,255,0.08)',
+            boxShadow: '0 25px 60px -10px rgba(0,0,0,0.5), 0 0 40px -15px rgba(0,188,212,0.15)',
+          }}
+        >
+          {/* Card Header */}
+          <div className="px-8 pt-8 pb-2">
+            <h3 className="text-2xl font-bold text-white mb-1.5 tracking-tight">Welcome Back</h3>
+            <p className="text-slate-400 text-sm">
+              Sign in to your IELTS exam portal
+            </p>
           </div>
 
-          {/* Right Form */}
-          <div className="p-8 lg:p-10">
-            <h3 className="text-xl font-semibold text-gray-800 mb-1">Sign In</h3>
-            <p className="text-gray-500 text-sm mb-6">
-              Enter your credentials to continue
-            </p>
-
+          {/* Form */}
+          <div className="px-8 pb-8 pt-4">
             {/* Error */}
             {error && (
-              <div className="mb-5 p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2">
-                <FiAlertCircle className="text-red-500" size={16} />
-                <p className="text-red-600 text-sm">{error}</p>
+              <div
+                className="mb-5 p-3.5 rounded-xl flex items-center gap-2.5"
+                style={{
+                  background: 'rgba(239,68,68,0.1)',
+                  border: '1px solid rgba(239,68,68,0.2)',
+                }}
+              >
+                <FiAlertCircle className="text-red-400 flex-shrink-0" size={16} />
+                <p className="text-red-300 text-sm">{error}</p>
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-5">
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Email
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Email Address
                 </label>
-                <div className="relative">
-                  <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <div className="relative group">
+                  <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-400 transition-colors" size={16} />
                   <input
                     type="email"
                     name="email"
+                    id="login-email"
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="you@example.com"
-                    className={`w-full pl-10 pr-4 py-2.5 border rounded-md text-sm bg-gray-50 focus:bg-white outline-none transition-colors ${validationErrors.email
-                      ? "border-red-300 focus:border-red-400"
-                      : "border-gray-200 focus:border-cyan-500"
-                      }`}
+                    className="w-full pl-11 pr-4 py-3 rounded-xl text-sm text-white placeholder-slate-500 outline-none transition-all duration-200"
+                    style={{
+                      background: 'rgba(255,255,255,0.05)',
+                      border: validationErrors.email
+                        ? '1px solid rgba(239,68,68,0.5)'
+                        : '1px solid rgba(255,255,255,0.08)',
+                    }}
+                    onFocus={(e) => {
+                      if (!validationErrors.email) e.target.style.border = '1px solid rgba(0,188,212,0.5)';
+                      e.target.style.background = 'rgba(255,255,255,0.08)';
+                      e.target.style.boxShadow = '0 0 20px -5px rgba(0,188,212,0.15)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.border = validationErrors.email ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(255,255,255,0.08)';
+                      e.target.style.background = 'rgba(255,255,255,0.05)';
+                      e.target.style.boxShadow = 'none';
+                    }}
                   />
                 </div>
                 {validationErrors.email && (
-                  <p className="mt-1 text-red-500 text-xs">{validationErrors.email}</p>
+                  <p className="mt-1.5 text-red-400 text-xs">{validationErrors.email}</p>
                 )}
               </div>
 
               {/* Password */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-slate-300 mb-2">
                   Password
                 </label>
-                <div className="relative">
-                  <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <div className="relative group">
+                  <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-400 transition-colors" size={16} />
                   <input
                     type={showPassword ? "text" : "password"}
                     name="password"
+                    id="login-password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    placeholder="Enter password"
-                    className={`w-full pl-10 pr-10 py-2.5 border rounded-md text-sm bg-gray-50 focus:bg-white outline-none transition-colors ${validationErrors.password
-                      ? "border-red-300 focus:border-red-400"
-                      : "border-gray-200 focus:border-cyan-500"
-                      }`}
+                    placeholder="Enter your password"
+                    className="w-full pl-11 pr-12 py-3 rounded-xl text-sm text-white placeholder-slate-500 outline-none transition-all duration-200"
+                    style={{
+                      background: 'rgba(255,255,255,0.05)',
+                      border: validationErrors.password
+                        ? '1px solid rgba(239,68,68,0.5)'
+                        : '1px solid rgba(255,255,255,0.08)',
+                    }}
+                    onFocus={(e) => {
+                      if (!validationErrors.password) e.target.style.border = '1px solid rgba(0,188,212,0.5)';
+                      e.target.style.background = 'rgba(255,255,255,0.08)';
+                      e.target.style.boxShadow = '0 0 20px -5px rgba(0,188,212,0.15)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.border = validationErrors.password ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(255,255,255,0.08)';
+                      e.target.style.background = 'rgba(255,255,255,0.05)';
+                      e.target.style.boxShadow = 'none';
+                    }}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors p-1"
                   >
                     {showPassword ? (
                       <MdOutlineVisibilityOff size={18} />
@@ -262,51 +318,129 @@ const Login = () => {
                   </button>
                 </div>
                 {validationErrors.password && (
-                  <p className="mt-1 text-red-500 text-xs">{validationErrors.password}</p>
+                  <p className="mt-1.5 text-red-400 text-xs">{validationErrors.password}</p>
                 )}
               </div>
 
-              {/* Remember Me */}
+              {/* Remember Me & Forgot */}
               <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"
-                  />
-                  <span className="text-sm text-gray-600">Remember me</span>
+                <label className="flex items-center gap-2.5 cursor-pointer group">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-[18px] h-[18px] rounded-[5px] border transition-all peer-checked:bg-cyan-500 peer-checked:border-cyan-500"
+                      style={{ borderColor: 'rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)' }}
+                    >
+                      {rememberMe && (
+                        <svg className="w-full h-full text-white p-0.5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">Remember me</span>
                 </label>
-                <Link href="/forgot-password" className="text-sm text-cyan-600 hover:underline">
+                <Link href="/forgot-password" className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
                   Forgot password?
                 </Link>
               </div>
 
-              {/* Submit */}
+              {/* Submit Button */}
               <button
                 type="submit"
+                id="login-submit"
                 disabled={loading}
-                className="w-full py-2.5 rounded-md bg-cyan-600 text-white font-medium text-sm hover:bg-cyan-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full relative py-3 rounded-xl font-semibold text-sm text-white overflow-hidden transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
+                style={{
+                  background: loading
+                    ? 'rgba(0,188,212,0.3)'
+                    : 'linear-gradient(135deg, #00bcd4 0%, #0097a7 50%, #00838f 100%)',
+                  boxShadow: loading ? 'none' : '0 4px 20px -5px rgba(0,188,212,0.4)',
+                }}
               >
-                {loading ? "Signing in..." : "Sign In"}
+                {/* Hover shimmer effect */}
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{
+                    background: 'linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
+                  }}
+                />
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Signing in...
+                    </>
+                  ) : (
+                    <>
+                      Sign In
+                      <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    </>
+                  )}
+                </span>
               </button>
             </form>
 
-            {/* Info */}
-            <div className="mt-6 p-3 bg-gray-50 border border-gray-100 rounded-md">
-              <p className="text-xs text-gray-500 text-center">
-                <span className="font-medium text-gray-700">Students:</span> Use your email and phone number as password.
+            {/* Info Box */}
+            <div
+              className="mt-6 p-3.5 rounded-xl flex items-start gap-3"
+              style={{
+                background: 'rgba(0,188,212,0.06)',
+                border: '1px solid rgba(0,188,212,0.1)',
+              }}
+            >
+              <div className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-cyan-400 text-[10px]">ℹ</span>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                <span className="font-semibold text-slate-300">Students:</span> Use your registered email and phone number as password.
               </p>
             </div>
 
-            <div className="mt-4 text-center">
-              <Link href="/" className="text-sm text-gray-500 hover:text-cyan-600">
-                ← Back to Home
+            {/* Back Link */}
+            <div className="mt-5 text-center">
+              <Link
+                href="/"
+                className="text-sm text-slate-500 hover:text-slate-300 transition-colors inline-flex items-center gap-1.5"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Home
               </Link>
             </div>
           </div>
         </div>
+
+        {/* Footer */}
+        <div className="mt-6 text-center">
+          <p className="text-slate-600 text-xs">
+            © {new Date().getFullYear()} Mizan's Care. All rights reserved.
+          </p>
+        </div>
       </div>
+
+      {/* CSS Animations */}
+      <style jsx global>{`
+        @keyframes float {
+          0%, 100% { transform: translate(0, 0); }
+          33% { transform: translate(15px, -20px); }
+          66% { transform: translate(-10px, 15px); }
+        }
+        @keyframes pulse-dot {
+          0%, 100% { opacity: 0.2; transform: scale(1); }
+          50% { opacity: 0.6; transform: scale(1.5); }
+        }
+      `}</style>
     </div>
   );
 };

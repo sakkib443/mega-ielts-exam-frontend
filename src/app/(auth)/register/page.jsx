@@ -130,7 +130,7 @@ const Register = () => {
 
         {/* Footer Note */}
         <p className="text-center text-slate-500 text-sm mt-8">
-          BdCalling Academy IELTS Examination System © 2024
+          Mizan's Care IELTS Examination System © 2024
         </p>
       </div>
     </div>

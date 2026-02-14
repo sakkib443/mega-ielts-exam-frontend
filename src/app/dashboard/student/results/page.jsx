@@ -12,6 +12,7 @@ import {
     FaCheckCircle,
     FaClipboardList,
     FaArrowRight,
+    FaSpinner,
 } from "react-icons/fa";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -22,6 +23,7 @@ export default function StudentResults() {
     const [studentData, setStudentData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [downloading, setDownloading] = useState(false);
 
     useEffect(() => {
         const fetchStudentData = async () => {
@@ -42,6 +44,427 @@ export default function StudentResults() {
 
         fetchStudentData();
     }, []);
+
+    // ==================== PDF DOWNLOAD ====================
+    const handleDownloadPDF = async () => {
+        if (!studentData || !studentData.scores) return;
+
+        setDownloading(true);
+
+        try {
+            const { jsPDF } = await import("jspdf");
+            const doc = new jsPDF("p", "mm", "a4");
+            const pageWidth = 210;
+            const pageHeight = 297;
+            const margin = 20;
+            const contentWidth = pageWidth - margin * 2;
+
+            const {
+                nameEnglish = "N/A",
+                examId = "N/A",
+                examDate,
+                scores,
+                adminRemarks,
+            } = studentData;
+
+            // ====== COLORS ======
+            const primary = [0, 131, 143];      // Teal
+            const primaryLight = [0, 188, 212];  // Cyan
+            const dark = [30, 41, 59];           // Slate-800
+            const gray = [100, 116, 139];        // Slate-500
+            const lightGray = [241, 245, 249];   // Slate-100
+            const white = [255, 255, 255];
+            const green = [16, 185, 129];        // Emerald
+            const gold = [234, 179, 8];          // Yellow-500
+
+            // ====== HEADER BAND ======
+            doc.setFillColor(...primary);
+            doc.rect(0, 0, pageWidth, 52, "F");
+
+            // Subtle gradient overlay
+            doc.setFillColor(...primaryLight);
+            doc.setGState(new doc.GState({ opacity: 0.15 }));
+            doc.circle(pageWidth - 20, -10, 50, "F");
+            doc.circle(30, 60, 30, "F");
+            doc.setGState(new doc.GState({ opacity: 1 }));
+
+            // Header Text
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(22);
+            doc.setTextColor(...white);
+            doc.text("IELTS EXAM RESULT", margin, 22);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+            doc.setTextColor(200, 230, 235);
+            doc.text("Mizan's Care — Official Score Report", margin, 32);
+
+            // Exam ID badge (right side)
+            const badgeText = `Exam ID: ${examId}`;
+            const badgeWidth = doc.getTextWidth(badgeText) + 12;
+            doc.setFillColor(255, 255, 255);
+            doc.setGState(new doc.GState({ opacity: 0.2 }));
+            doc.roundedRect(pageWidth - margin - badgeWidth, 14, badgeWidth, 10, 2, 2, "F");
+            doc.setGState(new doc.GState({ opacity: 1 }));
+            doc.setFontSize(9);
+            doc.setTextColor(...white);
+            doc.text(badgeText, pageWidth - margin - badgeWidth + 6, 20.5);
+
+            // Date
+            const dateStr = examDate
+                ? new Date(examDate).toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                })
+                : "N/A";
+            doc.setFontSize(8);
+            doc.setTextColor(200, 230, 235);
+            doc.text(`Date: ${dateStr}`, pageWidth - margin - badgeWidth + 6, 28);
+
+            let y = 64;
+
+            // ====== CANDIDATE INFO ======
+            doc.setFillColor(...lightGray);
+            doc.roundedRect(margin, y, contentWidth, 18, 3, 3, "F");
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(8);
+            doc.setTextColor(...gray);
+            doc.text("CANDIDATE NAME", margin + 8, y + 6);
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+            doc.setTextColor(...dark);
+            doc.text(nameEnglish, margin + 8, y + 14);
+
+            // Verified badge
+            doc.setFillColor(...green);
+            doc.circle(pageWidth - margin - 12, y + 9, 4, "F");
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7);
+            doc.setTextColor(...white);
+            doc.text("✓", pageWidth - margin - 13.5, y + 11);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(8);
+            doc.setTextColor(...green);
+            doc.text("Verified", pageWidth - margin - 6, y + 10.5);
+
+            y += 28;
+
+            // ====== OVERALL BAND SCORE ======
+            const overallBand = scores?.overall || 0;
+
+            // Overall score box
+            doc.setFillColor(...primary);
+            doc.roundedRect(margin, y, contentWidth, 38, 4, 4, "F");
+
+            // Decorative circles
+            doc.setFillColor(...primaryLight);
+            doc.setGState(new doc.GState({ opacity: 0.1 }));
+            doc.circle(margin + 20, y + 40, 25, "F");
+            doc.circle(pageWidth - margin - 15, y - 5, 20, "F");
+            doc.setGState(new doc.GState({ opacity: 1 }));
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            doc.setTextColor(200, 230, 235);
+            doc.text("OVERALL BAND SCORE", margin + 12, y + 12);
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(32);
+            doc.setTextColor(...white);
+            doc.text(overallBand.toFixed(1), margin + 12, y + 32);
+
+            // Right side label
+            const getBandLabel = (band) => {
+                if (band >= 8.5) return "Expert User";
+                if (band >= 7.5) return "Very Good User";
+                if (band >= 6.5) return "Competent User";
+                if (band >= 5.5) return "Modest User";
+                if (band >= 4.5) return "Limited User";
+                return "Basic User";
+            };
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.setTextColor(...white);
+            const bandLabel = getBandLabel(overallBand);
+            doc.text(bandLabel, pageWidth - margin - doc.getTextWidth(bandLabel) - 12, y + 22);
+
+            // Gold star icon area
+            doc.setFillColor(...gold);
+            doc.setGState(new doc.GState({ opacity: 0.3 }));
+            doc.circle(pageWidth - margin - 12, y + 10, 5, "F");
+            doc.setGState(new doc.GState({ opacity: 1 }));
+            doc.setFontSize(9);
+            doc.setTextColor(...gold);
+            doc.text("★", pageWidth - margin - 14, y + 12);
+
+            y += 48;
+
+            // ====== MODULE SCORES ======
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.setTextColor(...dark);
+            doc.text("MODULE SCORES", margin, y);
+            y += 3;
+
+            // Divider line
+            doc.setDrawColor(220, 220, 230);
+            doc.setLineWidth(0.3);
+            doc.line(margin, y, pageWidth - margin, y);
+            y += 8;
+
+            const modules = [
+                {
+                    name: "Listening",
+                    band: scores?.listening?.band || 0,
+                    raw: scores?.listening?.raw,
+                    total: scores?.listening?.totalQuestions || 40,
+                    icon: "🎧",
+                    color: [59, 130, 246], // Blue
+                },
+                {
+                    name: "Reading",
+                    band: scores?.reading?.band || 0,
+                    raw: scores?.reading?.raw,
+                    total: scores?.reading?.totalQuestions || 40,
+                    icon: "📖",
+                    color: [139, 92, 246], // Purple
+                },
+                {
+                    name: "Writing",
+                    band: scores?.writing?.overallBand || 0,
+                    task1: scores?.writing?.task1Band,
+                    task2: scores?.writing?.task2Band,
+                    icon: "✍️",
+                    color: [236, 72, 153], // Pink
+                },
+            ];
+
+            const cardWidth = (contentWidth - 10) / 3;
+
+            modules.forEach((mod, index) => {
+                const x = margin + index * (cardWidth + 5);
+
+                // Card background
+                doc.setFillColor(...white);
+                doc.setDrawColor(226, 232, 240);
+                doc.roundedRect(x, y, cardWidth, 52, 3, 3, "FD");
+
+                // Color accent line at top
+                doc.setFillColor(...mod.color);
+                doc.roundedRect(x, y, cardWidth, 3, 3, 3, "F");
+                doc.setFillColor(...white);
+                doc.rect(x, y + 1.5, cardWidth, 1.5, "F");
+
+                // Icon
+                doc.setFontSize(14);
+                doc.text(mod.icon, x + 5, y + 13);
+
+                // Module name
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(9);
+                doc.setTextColor(...dark);
+                doc.text(mod.name, x + 14, y + 12);
+
+                // Band score (large)
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(22);
+                doc.setTextColor(...mod.color);
+                const bandText = mod.band.toFixed(1);
+                doc.text(bandText, x + cardWidth / 2 - doc.getTextWidth(bandText) / 2, y + 32);
+
+                // Label
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(7);
+                doc.setTextColor(...gray);
+                const label = "BAND SCORE";
+                doc.text(label, x + cardWidth / 2 - doc.getTextWidth(label) / 2, y + 37);
+
+                // Details
+                if (mod.raw !== undefined) {
+                    doc.setFontSize(7);
+                    doc.setTextColor(...gray);
+                    const detail = `${mod.raw}/${mod.total} correct`;
+                    doc.text(detail, x + cardWidth / 2 - doc.getTextWidth(detail) / 2, y + 46);
+                } else if (mod.task1 !== undefined) {
+                    doc.setFontSize(7);
+                    doc.setTextColor(...gray);
+                    const detail = `T1: ${mod.task1 || "—"} | T2: ${mod.task2 || "—"}`;
+                    doc.text(detail, x + cardWidth / 2 - doc.getTextWidth(detail) / 2, y + 46);
+                }
+            });
+
+            y += 62;
+
+            // ====== SCORE BREAKDOWN TABLE ======
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.setTextColor(...dark);
+            doc.text("DETAILED BREAKDOWN", margin, y);
+            y += 3;
+
+            doc.setDrawColor(220, 220, 230);
+            doc.setLineWidth(0.3);
+            doc.line(margin, y, pageWidth - margin, y);
+            y += 6;
+
+            // Table header
+            doc.setFillColor(248, 250, 252);
+            doc.roundedRect(margin, y, contentWidth, 10, 2, 2, "F");
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(8);
+            doc.setTextColor(...gray);
+            doc.text("MODULE", margin + 6, y + 7);
+            doc.text("BAND SCORE", margin + 70, y + 7);
+            doc.text("RAW SCORE", margin + 110, y + 7);
+            doc.text("PERCENTAGE", margin + 145, y + 7);
+            y += 14;
+
+            // Table rows
+            const rows = [
+                {
+                    name: "Listening",
+                    band: scores?.listening?.band || 0,
+                    raw: scores?.listening?.raw,
+                    total: scores?.listening?.totalQuestions || 40,
+                },
+                {
+                    name: "Reading",
+                    band: scores?.reading?.band || 0,
+                    raw: scores?.reading?.raw,
+                    total: scores?.reading?.totalQuestions || 40,
+                },
+                {
+                    name: "Writing",
+                    band: scores?.writing?.overallBand || 0,
+                    raw: null,
+                    total: null,
+                    extra: `Task 1: ${scores?.writing?.task1Band || "—"} / Task 2: ${scores?.writing?.task2Band || "—"}`,
+                },
+            ];
+
+            rows.forEach((row, i) => {
+                if (i % 2 === 0) {
+                    doc.setFillColor(252, 252, 254);
+                    doc.rect(margin, y - 4, contentWidth, 12, "F");
+                }
+
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(9);
+                doc.setTextColor(...dark);
+                doc.text(row.name, margin + 6, y + 3);
+
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(...primary);
+                doc.text(row.band.toFixed(1), margin + 76, y + 3);
+
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(...dark);
+                if (row.raw !== null) {
+                    doc.text(`${row.raw}/${row.total}`, margin + 115, y + 3);
+                    const pct = ((row.raw / row.total) * 100).toFixed(0) + "%";
+                    doc.text(pct, margin + 152, y + 3);
+                } else {
+                    doc.setFontSize(7.5);
+                    doc.setTextColor(...gray);
+                    doc.text(row.extra, margin + 110, y + 3);
+                }
+
+                y += 12;
+            });
+
+            // Overall row
+            doc.setFillColor(...primary);
+            doc.roundedRect(margin, y - 3, contentWidth, 12, 2, 2, "F");
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            doc.setTextColor(...white);
+            doc.text("OVERALL", margin + 6, y + 4);
+            doc.setFontSize(12);
+            doc.text(overallBand.toFixed(1), margin + 74, y + 4.5);
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "normal");
+            doc.text(getBandLabel(overallBand), margin + 110, y + 4);
+
+            y += 18;
+
+            // ====== EXAMINER REMARKS ======
+            if (adminRemarks) {
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(11);
+                doc.setTextColor(...dark);
+                doc.text("EXAMINER'S REMARKS", margin, y);
+                y += 3;
+
+                doc.setDrawColor(220, 220, 230);
+                doc.setLineWidth(0.3);
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 6;
+
+                doc.setFillColor(250, 251, 252);
+                doc.setDrawColor(226, 232, 240);
+
+                const splitRemarks = doc.splitTextToSize(adminRemarks, contentWidth - 16);
+                const remarksHeight = splitRemarks.length * 5 + 8;
+
+                doc.roundedRect(margin, y, contentWidth, remarksHeight, 3, 3, "FD");
+
+                doc.setFont("helvetica", "italic");
+                doc.setFontSize(9);
+                doc.setTextColor(...gray);
+                doc.text(splitRemarks, margin + 8, y + 7);
+
+                y += remarksHeight + 8;
+            }
+
+            // ====== FOOTER ======
+            const footerY = pageHeight - 20;
+
+            doc.setDrawColor(220, 220, 230);
+            doc.setLineWidth(0.3);
+            doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(7);
+            doc.setTextColor(...gray);
+            doc.text("This is a computer-generated report from Mizan's Care IELTS Exam Portal.", margin, footerY);
+            doc.text(
+                `Generated on: ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`,
+                margin,
+                footerY + 4
+            );
+
+            // Right side
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7);
+            doc.setTextColor(...primary);
+            const footerRight = "www.mizanscare.com";
+            doc.text(footerRight, pageWidth - margin - doc.getTextWidth(footerRight), footerY);
+
+            // Official stamp area
+            doc.setFillColor(...primary);
+            doc.setGState(new doc.GState({ opacity: 0.08 }));
+            doc.circle(pageWidth - margin - 20, footerY - 15, 12, "F");
+            doc.setGState(new doc.GState({ opacity: 1 }));
+            doc.setFontSize(6);
+            doc.setTextColor(...primary);
+            doc.text("OFFICIAL", pageWidth - margin - 26, footerY - 16);
+            doc.text(" REPORT", pageWidth - margin - 26, footerY - 13);
+
+            // ====== SAVE ======
+            doc.save(`IELTS_Result_${examId}.pdf`);
+        } catch (err) {
+            console.error("PDF generation error:", err);
+            alert("Failed to generate PDF. Please try again.");
+        } finally {
+            setDownloading(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -173,8 +596,20 @@ export default function StudentResults() {
                             <FaCheckCircle className="text-green-500" size={12} />
                             <span>Results verified and published</span>
                         </div>
-                        <button className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100 transition-colors">
-                            <FaDownload size={12} /> Download Report
+                        <button
+                            onClick={handleDownloadPDF}
+                            disabled={downloading}
+                            className="flex items-center gap-2 bg-cyan-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-cyan-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                            {downloading ? (
+                                <>
+                                    <FaSpinner className="animate-spin" size={12} /> Generating...
+                                </>
+                            ) : (
+                                <>
+                                    <FaDownload size={12} /> Download Report
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>

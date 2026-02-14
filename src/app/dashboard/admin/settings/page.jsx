@@ -20,7 +20,7 @@ export default function SettingsPage() {
     const [settings, setSettings] = useState({
         // General Settings
         siteName: "IELTS Online Exam System",
-        siteDescription: "Professional IELTS Mock Test Platform by BDCalling Academy",
+        siteDescription: "Professional IELTS Mock Test Platform by Mizan's Care",
 
         // Exam Settings
         listeningDuration: 40,
@@ -71,8 +71,8 @@ export default function SettingsPage() {
                     onClick={handleSave}
                     disabled={saving}
                     className={`px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 transition-all ${saved
-                            ? "bg-green-500 text-white"
-                            : "bg-gradient-to-r from-cyan-500 to-teal-600 text-white hover:from-cyan-600 hover:to-teal-700"
+                        ? "bg-green-500 text-white"
+                        : "bg-gradient-to-r from-cyan-500 to-teal-600 text-white hover:from-cyan-600 hover:to-teal-700"
                         } disabled:opacity-50`}
                 >
                     {saving ? (
@@ -300,8 +300,8 @@ export default function SettingsPage() {
                     onClick={handleSave}
                     disabled={saving}
                     className={`px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all ${saved
-                            ? "bg-green-500 text-white"
-                            : "bg-gradient-to-r from-cyan-500 to-teal-600 text-white hover:from-cyan-600 hover:to-teal-700"
+                        ? "bg-green-500 text-white"
+                        : "bg-gradient-to-r from-cyan-500 to-teal-600 text-white hover:from-cyan-600 hover:to-teal-700"
                         } disabled:opacity-50`}
                 >
                     {saving ? <FaSpinner className="animate-spin" /> : saved ? <FaCheck /> : <FaSave />}
