@@ -11,7 +11,7 @@ import { studentsAPI } from "@/lib/api";
  * - Blocks copy, cut, paste
  * - Blocks right-click
  * - Blocks keyboard shortcuts (Ctrl+C, Ctrl+V, F12, etc.)
- * - Blocks text selection
+ * - Blocks text selection (except TextHighlighter areas)
  * - Blocks print screen
  * - Shows warning overlay
  * - Reports violations to backend
@@ -19,11 +19,9 @@ import { studentsAPI } from "@/lib/api";
  * ⚠️ DEV_MODE: Set to true to disable security during development.
  *    Set to false for production/deployment.
  */
-const DEV_MODE = true; // 🔧 Toggle this: true = security OFF, false = security ON
+const DEV_MODE = false; // 🔧 Toggle this: true = security OFF, false = security ON
 
 export default function ExamSecurity({ examId, onViolationLimit = () => { } }) {
-    // Skip all security in dev mode
-    if (DEV_MODE) return null;
     const [violations, setViolations] = useState(0);
     const [showWarning, setShowWarning] = useState(false);
     const [warningType, setWarningType] = useState("");
@@ -199,6 +197,8 @@ export default function ExamSecurity({ examId, onViolationLimit = () => { } }) {
 
     // Disable text selection via CSS (except in TextHighlighter)
     useEffect(() => {
+        if (DEV_MODE) return; // Skip in dev mode
+
         const style = document.createElement('style');
         style.id = 'exam-security-style';
         style.textContent = `
@@ -231,6 +231,8 @@ export default function ExamSecurity({ examId, onViolationLimit = () => { } }) {
 
     // Setup event listeners
     useEffect(() => {
+        if (DEV_MODE) return; // Skip in dev mode
+
         // Add event listeners
         document.addEventListener("visibilitychange", handleVisibilityChange);
         document.addEventListener("fullscreenchange", handleFullscreenChange);
@@ -261,6 +263,9 @@ export default function ExamSecurity({ examId, onViolationLimit = () => { } }) {
             clearTimeout(timer);
         };
     }, [handleVisibilityChange, handleFullscreenChange, handleContextMenu, handleCopyPaste, handleKeyDown, handleSelectStart, handleBlur, requestFullscreen]);
+
+    // In DEV_MODE, skip rendering security UI
+    if (DEV_MODE) return null;
 
     // Warning messages
     const getWarningMessage = () => {
