@@ -192,11 +192,11 @@ const Login = () => {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center">
+          <Link href="/" className="inline-block bg-white px-6 py-3 rounded-2xl shadow-lg border border-white/20">
             <img
               src="/images/IMG_5177.PNG"
               alt="Mizan's Care | idp IELTS Official Test Venue"
-              className="h-14 object-contain brightness-0 invert"
+              className="h-12 w-auto object-contain"
             />
           </Link>
         </div>
