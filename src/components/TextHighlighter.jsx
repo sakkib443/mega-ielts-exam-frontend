@@ -41,6 +41,10 @@ export default function TextHighlighter({ children, passageId = "default" }) {
         // Reset toolbar state
         setShowToolbar(false);
         setShowNoteInput(false);
+
+        // Reset popup state so it doesn't stick on page change
+        setHoveredHighlightId(null);
+        setHoveredHighlightData(null);
     }, [passageId]);
 
     // Utility: compute text content from React children (MUST match processNode's counting logic exactly)
