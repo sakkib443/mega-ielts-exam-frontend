@@ -9,7 +9,6 @@ import {
     FaClock,
     FaCheck,
     FaVolumeUp,
-    FaPause,
     FaPlay,
     FaTimes,
     FaSpinner,
@@ -211,12 +210,11 @@ export default function ListeningExamPage() {
 
     const togglePlay = () => {
         if (!audioRef.current) return;
-        if (isPlaying) {
-            audioRef.current.pause();
-        } else {
+        // Only allow starting playback, not pausing (real IELTS behavior)
+        if (!isPlaying) {
             audioRef.current.play();
+            setIsPlaying(true);
         }
-        setIsPlaying(!isPlaying);
     };
 
     const handleVolumeChange = (e) => {
@@ -483,12 +481,17 @@ export default function ListeningExamPage() {
             <div className="bg-gray-100 border-b border-gray-200 px-4 py-4">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex items-center gap-4">
-                        {/* Play/Pause */}
+                        {/* Play Button - No Pause Allowed */}
                         <button
                             onClick={togglePlay}
-                            className="w-12 h-12 bg-cyan-600 text-white rounded-full flex items-center justify-center hover:bg-cyan-700 transition-colors cursor-pointer shadow"
+                            disabled={isPlaying}
+                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors shadow ${isPlaying
+                                ? "bg-gray-400 text-white cursor-not-allowed"
+                                : "bg-cyan-600 text-white hover:bg-cyan-700 cursor-pointer"
+                                }`}
+                            title={isPlaying ? "Audio is playing" : "Play audio"}
                         >
-                            {isPlaying ? <FaPause /> : <FaPlay className="ml-1" />}
+                            {isPlaying ? <FaVolumeUp className="animate-pulse" /> : <FaPlay className="ml-1" />}
                         </button>
 
                         {/* Progress Bar - Read Only (No Seeking) */}
@@ -558,33 +561,32 @@ export default function ListeningExamPage() {
                     </div>
 
                     <div className="p-6">
-                        <TextHighlighter passageId={`listening_questions_${currentSection}`}>
-                            {/* Section Title */}
-                            <h1 className="text-xl font-bold text-gray-900 mb-5 border-b-2 border-gray-100 pb-1 inline-block">
-                                {currentSec.title}
-                            </h1>
+                        {/* Section Title */}
+                        <h1 className="text-xl font-bold text-gray-900 mb-5 border-b-2 border-gray-100 pb-1 inline-block">
+                            {currentSec.title}
+                        </h1>
 
-                            {/* Section Image */}
-                            {currentSec.imageUrl && (
-                                <div className="mb-8 p-4 bg-white border border-gray-100 rounded-xl shadow-sm inline-block">
-                                    <img
-                                        src={currentSec.imageUrl}
-                                        alt="Section Diagram"
-                                        className="max-w-full h-auto rounded-lg"
-                                        style={{ maxHeight: '500px' }}
-                                    />
-                                </div>
-                            )}
+                        {/* Section Image */}
+                        {currentSec.imageUrl && (
+                            <div className="mb-8 p-4 bg-white border border-gray-100 rounded-xl shadow-sm inline-block">
+                                <img
+                                    src={currentSec.imageUrl}
+                                    alt="Section Diagram"
+                                    className="max-w-full h-auto rounded-lg"
+                                    style={{ maxHeight: '500px' }}
+                                />
+                            </div>
+                        )}
 
-                            {/* Note/Passage Rendering */}
-                            {currentSec.passage ? (
+                        {/* Note/Passage Rendering - wrapped in TextHighlighter */}
+                        {currentSec.passage && (
+                            <TextHighlighter passageId={`listening_questions_${currentSection}`}>
                                 <div className="max-w-3xl">
                                     <div className="text-gray-800 leading-relaxed font-sans text-base">
                                         {currentSec.passage.split('\n').map((line, lineIdx) => {
                                             const trimmedLine = line.trim();
                                             if (!trimmedLine && lineIdx > 0) return <div key={lineIdx} className="h-3" />;
 
-                                            // Detect headings (lines without bullets and not empty)
                                             const isHeading = trimmedLine && !trimmedLine.startsWith('-') && !line.includes('{');
                                             const isBullet = trimmedLine.startsWith('-');
 
@@ -597,15 +599,13 @@ export default function ListeningExamPage() {
                                                 `}
                                                 >
                                                     {isBullet && <span className="absolute left-1.5 top-0 text-gray-400">•</span>}
-                                                    {line.split(/(\{{\d+}\}|\{\d+\})/g).map((part, index) => {
+                                                    {line.split(/(\{\{\d+\}\}|\{\d+\})/g).map((part, index) => {
                                                         const match = part.match(/\{?\{(\d+)\}\}?/);
                                                         if (match) {
                                                             const qNum = parseInt(match[1]);
-                                                            // Find the corresponding question object to get its proper displayNumber
                                                             const qObj = currentQuestions.find(q => q.questionNumber === qNum);
                                                             const displayNum = qObj ? qObj.displayNumber : qNum;
 
-                                                            // Render question input
                                                             return (
                                                                 <span key={index} id={`q-${displayNum}`} className="inline-flex items-center align-middle mx-1 my-0.5">
                                                                     <span className="inline-block border border-gray-300 font-bold px-1.5 py-0 text-[13px] bg-gray-50 min-w-[28px] text-center text-gray-600 rounded">
@@ -621,7 +621,6 @@ export default function ListeningExamPage() {
                                                                 </span>
                                                             );
                                                         }
-                                                        // Render normal text (stripping the leading dash if it's a bullet)
                                                         let displayPart = part;
                                                         if (isBullet && index === 0) {
                                                             displayPart = displayPart.replace(/^-/, '').trim();
@@ -633,213 +632,214 @@ export default function ListeningExamPage() {
                                         })}
                                     </div>
                                 </div>
-                            ) : (
-                                /* Fallback for regular questions / Grouped Questions */
-                                <div className="space-y-6">
-                                    {(() => {
-                                        const blocks = [];
-                                        let i = 0;
-                                        const qs = currentQuestions;
+                            </TextHighlighter>
+                        )}
 
-                                        while (i < qs.length) {
-                                            const q = qs[i];
-                                            const cleanText = q.questionText.replace(/\s*\([^)]+\)\s*$/g, '').trim();
-                                            const group = [q];
-                                            let j = i + 1;
+                        {/* MCQ / Grouped Questions - NOT wrapped in TextHighlighter (no highlighting on MCQ) */}
+                        {!currentSec.passage && (
+                            <div className="space-y-6">
+                                {(() => {
+                                    const blocks = [];
+                                    let i = 0;
+                                    const qs = currentQuestions;
 
-                                            if (q.questionType === 'matching') {
-                                                while (j < qs.length && qs[j].questionType === 'matching') {
-                                                    group.push(qs[j]);
-                                                    j++;
-                                                }
-                                                blocks.push({
-                                                    type: 'matching',
-                                                    instruction: q.instruction || q.mainInstruction || "What opinion do the students give about each of the following modules on their veterinary science course?",
-                                                    subInstruction: q.subInstruction || "Choose FOUR answers from the box and write the correct letter, A-F, next to questions.",
-                                                    boxHeading: "Opinions",
-                                                    listHeading: q.listHeading || "Modules on Veterinary Science course",
-                                                    audioTimestamp: q.audioTimestamp,
-                                                    questions: group,
-                                                    isGrouped: true
-                                                });
-                                            } else {
-                                                while (j < qs.length &&
-                                                    qs[j].questionText.replace(/\s*\([^)]+\)\s*$/g, '').trim() === cleanText &&
-                                                    qs[j].questionType === q.questionType &&
-                                                    q.questionType !== 'note-completion') {
-                                                    group.push(qs[j]);
-                                                    j++;
-                                                }
-                                                blocks.push({
-                                                    type: q.questionType,
-                                                    text: cleanText,
-                                                    instruction: q.instruction || "",
-                                                    audioTimestamp: q.audioTimestamp,
-                                                    questions: group,
-                                                    isGrouped: group.length > 1
-                                                });
+                                    while (i < qs.length) {
+                                        const q = qs[i];
+                                        const cleanText = q.questionText.replace(/\s*\([^)]+\)\s*$/g, '').trim();
+                                        const group = [q];
+                                        let j = i + 1;
+
+                                        if (q.questionType === 'matching') {
+                                            while (j < qs.length && qs[j].questionType === 'matching') {
+                                                group.push(qs[j]);
+                                                j++;
                                             }
-                                            i = j;
+                                            blocks.push({
+                                                type: 'matching',
+                                                instruction: q.instruction || q.mainInstruction || "What opinion do the students give about each of the following modules on their veterinary science course?",
+                                                subInstruction: q.subInstruction || "Choose FOUR answers from the box and write the correct letter, A-F, next to questions.",
+                                                boxHeading: "Opinions",
+                                                listHeading: q.listHeading || "Modules on Veterinary Science course",
+                                                audioTimestamp: q.audioTimestamp,
+                                                questions: group,
+                                                isGrouped: true
+                                            });
+                                        } else {
+                                            while (j < qs.length &&
+                                                qs[j].questionText.replace(/\s*\([^)]+\)\s*$/g, '').trim() === cleanText &&
+                                                qs[j].questionType === q.questionType &&
+                                                q.questionType !== 'note-completion') {
+                                                group.push(qs[j]);
+                                                j++;
+                                            }
+                                            blocks.push({
+                                                type: q.questionType,
+                                                text: cleanText,
+                                                instruction: q.instruction || "",
+                                                audioTimestamp: q.audioTimestamp,
+                                                questions: group,
+                                                isGrouped: group.length > 1
+                                            });
                                         }
+                                        i = j;
+                                    }
 
-                                        return blocks.map((block, bIdx) => {
-                                            const isMulti = (block.type === 'multiple-choice' || block.type === 'multiple-choice-multi') && block.isGrouped;
-                                            const isMatching = block.type === 'matching';
-                                            const qNumbers = block.questions.map(q => q.displayNumber);
-                                            const firstQ = block.questions[0];
+                                    return blocks.map((block, bIdx) => {
+                                        const isMulti = (block.type === 'multiple-choice' || block.type === 'multiple-choice-multi') && block.isGrouped;
+                                        const isMatching = block.type === 'matching';
+                                        const qNumbers = block.questions.map(q => q.displayNumber);
+                                        const firstQ = block.questions[0];
 
-                                            if (isMatching) {
-                                                // ... matching logic remains same as updated before ...
-                                                const startQ = block.questions[0].displayNumber;
-                                                const endQ = block.questions[block.questions.length - 1].displayNumber;
-                                                const isMapOrSimpleMatching = (firstQ.options || []).every(o => o.length <= 2);
-
-                                                return (
-                                                    <div key={bIdx} className="mb-10" id={`q-${startQ}`}>
-                                                        <div className="mb-6">
-                                                            <h3 className="text-gray-800 font-bold text-lg mb-2">Questions {startQ}–{endQ}</h3>
-                                                            {firstQ.audioTimestamp && (
-                                                                <button onClick={() => jumpToTime(firstQ.audioTimestamp)} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded shadow-sm text-sm font-medium hover:bg-gray-50 transition-colors mb-4">
-                                                                    <FaHeadphones className="text-cyan-600" /> Listen From Here
-                                                                </button>
-                                                            )}
-                                                            <p className="text-gray-700 mb-2 leading-relaxed">{block.instruction || firstQ.mainInstruction}</p>
-                                                            {block.subInstruction && <p className="text-gray-800 font-bold italic text-[15px] mb-4">{block.subInstruction}</p>}
-                                                        </div>
-                                                        {firstQ.imageUrl && (
-                                                            <div className="mb-8 p-4 bg-white border border-gray-100 rounded-xl shadow-sm inline-block">
-                                                                <img src={firstQ.imageUrl} alt="Question Diagram" className="max-w-full h-auto rounded-lg" style={{ maxHeight: '600px' }} />
-                                                            </div>
-                                                        )}
-                                                        {!isMapOrSimpleMatching && (
-                                                            <div className="border border-gray-200 rounded-lg overflow-hidden mb-8 max-w-2xl bg-white shadow-sm">
-                                                                <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-                                                                    <h4 className="font-bold text-gray-800 text-sm">{block.boxHeading || "Options"}</h4>
-                                                                </div>
-                                                                <div className="p-4 grid grid-cols-1 gap-3">
-                                                                    {(firstQ.options || []).map((opt, idx) => (
-                                                                        <div key={idx} className="flex gap-4 text-[15px] items-start">
-                                                                            <span className="font-bold text-gray-900 w-4 flex-shrink-0">{String.fromCharCode(65 + idx)}</span>
-                                                                            <span className="text-gray-600">{opt}</span>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                        <div className="space-y-4 max-w-2xl">
-                                                            {block.questions.map((q, idx) => (
-                                                                <div key={idx} id={`q-${q.displayNumber}`} className="flex items-center gap-4 group">
-                                                                    <div className="bg-white border border-gray-400 text-gray-700 w-8 h-8 flex items-center justify-center rounded font-bold text-sm flex-shrink-0">
-                                                                        {q.displayNumber}
-                                                                    </div>
-                                                                    <p className="text-gray-700 font-medium text-[16px] flex-1">{q.questionText}</p>
-                                                                    <div className="w-28">
-                                                                        <select value={answers[q.displayNumber] || ""} onChange={(e) => handleAnswer(q.displayNumber, e.target.value)} className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-base font-semibold text-gray-800 focus:border-cyan-500 focus:outline-none appearance-none text-center" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.3rem center', backgroundSize: '1.2em' }}>
-                                                                            <option value=""></option>
-                                                                            {(firstQ.options || []).map((_, oIdx) => (
-                                                                                <option key={oIdx} value={String.fromCharCode(65 + oIdx)}>{String.fromCharCode(65 + oIdx)}</option>
-                                                                            ))}
-                                                                        </select>
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            }
-
-                                            const handleMultiSelect = (optionLabel) => {
-                                                const currentSelected = qNumbers.map(n => answers[n]).filter(Boolean);
-                                                const isAlreadySelected = currentSelected.includes(optionLabel);
-
-                                                if (isAlreadySelected) {
-                                                    const qToClear = qNumbers.find(n => answers[n] === optionLabel);
-                                                    if (qToClear) handleAnswer(qToClear, "");
-                                                } else {
-                                                    if (currentSelected.length < qNumbers.length) {
-                                                        const emptyQ = qNumbers.find(n => !answers[n]);
-                                                        if (emptyQ) handleAnswer(emptyQ, optionLabel);
-                                                    }
-                                                }
-                                            };
+                                        if (isMatching) {
+                                            const startQ = block.questions[0].displayNumber;
+                                            const endQ = block.questions[block.questions.length - 1].displayNumber;
+                                            const isMapOrSimpleMatching = (firstQ.options || []).every(o => o.length <= 2);
 
                                             return (
-                                                <div id={`q-${firstQ.displayNumber}`} key={bIdx} className="bg-white border border-gray-100 rounded-xl p-6 hover:bg-gray-50/50 transition-all mb-8 shadow-sm">
-                                                    {/* Block Header Information */}
-                                                    <div className="mb-4">
-                                                        {isMulti && (
-                                                            <p className="text-gray-800 font-bold mb-3">{firstQ.mainInstruction || `Questions ${qNumbers[0]}–${qNumbers[qNumbers.length - 1]}`}</p>
-                                                        )}
+                                                <div key={bIdx} className="mb-10" id={`q-${startQ}`}>
+                                                    <div className="mb-6">
+                                                        <h3 className="text-gray-800 font-bold text-lg mb-2">Questions {startQ}–{endQ}</h3>
                                                         {firstQ.audioTimestamp && (
                                                             <button onClick={() => jumpToTime(firstQ.audioTimestamp)} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded shadow-sm text-sm font-medium hover:bg-gray-50 transition-colors mb-4">
                                                                 <FaHeadphones className="text-cyan-600" /> Listen From Here
                                                             </button>
                                                         )}
-                                                        {isMulti && (
-                                                            <p className="text-gray-800 font-bold italic text-[15px] mb-4">Choose {qNumbers.length} letters, A-E.</p>
-                                                        )}
+                                                        <p className="text-gray-700 mb-2 leading-relaxed">{block.instruction || firstQ.mainInstruction}</p>
+                                                        {block.subInstruction && <p className="text-gray-800 font-bold italic text-[15px] mb-4">{block.subInstruction}</p>}
                                                     </div>
-
-                                                    <div className="flex items-start gap-3 mb-6">
-                                                        <div className="flex gap-1 flex-shrink-0">
-                                                            {qNumbers.map(num => (
-                                                                <span key={num} id={`q-${num}`} className="border-2 border-gray-800 text-gray-800 font-bold w-9 h-9 flex items-center justify-center rounded text-sm">
-                                                                    {num}
-                                                                </span>
-                                                            ))}
+                                                    {firstQ.imageUrl && (
+                                                        <div className="mb-8 p-4 bg-white border border-gray-100 rounded-xl shadow-sm inline-block">
+                                                            <img src={firstQ.imageUrl} alt="Question Diagram" className="max-w-full h-auto rounded-lg" style={{ maxHeight: '600px' }} />
                                                         </div>
-                                                        <div className="flex-1">
-                                                            <p className="text-gray-800 font-semibold text-[17px] leading-snug pt-1">{block.text}</p>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="grid grid-cols-1 gap-3 ml-12 max-w-2xl">
-                                                        {(firstQ.options || []).map((option, idx) => {
-                                                            const label = String.fromCharCode(65 + idx);
-                                                            const isSelected = qNumbers.some(n => answers[n] === label);
-
-                                                            return (
-                                                                <div
-                                                                    key={idx}
-                                                                    onClick={() => isMulti ? handleMultiSelect(label) : handleAnswer(firstQ.displayNumber, label)}
-                                                                    className="flex items-center gap-4 cursor-pointer group/item py-1"
-                                                                >
-                                                                    <span className="font-bold text-gray-900 w-4 flex-shrink-0">{label}</span>
-                                                                    <div className={`
-                                                                    w-6 h-6 flex items-center justify-center rounded border transition-all flex-shrink-0
-                                                                    ${isSelected ? "bg-cyan-600 border-cyan-600 text-white" : "bg-white border-gray-400 group-hover/item:border-cyan-500"}
-                                                                `}>
-                                                                        {isSelected && <FaCheck size={12} />}
-                                                                    </div>
-                                                                    <div className={`
-                                                                    flex-1 text-[16px] transition-colors
-                                                                    ${isSelected ? "text-cyan-700 font-bold" : "text-gray-700 font-medium group-hover/item:text-black"}
-                                                                `}>
-                                                                        {option.replace(/^[A-E]\.\s*/, '')}
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })}
-
-                                                        {!isMulti && firstQ.questionType !== "multiple-choice" && firstQ.questionType !== "matching" && (
-                                                            <div className="max-w-md mt-1">
-                                                                <input
-                                                                    type="text"
-                                                                    value={answers[firstQ.displayNumber] || ""}
-                                                                    onChange={(e) => handleAnswer(firstQ.displayNumber, e.target.value)}
-                                                                    placeholder="Write your answer..."
-                                                                    className="w-full border-b border-gray-300 bg-transparent px-2 py-1 text-base focus:border-cyan-500 focus:outline-none transition-all"
-                                                                />
+                                                    )}
+                                                    {!isMapOrSimpleMatching && (
+                                                        <div className="border border-gray-200 rounded-lg overflow-hidden mb-8 max-w-2xl bg-white shadow-sm">
+                                                            <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                                                                <h4 className="font-bold text-gray-800 text-sm">{block.boxHeading || "Options"}</h4>
                                                             </div>
-                                                        )}
+                                                            <div className="p-4 grid grid-cols-1 gap-3">
+                                                                {(firstQ.options || []).map((opt, idx) => (
+                                                                    <div key={idx} className="flex gap-4 text-[15px] items-start">
+                                                                        <span className="font-bold text-gray-900 w-4 flex-shrink-0">{String.fromCharCode(65 + idx)}</span>
+                                                                        <span className="text-gray-600">{opt}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    <div className="space-y-4 max-w-2xl">
+                                                        {block.questions.map((q, idx) => (
+                                                            <div key={idx} id={`q-${q.displayNumber}`} className="flex items-center gap-4 group">
+                                                                <div className="bg-white border border-gray-400 text-gray-700 w-8 h-8 flex items-center justify-center rounded font-bold text-sm flex-shrink-0">
+                                                                    {q.displayNumber}
+                                                                </div>
+                                                                <p className="text-gray-700 font-medium text-[16px] flex-1">{q.questionText}</p>
+                                                                <div className="w-28">
+                                                                    <select value={answers[q.displayNumber] || ""} onChange={(e) => handleAnswer(q.displayNumber, e.target.value)} className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-base font-semibold text-gray-800 focus:border-cyan-500 focus:outline-none appearance-none text-center" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.3rem center', backgroundSize: '1.2em' }}>
+                                                                        <option value=""></option>
+                                                                        {(firstQ.options || []).map((_, oIdx) => (
+                                                                            <option key={oIdx} value={String.fromCharCode(65 + oIdx)}>{String.fromCharCode(65 + oIdx)}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 </div>
                                             );
-                                        });
-                                    })()}
-                                </div>
-                            )}
-                        </TextHighlighter>
+                                        }
+
+                                        const handleMultiSelect = (optionLabel) => {
+                                            const currentSelected = qNumbers.map(n => answers[n]).filter(Boolean);
+                                            const isAlreadySelected = currentSelected.includes(optionLabel);
+
+                                            if (isAlreadySelected) {
+                                                const qToClear = qNumbers.find(n => answers[n] === optionLabel);
+                                                if (qToClear) handleAnswer(qToClear, "");
+                                            } else {
+                                                if (currentSelected.length < qNumbers.length) {
+                                                    const emptyQ = qNumbers.find(n => !answers[n]);
+                                                    if (emptyQ) handleAnswer(emptyQ, optionLabel);
+                                                }
+                                            }
+                                        };
+
+                                        return (
+                                            <div id={`q-${firstQ.displayNumber}`} key={bIdx} className="bg-white border border-gray-100 rounded-xl p-6 hover:bg-gray-50/50 transition-all mb-8 shadow-sm">
+                                                {/* Block Header Information */}
+                                                <div className="mb-4">
+                                                    {isMulti && (
+                                                        <p className="text-gray-800 font-bold mb-3">{firstQ.mainInstruction || `Questions ${qNumbers[0]}–${qNumbers[qNumbers.length - 1]}`}</p>
+                                                    )}
+                                                    {firstQ.audioTimestamp && (
+                                                        <button onClick={() => jumpToTime(firstQ.audioTimestamp)} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded shadow-sm text-sm font-medium hover:bg-gray-50 transition-colors mb-4">
+                                                            <FaHeadphones className="text-cyan-600" /> Listen From Here
+                                                        </button>
+                                                    )}
+                                                    {isMulti && (
+                                                        <p className="text-gray-800 font-bold italic text-[15px] mb-4">Choose {qNumbers.length} letters, A-E.</p>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex items-start gap-3 mb-6">
+                                                    <div className="flex gap-1 flex-shrink-0">
+                                                        {qNumbers.map(num => (
+                                                            <span key={num} id={`q-${num}`} className="border-2 border-gray-800 text-gray-800 font-bold w-9 h-9 flex items-center justify-center rounded text-sm">
+                                                                {num}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <p className="text-gray-800 font-semibold text-[17px] leading-snug pt-1">{block.text}</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 gap-3 ml-12 max-w-2xl">
+                                                    {(firstQ.options || []).map((option, idx) => {
+                                                        const label = String.fromCharCode(65 + idx);
+                                                        const isSelected = qNumbers.some(n => answers[n] === label);
+
+                                                        return (
+                                                            <div
+                                                                key={idx}
+                                                                onClick={() => isMulti ? handleMultiSelect(label) : handleAnswer(firstQ.displayNumber, label)}
+                                                                className="flex items-center gap-4 cursor-pointer group/item py-1"
+                                                            >
+                                                                <span className="font-bold text-gray-900 w-4 flex-shrink-0">{label}</span>
+                                                                <div className={`
+                                                                        w-6 h-6 flex items-center justify-center rounded border transition-all flex-shrink-0
+                                                                        ${isSelected ? "bg-cyan-600 border-cyan-600 text-white" : "bg-white border-gray-400 group-hover/item:border-cyan-500"}
+                                                                    `}>
+                                                                    {isSelected && <FaCheck size={12} />}
+                                                                </div>
+                                                                <div className={`
+                                                                        flex-1 text-[16px] transition-colors
+                                                                        ${isSelected ? "text-cyan-700 font-bold" : "text-gray-700 font-medium group-hover/item:text-black"}
+                                                                    `}>
+                                                                    {option.replace(/^[A-E]\.\s*/, '')}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+
+                                                    {!isMulti && firstQ.questionType !== "multiple-choice" && firstQ.questionType !== "matching" && (
+                                                        <div className="max-w-md mt-1">
+                                                            <input
+                                                                type="text"
+                                                                value={answers[firstQ.displayNumber] || ""}
+                                                                onChange={(e) => handleAnswer(firstQ.displayNumber, e.target.value)}
+                                                                placeholder="Write your answer..."
+                                                                className="w-full border-b border-gray-300 bg-transparent px-2 py-1 text-base focus:border-cyan-500 focus:outline-none transition-all"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    });
+                                })()}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -925,55 +925,57 @@ export default function ListeningExamPage() {
             </div>
 
             {/* Submit Modal */}
-            {showSubmitModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-gray-800">Submit Listening Test?</h3>
-                            <button onClick={() => setShowSubmitModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
-                                <FaTimes />
-                            </button>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-xl p-4 mb-5 border border-gray-100">
-                            <div className="flex justify-between mb-2">
-                                <span className="text-sm font-bold text-gray-500 uppercase tracking-wider">Progress</span>
-                                <span className="font-bold text-cyan-600 text-sm">{answeredCount} / {totalQuestions}</span>
+            {
+                showSubmitModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+                        <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-bold text-gray-800">Submit Listening Test?</h3>
+                                <button onClick={() => setShowSubmitModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                    <FaTimes />
+                                </button>
                             </div>
-                            <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-cyan-600 transition-all duration-700 ease-out"
-                                    style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
-                                ></div>
-                            </div>
-                        </div>
 
-                        {totalQuestions - answeredCount > 0 && (
-                            <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-5 text-center">
-                                <p className="text-amber-700 text-xs font-bold uppercase tracking-wider">
-                                    {totalQuestions - answeredCount} questions unanswered
-                                </p>
+                            <div className="bg-gray-50 rounded-xl p-4 mb-5 border border-gray-100">
+                                <div className="flex justify-between mb-2">
+                                    <span className="text-sm font-bold text-gray-500 uppercase tracking-wider">Progress</span>
+                                    <span className="font-bold text-cyan-600 text-sm">{answeredCount} / {totalQuestions}</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-cyan-600 transition-all duration-700 ease-out"
+                                        style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
+                                    ></div>
+                                </div>
                             </div>
-                        )}
 
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setShowSubmitModal(false)}
-                                className="flex-1 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 font-bold text-sm text-gray-600 transition-all"
-                            >
-                                Review
-                            </button>
-                            <button
-                                onClick={handleSubmit}
-                                disabled={isSubmitting}
-                                className="flex-1 py-2.5 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 font-bold text-sm shadow-lg shadow-cyan-200 transition-all disabled:opacity-70"
-                            >
-                                {isSubmitting ? "Submitting..." : "Submit Test"}
-                            </button>
+                            {totalQuestions - answeredCount > 0 && (
+                                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-5 text-center">
+                                    <p className="text-amber-700 text-xs font-bold uppercase tracking-wider">
+                                        {totalQuestions - answeredCount} questions unanswered
+                                    </p>
+                                </div>
+                            )}
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowSubmitModal(false)}
+                                    className="flex-1 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 font-bold text-sm text-gray-600 transition-all"
+                                >
+                                    Review
+                                </button>
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={isSubmitting}
+                                    className="flex-1 py-2.5 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 font-bold text-sm shadow-lg shadow-cyan-200 transition-all disabled:opacity-70"
+                                >
+                                    {isSubmitting ? "Submitting..." : "Submit Test"}
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </div >
     );
 }

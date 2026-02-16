@@ -27,6 +27,7 @@ export default function WritingExamPage() {
     const [showSubmitModal, setShowSubmitModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showInstructions, setShowInstructions] = useState(true);
+    const [imageZoomUrl, setImageZoomUrl] = useState(null);
 
 
     // Data loading states
@@ -442,7 +443,7 @@ export default function WritingExamPage() {
                                         <div className="flex items-center justify-between mb-2">
                                             <p className="text-gray-600 text-sm font-medium">📊 Reference Image:</p>
                                             <button
-                                                onClick={() => window.open(currentTaskData.imageUrl, '_blank')}
+                                                onClick={() => setImageZoomUrl(currentTaskData.imageUrl)}
                                                 className="text-xs text-green-600 hover:underline cursor-pointer"
                                             >
                                                 View Full Size ↗
@@ -454,7 +455,7 @@ export default function WritingExamPage() {
                                                 alt="Task reference - Map/Graph/Chart"
                                                 className="w-full rounded cursor-zoom-in hover:opacity-90 transition-opacity"
                                                 style={{ maxHeight: '400px', objectFit: 'contain' }}
-                                                onClick={() => window.open(currentTaskData.imageUrl, '_blank')}
+                                                onClick={() => setImageZoomUrl(currentTaskData.imageUrl)}
                                             />
                                         </div>
                                         <p className="text-gray-400 text-xs mt-2 text-center">
@@ -580,6 +581,28 @@ export default function WritingExamPage() {
                                 {isSubmitting ? "Submitting..." : "Submit"}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Image Zoom Modal - Opens in same page to avoid tab-switch violation */}
+            {imageZoomUrl && (
+                <div
+                    className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4"
+                    onClick={() => setImageZoomUrl(null)}
+                >
+                    <div className="relative max-w-[90vw] max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+                        <button
+                            onClick={() => setImageZoomUrl(null)}
+                            className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-800 hover:bg-red-500 hover:text-white transition-colors shadow-lg z-10 cursor-pointer"
+                        >
+                            <FaTimes size={14} />
+                        </button>
+                        <img
+                            src={imageZoomUrl}
+                            alt="Zoomed reference image"
+                            className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+                        />
                     </div>
                 </div>
             )}

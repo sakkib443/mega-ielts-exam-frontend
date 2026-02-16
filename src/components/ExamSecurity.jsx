@@ -74,11 +74,9 @@ export default function ExamSecurity({ examId, onViolationLimit = () => { } }) {
         }
     }, [violations, reportViolation, onViolationLimit]);
 
-    // Detect right-click
+    // Detect right-click - block context menu silently (no violation)
     const handleContextMenu = useCallback((e) => {
         e.preventDefault();
-        setWarningType("right-click");
-        setShowWarning(true);
         return false;
     }, []);
 
